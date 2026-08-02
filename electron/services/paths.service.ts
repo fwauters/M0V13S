@@ -52,3 +52,18 @@ export function getMigrationsDir(): string {
 export function getDriveRoot(): string {
   return driveRootOf(getAppRoot());
 }
+
+/** Dossier des binaires embarqués (`tools\` à côté de l'exe / du repo). */
+export function getToolsDir(): string {
+  return path.join(getAppRoot(), 'tools');
+}
+
+/** Chemin de ffprobe embarqué (déposé par le script prepare-tools). */
+export function getFfprobePath(): string {
+  return path.join(getToolsDir(), 'ffprobe.exe');
+}
+
+/** Chemin de VLC portable embarqué (lecture, phase 4). */
+export function getVlcPath(): string {
+  return path.join(getToolsDir(), 'vlc', 'vlc.exe');
+}

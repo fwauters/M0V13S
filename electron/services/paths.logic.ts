@@ -46,3 +46,29 @@ export function toDriveRelative(driveRoot: string, absolutePath: string): string
 export function fromDriveRelative(driveRoot: string, relativePath: string): string {
   return path.join(driveRoot, ...relativePath.split('/'));
 }
+
+/**
+ * Extensions vidéo reconnues par le scan (minuscules, avec le point).
+ * Liste volontairement large : tout format que VLC sait lire a sa place
+ * dans la bibliothèque.
+ */
+export const VIDEO_EXTENSIONS: ReadonlySet<string> = new Set([
+  '.mkv',
+  '.mp4',
+  '.m4v',
+  '.avi',
+  '.mov',
+  '.wmv',
+  '.ts',
+  '.m2ts',
+  '.webm',
+  '.mpg',
+  '.mpeg',
+  '.flv',
+  '.ogm',
+]);
+
+/** Vrai si le fichier a une extension vidéo reconnue (insensible à la casse). */
+export function isVideoFile(filePath: string): boolean {
+  return VIDEO_EXTENSIONS.has(path.extname(filePath).toLowerCase());
+}
