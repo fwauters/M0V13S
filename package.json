@@ -1,0 +1,31 @@
+{
+  "name": "m0v13s",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable, offline-first movie library manager and player for Windows",
+  "license": "MIT",
+  "author": "S13N",
+  "packageManager": "pnpm@10.5.1",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "//": "Les scripts seront ajoutés au fil de la phase 0 (dev, build, test, package, prepare-tools)."
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.1.2",
+    "concurrently": "^10.0.4",
+    "drizzle-kit": "^0.31.10",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.1",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8",
+    "wait-on": "^9.1.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "drizzle-orm": "^0.45.2"
+  }
+}
