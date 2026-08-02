@@ -124,6 +124,9 @@ tools\      binaires embarqués au packaging (vlc, ffprobe)
   stores à base de signaux. RxJS seulement quand un flux le justifie vraiment.
 - Composants standalone, control flow moderne (`@if`, `@for`), `inject()`
   plutôt que l'injection par constructeur, `ChangeDetectionStrategy.OnPush`.
+- **Imports au grain fin** : importer le composant/directive précis
+  (`MatIcon`, `MatButton`, `TranslocoDirective`…), jamais un module entier
+  (`MatIconModule`…) quand seul un élément est utilisé.
 - **Jamais d'appel de méthode directement dans un template** : précalculer via
   `computed()` (ou pipe pur si pertinent).
 - **Transloco : directive structurelle** `*transloco="let t"` → `t('clé')`,

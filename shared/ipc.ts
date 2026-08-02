@@ -2,11 +2,23 @@
  * CONTRAT IPC — source de vérité unique des échanges main <-> renderer.
  *
  * Règle d'or (CLAUDE.md) : toute nouvelle API IPC commence ICI.
- * 1. Déclarer le canal dans `IPC` et ses types de requête/réponse.
+ * 1. Déclarer le canal dans `IPC` et ses types de requête/réponse
+ *    (DTO dans shared/dto.ts).
  * 2. Implémenter le handler côté main (electron/ipc/*.ipc.ts).
  * 3. Exposer la méthode côté preload (electron/preload.ts).
  * Le renderer ne voit que `window.api`, jamais ipcRenderer directement.
  */
+import type {
+  AdminTableData,
+  AdminTableName,
+  ConformitySummary,
+  MovieDetail,
+  MovieListItem,
+  QualifyMovieInput,
+  ScanProgress,
+  ScanRelinkCandidate,
+  ScanResult,
+} from './dto';
 
 /** Noms des canaux IPC, groupés par domaine. */
 export const IPC = {
@@ -20,11 +32,40 @@ export const IPC = {
     /** Écriture d'une préférence d'UI. */
     set: 'settings:set',
   },
+  library: {
+    /** Scan rapide de conformité (lancement) — aucun import. */
+    checkConformity: 'library:check-conformity',
+    /** Liste des films affichables (présents ET reconnus). */
+    listMovies: 'library:list-movies',
+    /** Fiche détaillée d'un film. */
+    getMovie: 'library:get-movie',
+    /** Racines de bibliothèque (chemins relatifs au lecteur). */
+    getRoots: 'library:get-roots',
+    setRoots: 'library:set-roots',
+  },
+  scanner: {
+    /** Scan complet (mode Scanner) : nouveaux / manquants / renommés. */
+    scan: 'scanner:scan',
+    /** Événement de progression du scan (main -> renderer). */
+    progress: 'scanner:progress',
+    /** Annulation du scan en cours. */
+    cancel: 'scanner:cancel',
+    /** Qualification manuelle d'un nouveau fichier (création de fiche). */
+    qualify: 'scanner:qualify',
+    /** Re-lien d'un fichier renommé sur sa fiche existante. */
+    relink: 'scanner:relink',
+    /** Suppression d'une fiche (sur confirmation UI uniquement). */
+    deleteMedia: 'scanner:delete-media',
+  },
+  admin: {
+    /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
+    readTable: 'admin:read-table',
+  },
 } as const;
 
 /**
  * Clés de réglage accessibles au RENDERER (préférences d'interface).
- * Les clés sensibles (clé TMDB, hash admin, racines) restent côté main
+ * Les clés sensibles (clé TMDB, hash admin) restent côté main
  * et ne transitent que par des canaux dédiés et contrôlés.
  */
 export type UiSettingKey = 'ui.theme' | 'ui.lang';
@@ -56,5 +97,24 @@ export interface WindowApi {
     get(key: UiSettingKey): Promise<string | null>;
     /** Persiste une préférence d'UI. */
     set(key: UiSettingKey, value: string): Promise<void>;
+  };
+  library: {
+    checkConformity(): Promise<ConformitySummary>;
+    listMovies(): Promise<MovieListItem[]>;
+    getMovie(id: number): Promise<MovieDetail | null>;
+    getRoots(): Promise<string[]>;
+    setRoots(roots: string[]): Promise<void>;
+  };
+  scanner: {
+    scan(): Promise<ScanResult>;
+    /** S'abonne à la progression du scan ; retourne la désinscription. */
+    onProgress(listener: (progress: ScanProgress) => void): () => void;
+    cancel(): Promise<void>;
+    qualify(input: QualifyMovieInput): Promise<number>;
+    relink(candidate: ScanRelinkCandidate): Promise<void>;
+    deleteMedia(mediaId: number): Promise<void>;
+  };
+  admin: {
+    readTable(table: AdminTableName): Promise<AdminTableData>;
   };
 }

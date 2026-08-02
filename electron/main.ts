@@ -8,9 +8,14 @@ import { BrowserWindow, app } from 'electron';
 import path from 'node:path';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
+import { registerLibraryIpc } from './ipc/library.ipc';
 import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
+import { AdminTablesService } from './services/admin-tables.service';
+import { ConformityService } from './services/conformity.service';
+import { LibraryService } from './services/library.service';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
+import { ScannerService } from './services/scanner.service';
 import { SettingsService } from './services/settings.service';
 
 /** URL du serveur de dev Angular (ng serve) — utilisée hors packaging. */
@@ -62,7 +67,24 @@ app.whenReady().then(() => {
 
   const db = dbHandle?.db ?? null;
   registerSystemIpc(db);
-  registerSettingsIpc(db ? new SettingsService(db) : null);
+
+  // Les services métier ne sont instanciés que si la DB est ouverte ;
+  // les handlers IPC gèrent explicitement le cas dégradé (null).
+  if (db !== null) {
+    const settingsService = new SettingsService(db);
+    registerSettingsIpc(settingsService);
+    registerLibraryIpc({
+      settings: settingsService,
+      conformity: new ConformityService(db, settingsService),
+      library: new LibraryService(db),
+      scanner: new ScannerService(db, settingsService),
+      adminTables: new AdminTablesService(db),
+    });
+  } else {
+    registerSettingsIpc(null);
+    registerLibraryIpc(null);
+  }
+
   createWindow();
 });
 
