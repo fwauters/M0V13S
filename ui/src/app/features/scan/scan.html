@@ -1,0 +1,177 @@
+<!-- Mode Scanner : racines -> scan -> re-liens / manquants / qualification. -->
+<ng-container *transloco="let t">
+  <div class="flex grow flex-col gap-8 p-8">
+    <h1 class="text-2xl font-medium">{{ t('scan.title') }}</h1>
+
+    <!-- 1. Racines de bibliothèque (chemins RELATIFS au lecteur). -->
+    <section class="flex max-w-2xl flex-col gap-3">
+      <h2 class="text-lg font-medium">{{ t('scan.rootsTitle') }}</h2>
+      <p class="text-sm opacity-70">{{ t('scan.rootsHint') }}</p>
+
+      @for (root of roots(); track root) {
+        <div class="flex items-center gap-2 rounded-lg border border-black/10 px-3 py-1 dark:border-white/10">
+          <span class="grow font-mono text-sm">{{ root }}</span>
+          <button matIconButton (click)="removeRoot(root)" [attr.aria-label]="t('common.remove')">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+
+      <div class="flex items-end gap-2">
+        <mat-form-field class="grow" subscriptSizing="dynamic">
+          <mat-label>{{ t('scan.rootPlaceholder') }}</mat-label>
+          <input matInput [(ngModel)]="rootDraft" (keydown.enter)="addRoot()" />
+        </mat-form-field>
+        <button matButton (click)="addRoot()">{{ t('scan.addRoot') }}</button>
+      </div>
+    </section>
+
+    <!-- 2. Lancement du scan + progression + annulation. -->
+    <section class="flex max-w-2xl flex-col gap-3">
+      <div class="flex items-center gap-3">
+        <button matButton="filled" [disabled]="scanning() || roots().length === 0" (click)="startScan()">
+          {{ t('scan.start') }}
+        </button>
+        @if (scanning()) {
+          <button matButton (click)="cancelScan()">{{ t('common.cancel') }}</button>
+        }
+      </div>
+
+      @if (scanning()) {
+        <mat-progress-bar mode="determinate" [value]="progressPercent()" />
+        @if (progress(); as p) {
+          <p class="text-sm opacity-70">
+            {{ t('scan.scanning', { done: p.done, total: p.total, current: p.current }) }}
+          </p>
+        }
+      }
+    </section>
+
+    @if (result(); as r) {
+      <!-- 3a. Re-liens probables (renommages détectés). -->
+      @if (r.relinkCandidates.length > 0) {
+        <section class="flex max-w-3xl flex-col gap-3">
+          <h2 class="text-lg font-medium">{{ t('scan.relinkTitle') }}</h2>
+          @for (candidate of r.relinkCandidates; track candidate.videoFileId) {
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+              <span class="font-medium">{{ candidate.mediaTitle }}</span>
+              <span class="font-mono opacity-70">{{ candidate.oldRelPath }}</span>
+              <mat-icon inline>arrow_forward</mat-icon>
+              <span class="font-mono">{{ candidate.newRelPath }}</span>
+              <span class="grow"></span>
+              <button matButton (click)="acceptRelink(candidate)">{{ t('scan.relinkAction') }}</button>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- 3b. Fiches dont le fichier a disparu (suppression confirmée). -->
+      @if (r.missingFiles.length > 0) {
+        <section class="flex max-w-3xl flex-col gap-3">
+          <h2 class="text-lg font-medium">{{ t('scan.missingTitle') }}</h2>
+          <p class="text-sm opacity-70">{{ t('scan.missingHint') }}</p>
+          @for (missing of r.missingFiles; track missing.videoFileId) {
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+              <span class="font-medium">{{ missing.mediaTitle }}</span>
+              <span class="font-mono opacity-70">{{ missing.relPath }}</span>
+              <span class="grow"></span>
+              <button matButton (click)="confirmDelete(missing)">{{ t('scan.deleteAction') }}</button>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- 3c. Séries détectées : signalées, non gérées en v1. -->
+      @if (episodeFiles().length > 0) {
+        <section class="flex max-w-3xl flex-col gap-2">
+          <h2 class="text-lg font-medium">{{ t('scan.seriesTitle') }}</h2>
+          <p class="text-sm opacity-70">{{ t('scan.seriesHint') }}</p>
+          @for (file of episodeFiles(); track file.relPath) {
+            <span class="font-mono text-sm opacity-60">{{ file.relPath }}</span>
+          }
+        </section>
+      }
+
+      <!-- 4. Assistant de qualification, un fichier à la fois. -->
+      @if (currentFile(); as file) {
+        <section class="flex max-w-3xl flex-col gap-4">
+          <h2 class="text-lg font-medium">
+            {{ t('scan.newTitle') }} —
+            {{ t('scan.fileOf', { index: currentIndex() + 1, total: filmFiles().length }) }}
+          </h2>
+
+          <!-- Identité disque + infos techniques (ffprobe). -->
+          <div class="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+            <p class="font-mono">{{ file.relPath }}</p>
+            @if (file.tech; as tech) {
+              <p class="mt-1 opacity-70">
+                @if (tech.durationSec | minutes; as min) {
+                  {{ t('scan.techDuration', { min }) }} ·
+                }
+                @if (tech.videoCodec !== null) {
+                  {{ tech.videoCodec }}
+                }
+                @if (tech.audioCodec !== null) {
+                  / {{ tech.audioCodec }}
+                }
+                @if (tech.width !== null && tech.height !== null) {
+                  · {{ tech.width }}×{{ tech.height }}
+                }
+              </p>
+            } @else {
+              <p class="mt-1 text-amber-600 dark:text-amber-400">{{ t('scan.noTech') }}</p>
+            }
+          </div>
+
+          <!-- Formulaire de fiche (Material — préremplissage : nom de fichier). -->
+          <div class="grid gap-3 sm:grid-cols-2">
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
+              <input matInput required [(ngModel)]="draft.titleVo" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.titleVf') }}</mat-label>
+              <input matInput [(ngModel)]="draft.titleVf" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.year') }}</mat-label>
+              <input matInput type="number" [(ngModel)]="draft.year" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.rating') }}</mat-label>
+              <input matInput type="number" min="0" max="10" [(ngModel)]="draft.personalRating" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.overview') }}</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="draft.overview"></textarea>
+          </mat-form-field>
+
+          <!-- Listes en chips (Entrée ou virgule pour ajouter). -->
+          <p class="text-sm opacity-70">{{ t('scan.chipsHint') }}</p>
+          <div class="grid gap-1 sm:grid-cols-2">
+            <app-chips-input [label]="t('scan.form.directors')" [(values)]="draft.directors" />
+            <app-chips-input [label]="t('scan.form.writers')" [(values)]="draft.writers" />
+            <app-chips-input [label]="t('scan.form.actors')" [(values)]="draft.actors" />
+            <app-chips-input [label]="t('scan.form.genres')" [(values)]="draft.genres" />
+          </div>
+          <app-chips-input [label]="t('scan.form.tags')" [(values)]="draft.tags" />
+
+          <div class="flex gap-3">
+            <button matButton="filled" [disabled]="saving()" (click)="saveCurrent()">
+              {{ t('scan.form.save') }}
+            </button>
+            <button matButton [disabled]="saving()" (click)="skipCurrent()">
+              {{ t('scan.form.skip') }}
+            </button>
+          </div>
+        </section>
+      } @else if (filmFiles().length === 0 && r.relinkCandidates.length === 0 && r.missingFiles.length === 0) {
+        <p class="opacity-70">{{ t('scan.noNewFiles') }}</p>
+      } @else if (filmFiles().length > 0) {
+        <p class="font-medium text-green-700 dark:text-green-400">{{ t('scan.done') }}</p>
+      }
+    }
+  </div>
+</ng-container>

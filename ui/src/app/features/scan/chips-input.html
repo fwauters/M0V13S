@@ -1,0 +1,19 @@
+<!-- Champ chips réutilisable (ajout : Entrée/virgule ; retrait : croix). -->
+<mat-form-field class="w-full">
+  <mat-label>{{ label() }}</mat-label>
+  <mat-chip-grid #grid [attr.aria-label]="label()">
+    @for (value of values(); track value) {
+      <mat-chip-row (removed)="remove(value)">
+        {{ value }}
+        <button matChipRemove [attr.aria-label]="'× ' + value">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    }
+    <input
+      [matChipInputFor]="grid"
+      [matChipInputSeparatorKeyCodes]="separatorKeys"
+      (matChipInputTokenEnd)="add($event)"
+    />
+  </mat-chip-grid>
+</mat-form-field>
