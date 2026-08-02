@@ -1,0 +1,21 @@
+# --- Dépendances ---
+node_modules/
+
+# --- Builds & sorties ---
+dist/
+out/
+.angular/
+
+# --- Binaires tiers embarqués ---
+# VLC portable et ffprobe sont téléchargés par le script prepare-tools
+# au moment du packaging : jamais commités (voir README, section tierces).
+tools/
+
+# --- Données locales de l'app ---
+# DB SQLite, cache de miniatures, réglages (dont la clé API TMDB) :
+# appartiennent au disque de l'utilisateur, jamais commités.
+data/
+
+# --- Divers ---
+*.log
+.env
