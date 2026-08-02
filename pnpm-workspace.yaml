@@ -1,0 +1,22 @@
+# Workspace pnpm de M0V13S.
+# - La racine porte le backend Electron (main process), les scripts et le packaging.
+# - `ui` est le workspace Angular (frontend).
+packages:
+  - ui
+
+# pnpm 10 bloque par défaut les scripts postinstall des dépendances.
+# On n'autorise que celles qui en ont réellement besoin :
+# - electron : télécharge son binaire à l'installation
+# - esbuild : installe son binaire natif
+# - @parcel/watcher, lmdb, msgpackr-extract : natifs utilisés par le
+#   watch/cache du build Angular (dégradé sans eux)
+# NB : better-sqlite3 v13 est volontairement ABSENT de cette liste : c'est un
+# module N-API qui embarque ses binaires précompilés (Node ET Electron) —
+# le `node-gyp rebuild` auto-déclenché par pnpm est inutile et exigerait la
+# toolchain Visual Studio. On saute donc son build.
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+  - "@parcel/watcher"
+  - lmdb
+  - msgpackr-extract

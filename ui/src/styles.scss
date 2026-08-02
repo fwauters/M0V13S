@@ -1,0 +1,34 @@
+// Styles globaux M0V13S — thème Angular Material (Material 3).
+//
+// Stratégie de thème (voir CLAUDE.md « Thèmes ») :
+// - `theme-type: color-scheme` fait émettre toutes les couleurs M3 en
+//   `light-dark()` : c'est la propriété CSS `color-scheme` de <html> qui
+//   décide du rendu clair ou sombre.
+// - Par défaut `color-scheme: light dark` → l'app suit le thème du système.
+// - Le ThemeService force `light` ou `dark` (style inline sur <html>) quand
+//   l'utilisateur choisit explicitement, et pose en parallèle la classe
+//   `.dark` pour la variante `dark:` de Tailwind (voir tailwind.css).
+@use '@angular/material' as mat;
+
+html {
+  // Suit le système tant que l'utilisateur n'a pas choisi explicitement.
+  color-scheme: light dark;
+
+  @include mat.theme((
+    color: (
+      theme-type: color-scheme,
+      primary: mat.$azure-palette,
+      tertiary: mat.$violet-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  margin: 0;
+  // Tokens système M3 : suivent automatiquement le thème actif.
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}

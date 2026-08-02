@@ -9,30 +9,32 @@
 
 *Critère de sortie : l'exe tourne depuis une clé USB sur une autre machine, hors ligne.*
 
-- [ ] **0.1** Structure du workspace : `package.json` racine (pnpm), dossiers
+- [x] **0.1** Structure du workspace : `package.json` racine (pnpm), dossiers
   `electron\` / `ui\` / `shared\` / `scripts\`, TypeScript strict partagé.
-- [ ] **0.2** Workspace Angular 22 dans `ui\` (standalone, signals) + Tailwind v4.
-- [ ] **0.3** Angular Material : thème M3 light/dark de base (tokens), Roboto et
+- [x] **0.2** Workspace Angular 22 dans `ui\` (standalone, signals) + Tailwind v4.
+- [x] **0.3** Angular Material : thème M3 light/dark de base (tokens), Roboto et
   icônes bundlées en local, cohabitation preflight Tailwind ↔ Material réglée.
-- [ ] **0.4** Transloco : squelette `fr.json` / `en.json`, service de langue,
+- [x] **0.4** Transloco : squelette `fr.json` / `en.json`, service de langue,
   changement à chaud (persistance branchée plus tard sur `settings`).
-- [ ] **0.5** Process main Electron (TS) : fenêtre, chargement UI dev
+- [x] **0.5** Process main Electron (TS) : fenêtre, chargement UI dev
   (localhost + hot reload) / prod (`file://`), scripts `pnpm dev`.
-- [ ] **0.6** IPC typé de bout en bout : contrat dans `shared\`, preload
+- [x] **0.6** IPC typé de bout en bout : contrat dans `shared\`, preload
   `contextBridge`, `window.api`, appel de démonstration (ping/pong).
-- [ ] **0.7** SQLite branché : better-sqlite3 (rebuild natif Electron) + Drizzle,
-  `paths.service` v1 (résolution exe → `data\` en dev et en prod), DB créée à
-  côté de l'exe, première migration.
-- [ ] **0.8** Socle de tests Vitest (electron + ui) : premiers tests
+- [x] **0.7** SQLite branché : better-sqlite3 (N-API, aucun rebuild natif
+  nécessaire) + Drizzle, `paths.service` v1 (résolution exe → `data\` en dev
+  et en prod), DB créée à côté de l'exe, première migration.
+- [x] **0.8** Socle de tests Vitest (electron + ui) : premiers tests
   `paths.service` + test de complétude i18n.
-- [ ] **0.9** Script `prepare-tools` : téléchargement de VLC portable + ffprobe
-  dans `tools\` (jamais commités).
-- [ ] **0.10** Packaging portable (electron-builder) : build « dossier » copiable,
-  vérification locale depuis un autre emplacement disque.
-- [ ] **0.11** ✅ **Test de portabilité réel** : copie sur disque externe,
-  lancement sur une machine B **hors ligne** (test fait par l'utilisateur).
-- [ ] **0.12** Fin de phase : `pnpm outdated` / `audit`, section « Commandes » de
-  `CLAUDE.md` remplie, docs à jour, commit + push.
+- [x] **0.9** Script `prepare-tools` : téléchargement de VLC portable + ffprobe
+  dans `tools\` (jamais commités) — validé en réel pour ffprobe.
+- [x] **0.10** Packaging portable (electron-builder) : build « dossier » copiable,
+  vérification locale depuis un autre emplacement disque — exe + DB + migrations
+  validés (voir docs/initialisation/phase_0.md pour le piège ELECTRON_RUN_AS_NODE).
+- [x] **0.11** ✅ **Test de portabilité réel** : copie sur disque externe,
+  lancement sur une machine B **hors ligne** — **validé par l'utilisateur**
+  (fenêtre, thèmes/langues, ping DB OK, data\ créé à côté de l'exe).
+- [x] **0.12** Fin de phase : section « Commandes » de `CLAUDE.md` remplie,
+  docs à jour, rapport de phase écrit, PR `phase-0` ouverte.
 
 ## Phase 1 — Bibliothèque locale & conformité
 

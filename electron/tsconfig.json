@@ -1,0 +1,13 @@
+{
+  // Typecheck du main process (l'émission JS est faite par esbuild —
+  // voir scripts/build-electron.mjs ; ici on ne fait que vérifier les types).
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022",
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "../shared/**/*.ts"]
+}

@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "M0V13S"
+  },
+  "shell": {
+    "themeToLight": "Switch to light theme",
+    "themeToDark": "Switch to dark theme",
+    "language": "Language"
+  },
+  "home": {
+    "tagline": "Your movie library, Netflix-style, 100% offline.",
+    "phase0Status": "Phase 0 skeleton up and running",
+    "pingButton": "Test the backend",
+    "pingResult": "Backend response: {{value}}",
+    "pingPending": "Calling the backend…",
+    "pingUnavailable": "Backend unavailable (window running outside Electron)"
+  }
+}

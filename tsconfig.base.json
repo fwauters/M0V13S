@@ -1,0 +1,28 @@
+{
+  // Configuration TypeScript STRICTE partagée par tout le projet.
+  // Chaque zone (electron/, shared/, scripts/, ui/) étend ce fichier :
+  // une seule source de vérité pour le niveau d'exigence du typage.
+  "compilerOptions": {
+    // Rigueur maximale : la règle CLAUDE.md interdit le `any` non justifié.
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Interop moderne.
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    // Alias vers le contrat partagé main <-> renderer.
+    // `shared/` est la source de vérité des types IPC et des DTO.
+    // NB : pas de `baseUrl` (déprécié par TypeScript 6) — les chemins sont
+    // relatifs à CE fichier, donc à la racine du repo.
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}

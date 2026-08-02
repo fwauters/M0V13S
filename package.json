@@ -1,0 +1,43 @@
+{
+  "name": "m0v13s",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable, offline-first movie library manager and player for Windows",
+  "license": "MIT",
+  "author": "S13N",
+  "packageManager": "pnpm@10.5.1",
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k -n ui,main,app \"pnpm --filter ui start\" \"node scripts/build-electron.mjs --watch\" \"pnpm dev:electron\"",
+    "dev:electron": "wait-on tcp:127.0.0.1:4200 file:dist-electron/main.cjs && electron .",
+    "build": "pnpm build:ui && pnpm build:electron",
+    "build:ui": "pnpm --filter ui exec ng build",
+    "build:electron": "node scripts/build-electron.mjs",
+    "typecheck": "tsc -p electron/tsconfig.json",
+    "test": "vitest run",
+    "test:ui": "pnpm --filter ui exec ng test --watch false",
+    "test:all": "pnpm test && pnpm test:ui",
+    "db:generate": "drizzle-kit generate",
+    "package": "pnpm build && electron-builder --win dir",
+    "prepare-tools": "node scripts/prepare-tools.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "drizzle-orm": "^0.45.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.1.2",
+    "concurrently": "^10.0.4",
+    "drizzle-kit": "^0.31.10",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.1",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8",
+    "wait-on": "^9.1.0"
+  }
+}

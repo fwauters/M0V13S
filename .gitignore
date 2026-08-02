@@ -3,6 +3,8 @@ node_modules/
 
 # --- Builds & sorties ---
 dist/
+dist-electron/
+release/
 out/
 .angular/
 

@@ -173,15 +173,31 @@ tools\      binaires embarqués au packaging (vlc, ffprobe)
 
 ## Commandes
 
-À compléter en phase 0 dès que le squelette existe (dev, build, package,
-test, migrations). Garder cette section à jour à chaque nouveau script.
+Prérequis : Node ≥ 22.22.3 (`nvm use 22.23.2`), pnpm 10.
+
+| Commande | Rôle |
+|---|---|
+| `pnpm dev` | Dev complet : ng serve + esbuild watch (main/preload) + Electron sur localhost:4200 |
+| `pnpm build` | Build prod : UI Angular + bundles Electron |
+| `pnpm package` | Build + packaging portable → `release\win-unpacked` (dossier à copier sur le disque) |
+| `pnpm test` | Tests backend + transverses (Vitest) — inclut la complétude i18n |
+| `pnpm test:ui` | Tests UI Angular (Vitest via ng test) |
+| `pnpm test:all` | Les deux suites |
+| `pnpm typecheck` | Typecheck strict du main process (tsc) |
+| `pnpm db:generate` | Génère une migration Drizzle après changement de `electron\db\schema.ts` |
+| `pnpm prepare-tools` | Télécharge ffprobe + VLC portable dans `tools\` (`--only=ffprobe` ou `--only=vlc`) |
+
+Pièges connus : tester un exe Electron depuis un terminal VS Code exige de
+retirer `ELECTRON_RUN_AS_NODE` (hérité de l'hôte d'extension — sinon l'exe
+quitte immédiatement en mode Node pur). better-sqlite3 v13 = N-API prebuilds,
+ne JAMAIS l'ajouter à `onlyBuiltDependencies` (le node-gyp auto échouerait).
 
 ## État d'avancement — à mettre à jour à chaque étape franchie
 
 Détail étape par étape dans `TODO.md` (doc vivante, une étape validée par
 l'utilisateur à la fois avant exécution, cochée une fois livrée).
 
-- [ ] Phase 0 — Squelette portable (critère : exe depuis clé USB sur une autre machine, hors ligne)
+- [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
 - [ ] Phase 1 — Bibliothèque locale & conformité
 - [ ] Phase 2 — Sidecars & enrichissement TMDB
 - [ ] Phase 3 — UI « Netflix »

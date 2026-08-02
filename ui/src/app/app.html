@@ -1,0 +1,59 @@
+<!--
+  Shell de démonstration de la phase 0.
+  Prouve les piliers du socle UI : *transloco (directive, jamais le pipe),
+  thème light/dark commuté à chaud, composants Material et utilitaires
+  Tailwind côte à côte.
+-->
+<ng-container *transloco="let t">
+  <div class="flex min-h-screen flex-col">
+    <!-- Header permanent : wordmark + langue + thème. -->
+    <header class="flex items-center gap-4 border-b border-black/10 px-6 py-3 dark:border-white/10">
+      <!-- Wordmark provisoire : la police définitive (chiffres différenciés
+           des lettres) sera choisie visuellement en phase 3 (TODO 3.5). -->
+      <span class="font-mono text-xl font-bold tracking-widest">M0V13S</span>
+
+      <span class="grow"></span>
+
+      <!-- Sélecteur de langue : changement à chaud via LanguageService. -->
+      <mat-button-toggle-group
+        hideSingleSelectionIndicator
+        [attr.aria-label]="t('shell.language')"
+        [value]="language.lang()"
+        (change)="onLangChange($event.value)"
+      >
+        @for (lang of language.availableLangs; track lang) {
+          <mat-button-toggle [value]="lang">{{ lang | uppercase }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+
+      <!-- Interrupteur de thème : un seul signal pilote Material + Tailwind. -->
+      <button
+        matIconButton
+        [attr.aria-label]="theme.theme() === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')"
+        (click)="theme.toggle()"
+      >
+        <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+    </header>
+
+    <!-- Contenu provisoire : remplacé par le routing des features en phase 1. -->
+    <main class="flex grow flex-col items-center justify-center gap-6 p-8 text-center">
+      <h1 class="text-3xl font-medium">{{ t('home.tagline') }}</h1>
+      <p class="text-sm opacity-70">{{ t('home.phase0Status') }}</p>
+
+      <!-- Démonstration IPC : l'aller-retour complet UI -> main -> SQLite. -->
+      <section class="flex flex-col items-center gap-3">
+        <button matButton="filled" [disabled]="pingPending()" (click)="onPing()">
+          {{ t('home.pingButton') }}
+        </button>
+        @if (pingPending()) {
+          <p class="text-sm opacity-70">{{ t('home.pingPending') }}</p>
+        } @else if (pingUnavailable()) {
+          <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('home.pingUnavailable') }}</p>
+        } @else if (pingSummary(); as summary) {
+          <p class="text-sm">{{ t('home.pingResult', { value: summary }) }}</p>
+        }
+      </section>
+    </main>
+  </div>
+</ng-container>
