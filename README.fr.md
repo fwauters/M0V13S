@@ -64,15 +64,20 @@ API TMDB · VLC portable · ffprobe · pnpm
 
 ## Développement
 
-Prérequis : Node.js ≥ 20, pnpm.
+Prérequis : Node.js ≥ 22.22.3, pnpm 10.
 
 ```
-# Les commandes seront documentées ici dès que le squelette existera (phase 0) :
-# dev, test, build, package, prepare-tools (télécharge VLC portable + ffprobe)
+pnpm install          # installe les dépendances du workspace
+pnpm dev              # ng serve + Electron avec rechargement à chaud
+pnpm test:all         # suites backend + UI (complétude i18n incluse)
+pnpm build            # build de production (Angular + bundles Electron)
+pnpm package          # build portable → release\win-unpacked (à copier sur le disque)
+pnpm prepare-tools    # télécharge ffprobe + VLC portable dans tools\
 ```
 
 Les binaires tiers (VLC, ffprobe) ne font **pas** partie de ce dépôt — le
-script `prepare-tools` les récupère au moment du packaging.
+script `prepare-tools` les récupère au moment du packaging. Les rapports de
+phase sont dans `docs/initialisation/`.
 
 ## Mentions tierces
 

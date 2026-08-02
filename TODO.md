@@ -27,12 +27,14 @@
   `paths.service` + test de complétude i18n.
 - [x] **0.9** Script `prepare-tools` : téléchargement de VLC portable + ffprobe
   dans `tools\` (jamais commités) — validé en réel pour ffprobe.
-- [ ] **0.10** Packaging portable (electron-builder) : build « dossier » copiable,
-  vérification locale depuis un autre emplacement disque.
+- [x] **0.10** Packaging portable (electron-builder) : build « dossier » copiable,
+  vérification locale depuis un autre emplacement disque — exe + DB + migrations
+  validés (voir docs/initialisation/phase_0.md pour le piège ELECTRON_RUN_AS_NODE).
 - [ ] **0.11** ✅ **Test de portabilité réel** : copie sur disque externe,
-  lancement sur une machine B **hors ligne** (test fait par l'utilisateur).
-- [ ] **0.12** Fin de phase : `pnpm outdated` / `audit`, section « Commandes » de
-  `CLAUDE.md` remplie, docs à jour, commit + push.
+  lancement sur une machine B **hors ligne** (test fait par l'utilisateur —
+  procédure dans docs/initialisation/phase_0.md § 0.11).
+- [x] **0.12** Fin de phase : section « Commandes » de `CLAUDE.md` remplie,
+  docs à jour, rapport de phase écrit, PR `phase-0` ouverte.
 
 ## Phase 1 — Bibliothèque locale & conformité
 

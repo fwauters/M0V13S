@@ -4,9 +4,11 @@
 > `phase_5.md`), écrit à la fin de chaque phase. Celui-ci est mis à jour au
 > fil de la phase (documentation anti-crash), statut ci-dessous.
 
-**Statut : EN COURS** — étapes 0.1 → 0.9 livrées et committées ;
-0.10 (packaging) en cours ; 0.11 (test machine B) à faire par l'utilisateur ;
-0.12 (docs + PR) à suivre.
+**Statut : LIVRÉE** — étapes 0.1 → 0.10 et 0.12 faites et committées (un
+commit par étape, branche `phase-0`, PR vers `main`). **Reste 0.11** : le
+test réel sur une seconde machine hors ligne, à faire par l'utilisateur
+(instructions en fin de rapport) — c'est le critère de sortie officiel de
+la phase.
 
 ## Objectif de la phase
 
@@ -100,12 +102,65 @@ typé, SQLite, packaging).
   VLC sera téléchargé au moment utile (phase 4) — inutile d'alourdir le
   disque maintenant.
 
-### 0.10 — Packaging portable — EN COURS
-### 0.11 — Test machine B — À FAIRE PAR L'UTILISATEUR
-### 0.12 — Docs + PR — À VENIR
+### 0.10 — Packaging portable (commit `be5d8e7`)
+- electron-builder, cible **dossier** (`release\win-unpacked`) : c'est LE
+  format portable — on copie le dossier sur le disque externe, point.
+  (Un zip de distribution viendra avec la release, phase 5.)
+- Validé en réel : dossier copié à un autre emplacement → fenêtre ouverte,
+  `data\library.db` créée **à côté de l'exe**, tables `settings` +
+  `__drizzle_migrations` présentes (migrations lues dans
+  `resources\migrations`), asar actif, aucun rebuild natif.
 
-## Prérequis développeur (nouveau)
+#### L'enquête du crash silencieux (à connaître absolument)
+L'exe packagé quittait instantanément : aucune fenêtre, aucun log, aucun
+dialogue, pas de dossier userData. Fausses pistes explorées et innocentées
+une à une : contrôle d'intégrité asar (désactivé pour test → toujours mort),
+module natif better-sqlite3 (app témoin sous electron.exe brut → charge et
+fonctionne parfaitement). Vraie cause, trouvée en instrumentant le main
+packagé : **`ELECTRON_RUN_AS_NODE=1` hérité de l'hôte d'extension VS Code**
+(qui exécute nos shells). Avec cette variable, tout exe Electron démarre en
+mode Node pur : pas d'API Electron, pas de fenêtre — et l'app « meurt »
+silencieusement. Sans la variable, tout fonctionne.
+**Règle pratique** : pour tester un exe Electron depuis un terminal ouvert
+par VS Code, faire `Remove-Item Env:\ELECTRON_RUN_AS_NODE` d'abord. Un
+lancement normal (double-clic Explorateur) n'est pas concerné.
+Bénéfice collatéral de l'enquête : better-sqlite3 v13 est formellement
+validé sous Electron 43 sans rebuild.
+
+### 0.11 — Test machine B — **À FAIRE PAR L'UTILISATEUR**
+Critère de sortie de la phase. Procédure :
+1. `pnpm package` (ou reprendre `release\win-unpacked` existant).
+2. Copier le dossier `win-unpacked` sur le disque externe / la clé USB
+   (le renommer `M0V13S` si souhaité).
+3. Sur une **autre machine Windows, hors ligne** : double-cliquer
+   `M0V13S.exe`.
+4. Attendu : la fenêtre s'ouvre ; bascule de thème et de langue OK ;
+   bouton « Tester le backend » → versions affichées et **DB OK** ;
+   un dossier `data\` apparaît à côté de l'exe.
+5. Cocher 0.11 dans TODO.md et merger la PR `phase-0`.
+
+### 0.12 — Docs + PR (ce commit)
+- CLAUDE.md : section « Commandes » remplie, prérequis dev.
+- README / README.fr : section développement réelle.
+- Ce rapport ; PR `phase-0` → `main` ouverte.
+
+## Prérequis développeur
 
 - Node **≥ 22.22.3** (exigence Angular CLI 22.1). La version 22.23.2 est
   installée dans nvm : `nvm use 22.23.2`.
 - pnpm 10.
+- Test d'un exe Electron depuis un terminal VS Code : retirer
+  `ELECTRON_RUN_AS_NODE` (voir 0.10).
+
+## Écarts au plan / décisions prises en route
+
+- **Aucun rebuild natif nécessaire** (meilleur que prévu) : better-sqlite3
+  v13 est N-API avec binaires embarqués — le risque « rebuild Electron »
+  du PLAN § 8 disparaît ; la liste blanche pnpm exclut volontairement son
+  build auto (`node-gyp` inutile).
+- **Node monté en 22.23.2** (déposé dans nvm), exigence Angular CLI 22.1 ;
+  `engines.node` verrouillé en conséquence.
+- **VLC non téléchargé en phase 0** (inutile avant la phase 4) : le script
+  `prepare-tools` le gère, validé en réel pour ffprobe.
+- Persistance thème/langue en localStorage **temporaire**, migration vers
+  la table `settings` planifiée en phase 1 (TODO marqués dans le code).
