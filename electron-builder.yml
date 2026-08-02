@@ -1,0 +1,35 @@
+# Packaging Electron (electron-builder).
+#
+# Cible « dir » : un dossier autonome (release\win-unpacked) que l'on copie
+# tel quel sur le disque externe — c'est LE format portable du projet
+# (PLAN § 3). Les données (data\) sont créées à côté de l'exe au premier
+# lancement ; remplacer le dossier de l'app n'y touche jamais.
+appId: com.s13n.m0v13s
+productName: M0V13S
+
+directories:
+  output: release
+
+# NB pour tester l'exe depuis un shell lancé par VS Code : retirer la
+# variable d'environnement ELECTRON_RUN_AS_NODE (héritée de l'hôte
+# d'extension), sinon l'app démarre en mode Node pur et quitte aussitôt.
+# Piège documenté dans docs/initialisation/phase_0.md (étape 0.10).
+
+files:
+  # Backend bundlé (main + preload).
+  - dist-electron/**
+  # UI Angular buildée, embarquée sous app/ui (chargée en file://).
+  - from: ui/dist/ui/browser
+    to: ui
+
+extraResources:
+  # Migrations SQL Drizzle, appliquées au démarrage (voir paths.service).
+  - from: electron/db/migrations
+    to: migrations
+
+win:
+  target: dir
+
+# better-sqlite3 v13 est N-API avec binaires embarqués : aucun rebuild natif
+# n'est nécessaire au packaging.
+npmRebuild: false
