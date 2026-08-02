@@ -12,6 +12,7 @@
     "phase0Status": "Squelette de la phase 0 opérationnel",
     "pingButton": "Tester le backend",
     "pingResult": "Réponse du backend : {{value}}",
-    "pingPending": "Appel du backend en cours…"
+    "pingPending": "Appel du backend en cours…",
+    "pingUnavailable": "Backend indisponible (fenêtre ouverte hors Electron)"
   }
 }

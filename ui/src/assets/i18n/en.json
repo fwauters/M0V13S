@@ -12,6 +12,7 @@
     "phase0Status": "Phase 0 skeleton up and running",
     "pingButton": "Test the backend",
     "pingResult": "Backend response: {{value}}",
-    "pingPending": "Calling the backend…"
+    "pingPending": "Calling the backend…",
+    "pingUnavailable": "Backend unavailable (window running outside Electron)"
   }
 }

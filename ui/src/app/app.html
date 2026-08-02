@@ -40,6 +40,20 @@
     <main class="flex grow flex-col items-center justify-center gap-6 p-8 text-center">
       <h1 class="text-3xl font-medium">{{ t('home.tagline') }}</h1>
       <p class="text-sm opacity-70">{{ t('home.phase0Status') }}</p>
+
+      <!-- Démonstration IPC : l'aller-retour complet UI -> main -> SQLite. -->
+      <section class="flex flex-col items-center gap-3">
+        <button matButton="filled" [disabled]="pingPending()" (click)="onPing()">
+          {{ t('home.pingButton') }}
+        </button>
+        @if (pingPending()) {
+          <p class="text-sm opacity-70">{{ t('home.pingPending') }}</p>
+        } @else if (pingUnavailable()) {
+          <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('home.pingUnavailable') }}</p>
+        } @else if (pingSummary(); as summary) {
+          <p class="text-sm">{{ t('home.pingResult', { value: summary }) }}</p>
+        }
+      </section>
     </main>
   </div>
 </ng-container>
