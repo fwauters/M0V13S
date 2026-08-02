@@ -8,8 +8,10 @@ import { BrowserWindow, app } from 'electron';
 import path from 'node:path';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
+import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
+import { SettingsService } from './services/settings.service';
 
 /** URL du serveur de dev Angular (ng serve) — utilisée hors packaging. */
 const DEV_SERVER_URL = 'http://localhost:4200';
@@ -58,7 +60,9 @@ app.whenReady().then(() => {
     dbHandle = null;
   }
 
-  registerSystemIpc(dbHandle?.db ?? null);
+  const db = dbHandle?.db ?? null;
+  registerSystemIpc(db);
+  registerSettingsIpc(db ? new SettingsService(db) : null);
   createWindow();
 });
 

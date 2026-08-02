@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemPingResult } from '@shared/ipc';
+import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
 
 /**
  * Façade Angular unique vers l'API IPC exposée par le preload Electron
@@ -23,5 +23,18 @@ export class ApiService {
       return null;
     }
     return window.api.system.ping();
+  }
+
+  /** Lit une préférence d'UI persistée (null hors Electron ou si absente). */
+  async getSetting(key: UiSettingKey): Promise<string | null> {
+    if (!window.api) {
+      return null;
+    }
+    return window.api.settings.get(key);
+  }
+
+  /** Persiste une préférence d'UI (silencieux hors Electron). */
+  async setSetting(key: UiSettingKey, value: string): Promise<void> {
+    await window.api?.settings.set(key, value);
   }
 }

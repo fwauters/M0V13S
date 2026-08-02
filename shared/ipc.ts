@@ -14,7 +14,20 @@ export const IPC = {
     /** Ping de diagnostic : prouve la chaîne UI -> preload -> main -> DB. */
     ping: 'system:ping',
   },
+  settings: {
+    /** Lecture d'une préférence d'UI (clés autorisées : UiSettingKey). */
+    get: 'settings:get',
+    /** Écriture d'une préférence d'UI. */
+    set: 'settings:set',
+  },
 } as const;
+
+/**
+ * Clés de réglage accessibles au RENDERER (préférences d'interface).
+ * Les clés sensibles (clé TMDB, hash admin, racines) restent côté main
+ * et ne transitent que par des canaux dédiés et contrôlés.
+ */
+export type UiSettingKey = 'ui.theme' | 'ui.lang';
 
 /** Réponse du ping de diagnostic (étape 0.6). */
 export interface SystemPingResult {
@@ -37,5 +50,11 @@ export interface SystemPingResult {
 export interface WindowApi {
   system: {
     ping(): Promise<SystemPingResult>;
+  };
+  settings: {
+    /** Lit une préférence d'UI (null si jamais écrite ou DB indisponible). */
+    get(key: UiSettingKey): Promise<string | null>;
+    /** Persiste une préférence d'UI. */
+    set(key: UiSettingKey, value: string): Promise<void>;
   };
 }

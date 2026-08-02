@@ -1,13 +1,18 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
+import { ApiService } from './api.service';
+
 /** Langues disponibles dans l'UI. Ajouter une langue = étendre cette liste
  *  (+ le JSON et l'import dans transloco-static.loader.ts). */
 export const APP_LANGS = ['fr', 'en'] as const;
 export type AppLang = (typeof APP_LANGS)[number];
 
-/** Clé de persistance temporaire (localStorage).
- *  TODO(phase 1) : migrer vers la table `settings` (SQLite) via IPC. */
+/**
+ * Cache localStorage : langue appliquée immédiatement au démarrage, avant
+ * la réponse IPC. La source de vérité durable est la table `settings`
+ * (clé `ui.lang`), qui voyage avec le disque.
+ */
 const STORAGE_KEY = 'm0v13s.lang';
 
 /**
@@ -33,6 +38,7 @@ function resolveInitialLang(): AppLang {
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly transloco = inject(TranslocoService);
+  private readonly api = inject(ApiService);
 
   private readonly _lang = signal<AppLang>(resolveInitialLang());
 
@@ -43,15 +49,33 @@ export class LanguageService {
   readonly availableLangs = APP_LANGS;
 
   constructor() {
-    // Applique la langue initiale dès la construction du service.
+    // Langue du cache local tout de suite, puis resynchronisation sur la
+    // valeur durable de la DB (le disque voyage entre machines).
     this.apply(this._lang());
+    void this.restoreFromSettings();
   }
 
-  /** Change la langue active et persiste le choix. */
+  /** Change la langue active et persiste le choix (DB + cache local). */
   setLang(lang: AppLang): void {
     this._lang.set(lang);
     localStorage.setItem(STORAGE_KEY, lang);
+    void this.api.setSetting('ui.lang', lang);
     this.apply(lang);
+  }
+
+  /** Aligne la langue sur la valeur persistée en DB, si elle existe. */
+  private async restoreFromSettings(): Promise<void> {
+    const stored = await this.api.getSetting('ui.lang');
+    if (
+      stored !== null &&
+      (APP_LANGS as readonly string[]).includes(stored) &&
+      stored !== this._lang()
+    ) {
+      const lang = stored as AppLang;
+      this._lang.set(lang);
+      localStorage.setItem(STORAGE_KEY, lang);
+      this.apply(lang);
+    }
   }
 
   /** Propage la langue à Transloco et au document. */

@@ -5,12 +5,18 @@
  */
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { IPC, SystemPingResult, WindowApi } from '@shared/ipc';
+import { IPC, SystemPingResult, UiSettingKey, WindowApi } from '@shared/ipc';
 
 /** Implémentation de l'API : chaque méthode relaye un invoke IPC typé. */
 const api: WindowApi = {
   system: {
     ping: (): Promise<SystemPingResult> => ipcRenderer.invoke(IPC.system.ping),
+  },
+  settings: {
+    get: (key: UiSettingKey): Promise<string | null> =>
+      ipcRenderer.invoke(IPC.settings.get, key),
+    set: (key: UiSettingKey, value: string): Promise<void> =>
+      ipcRenderer.invoke(IPC.settings.set, key, value),
   },
 };
 
