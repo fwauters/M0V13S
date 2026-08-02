@@ -164,6 +164,12 @@ tools\      binaires embarqués au packaging (vlc, ffprobe)
 - **Documentation vivante** : toute adaptation (décision, commande, structure,
   fonctionnalité) met à jour `CLAUDE.md`, `PLAN.md` et `README.md`
   (+ `README.fr.md`) dans la foulée — la doc n'est jamais en retard sur le code.
+- **Confidentialité de l'auteur** : ne jamais écrire le nom réel, l'email ou
+  tout identifiant personnel de l'utilisateur dans le code, les docs ou les
+  commentaires. Si une mention d'auteur est vraiment nécessaire, utiliser le
+  pseudonyme **S13N**. Les credentials (tokens, mots de passe) ne transitent
+  jamais par Claude : l'authentification GitHub est gérée par `gh` / le
+  gestionnaire d'identifiants Windows.
 
 ## Commandes
 
@@ -171,6 +177,9 @@ tools\      binaires embarqués au packaging (vlc, ffprobe)
 test, migrations). Garder cette section à jour à chaque nouveau script.
 
 ## État d'avancement — à mettre à jour à chaque étape franchie
+
+Détail étape par étape dans `TODO.md` (doc vivante, une étape validée par
+l'utilisateur à la fois avant exécution, cochée une fois livrée).
 
 - [ ] Phase 0 — Squelette portable (critère : exe depuis clé USB sur une autre machine, hors ligne)
 - [ ] Phase 1 — Bibliothèque locale & conformité
