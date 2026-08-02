@@ -1,18 +1,25 @@
 <!--
-  Shell de démonstration de la phase 0.
-  Prouve les piliers du socle UI : *transloco (directive, jamais le pipe),
-  thème light/dark commuté à chaud, composants Material et utilitaires
-  Tailwind côte à côte.
+  Shell : header permanent + zone de routing des features.
+  Règles : directive *transloco (jamais le pipe), aucun appel de méthode
+  en template (signaux et pipes purs uniquement), styles Tailwind.
 -->
 <ng-container *transloco="let t">
   <div class="flex min-h-screen flex-col">
-    <!-- Header permanent : wordmark + langue + thème. -->
     <header class="flex items-center gap-4 border-b border-black/10 px-6 py-3 dark:border-white/10">
-      <!-- Wordmark provisoire : la police définitive (chiffres différenciés
-           des lettres) sera choisie visuellement en phase 3 (TODO 3.5). -->
-      <span class="font-mono text-xl font-bold tracking-widest">M0V13S</span>
+      <!-- Wordmark provisoire (police définitive : TODO 3.5) — retour accueil. -->
+      <a routerLink="/" class="font-mono text-xl font-bold tracking-widest">M0V13S</a>
 
       <span class="grow"></span>
+
+      <!-- Vue admin des tables (outil de contrôle, lecture seule en phase 1). -->
+      <a
+        matIconButton
+        routerLink="/admin/data"
+        [attr.aria-label]="t('shell.adminData')"
+        [title]="t('shell.adminData')"
+      >
+        <mat-icon>table_view</mat-icon>
+      </a>
 
       <!-- Sélecteur de langue : changement à chaud via LanguageService. -->
       <mat-button-toggle-group
@@ -36,24 +43,9 @@
       </button>
     </header>
 
-    <!-- Contenu provisoire : remplacé par le routing des features en phase 1. -->
-    <main class="flex grow flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 class="text-3xl font-medium">{{ t('home.tagline') }}</h1>
-      <p class="text-sm opacity-70">{{ t('home.phase0Status') }}</p>
-
-      <!-- Démonstration IPC : l'aller-retour complet UI -> main -> SQLite. -->
-      <section class="flex flex-col items-center gap-3">
-        <button matButton="filled" [disabled]="pingPending()" (click)="onPing()">
-          {{ t('home.pingButton') }}
-        </button>
-        @if (pingPending()) {
-          <p class="text-sm opacity-70">{{ t('home.pingPending') }}</p>
-        } @else if (pingUnavailable()) {
-          <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('home.pingUnavailable') }}</p>
-        } @else if (pingSummary(); as summary) {
-          <p class="text-sm">{{ t('home.pingResult', { value: summary }) }}</p>
-        }
-      </section>
+    <!-- Zone des features (home, browse, detail, scan, admin). -->
+    <main class="flex grow flex-col">
+      <router-outlet />
     </main>
   </div>
 </ng-container>

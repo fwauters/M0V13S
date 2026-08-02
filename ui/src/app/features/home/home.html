@@ -1,0 +1,55 @@
+<!-- Accueil : deux grandes options + notice de conformité. -->
+<ng-container *transloco="let t">
+  <div class="flex grow flex-col items-center justify-center gap-10 p-8 text-center">
+    <h1 class="text-4xl font-medium">{{ t('home.tagline') }}</h1>
+
+    <!-- Notice de conformité (résultat du contrôle du lancement). -->
+    @if (store.conformity(); as c) {
+      <div class="flex flex-col items-center gap-1 text-sm opacity-80">
+        @if (c.toQualifyCount > 0) {
+          <p>{{ t('home.toQualifyNotice', { count: c.toQualifyCount }) }}</p>
+        }
+        @if (c.missingCount > 0) {
+          <p>{{ t('home.missingNotice', { count: c.missingCount }) }}</p>
+        }
+        @if (c.forcedScan) {
+          <p class="font-medium text-amber-600 dark:text-amber-400">
+            {{ t('home.forcedScanNotice') }}
+          </p>
+        }
+      </div>
+    }
+
+    <div class="grid w-full max-w-2xl gap-6 sm:grid-cols-2">
+      <!-- Option 1 : lancer le mode classique (désactivée si scan forcé). -->
+      @if (!store.forcedScan()) {
+        <a
+          routerLink="/browse"
+          class="flex flex-col items-center gap-3 rounded-2xl border border-black/10 p-8 transition hover:scale-[1.02] hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
+        >
+          <mat-icon class="scale-150">play_circle</mat-icon>
+          <span class="text-lg font-medium">{{ t('home.launch') }}</span>
+          <span class="text-sm opacity-70">{{ t('home.launchHint') }}</span>
+        </a>
+      } @else {
+        <div
+          class="flex cursor-not-allowed flex-col items-center gap-3 rounded-2xl border border-black/10 p-8 opacity-40 dark:border-white/10"
+        >
+          <mat-icon class="scale-150">play_circle</mat-icon>
+          <span class="text-lg font-medium">{{ t('home.launch') }}</span>
+          <span class="text-sm opacity-70">{{ t('home.forcedScanNotice') }}</span>
+        </div>
+      }
+
+      <!-- Option 2 : le mode Scanner (toujours accessible). -->
+      <a
+        routerLink="/scan"
+        class="flex flex-col items-center gap-3 rounded-2xl border border-black/10 p-8 transition hover:scale-[1.02] hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
+      >
+        <mat-icon class="scale-150">document_scanner</mat-icon>
+        <span class="text-lg font-medium">{{ t('home.scan') }}</span>
+        <span class="text-sm opacity-70">{{ t('home.scanHint') }}</span>
+      </a>
+    </div>
+  </div>
+</ng-container>
