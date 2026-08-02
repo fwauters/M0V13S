@@ -1,0 +1,17 @@
+/*
+ * Point d'entrée Tailwind CSS v4.
+ *
+ * Volontairement séparé de `styles.scss` : Tailwind v4 est traité par PostCSS
+ * (voir `.postcssrc.json`) et ne doit PAS passer par le compilateur Sass —
+ * Sass ne sait pas résoudre `@import "tailwindcss"`. Les deux fichiers sont
+ * déclarés côte à côte dans `angular.json`.
+ */
+@import "tailwindcss";
+
+/*
+ * Mode sombre piloté par la CLASSE `.dark` posée sur <html> (et non par
+ * `prefers-color-scheme`) : le ThemeService bascule light/dark à la demande
+ * de l'utilisateur et doit rester synchronisé avec le thème Material
+ * (propriété CSS `color-scheme`). Une seule source de vérité, deux systèmes.
+ */
+@custom-variant dark (&:where(.dark, .dark *));

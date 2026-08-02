@@ -1,0 +1,32 @@
+/*
+ * Config TypeScript du workspace Angular.
+ * Étend la config STRICTE partagée du repo (../tsconfig.base.json) qui porte
+ * aussi l'alias `@shared/*` vers le contrat IPC commun main <-> renderer.
+ */
+{
+  "extends": "../tsconfig.base.json",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noPropertyAccessFromIndexSignature": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}
