@@ -197,7 +197,7 @@ ne JAMAIS l'ajouter à `onlyBuiltDependencies` (le node-gyp auto échouerait).
 Détail étape par étape dans `TODO.md` (doc vivante, une étape validée par
 l'utilisateur à la fois avant exécution, cochée une fois livrée).
 
-- [ ] Phase 0 — Squelette portable (critère : exe depuis clé USB sur une autre machine, hors ligne)
+- [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
 - [ ] Phase 1 — Bibliothèque locale & conformité
 - [ ] Phase 2 — Sidecars & enrichissement TMDB
 - [ ] Phase 3 — UI « Netflix »

@@ -30,9 +30,9 @@
 - [x] **0.10** Packaging portable (electron-builder) : build « dossier » copiable,
   vérification locale depuis un autre emplacement disque — exe + DB + migrations
   validés (voir docs/initialisation/phase_0.md pour le piège ELECTRON_RUN_AS_NODE).
-- [ ] **0.11** ✅ **Test de portabilité réel** : copie sur disque externe,
-  lancement sur une machine B **hors ligne** (test fait par l'utilisateur —
-  procédure dans docs/initialisation/phase_0.md § 0.11).
+- [x] **0.11** ✅ **Test de portabilité réel** : copie sur disque externe,
+  lancement sur une machine B **hors ligne** — **validé par l'utilisateur**
+  (fenêtre, thèmes/langues, ping DB OK, data\ créé à côté de l'exe).
 - [x] **0.12** Fin de phase : section « Commandes » de `CLAUDE.md` remplie,
   docs à jour, rapport de phase écrit, PR `phase-0` ouverte.
 

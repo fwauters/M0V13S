@@ -4,11 +4,11 @@
 > `phase_5.md`), écrit à la fin de chaque phase. Celui-ci est mis à jour au
 > fil de la phase (documentation anti-crash), statut ci-dessous.
 
-**Statut : LIVRÉE** — étapes 0.1 → 0.10 et 0.12 faites et committées (un
-commit par étape, branche `phase-0`, PR vers `main`). **Reste 0.11** : le
-test réel sur une seconde machine hors ligne, à faire par l'utilisateur
-(instructions en fin de rapport) — c'est le critère de sortie officiel de
-la phase.
+**Statut : TERMINÉE ET VALIDÉE** — étapes 0.1 → 0.12 livrées (un commit
+par étape, branche `phase-0`, PR #1). Le critère de sortie (0.11, exe
+lancé depuis le disque externe sur une machine B hors ligne) a été
+**validé par l'utilisateur** : fenêtre, thèmes/langues, ping DB OK,
+`data\` créé à côté de l'exe.
 
 ## Objectif de la phase
 
