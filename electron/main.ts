@@ -7,7 +7,7 @@
 import { BrowserWindow, app } from 'electron';
 import path from 'node:path';
 
-import { AppDatabase, openDatabase } from './db/client';
+import { AppDatabaseHandle, openDatabase } from './db/client';
 import { registerSystemIpc } from './ipc/system.ipc';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
 
@@ -15,7 +15,7 @@ import { getDbPath, getMigrationsDir } from './services/paths.service';
 const DEV_SERVER_URL = 'http://localhost:4200';
 
 /** Base applicative, ouverte au démarrage (null si l'ouverture a échoué). */
-let db: AppDatabase | null = null;
+let dbHandle: AppDatabaseHandle | null = null;
 
 /** Crée la fenêtre principale et charge l'UI (dev server ou build). */
 function createWindow(): void {
@@ -52,13 +52,13 @@ app.whenReady().then(() => {
   // L'échec d'ouverture de la DB ne doit pas empêcher l'app de démarrer :
   // le ping IPC remontera dbOk=false et l'UI pourra l'afficher.
   try {
-    db = openDatabase(getDbPath(), getMigrationsDir());
+    dbHandle = openDatabase(getDbPath(), getMigrationsDir());
   } catch (error) {
     console.error('Ouverture de la base impossible :', error);
-    db = null;
+    dbHandle = null;
   }
 
-  registerSystemIpc(db);
+  registerSystemIpc(dbHandle?.db ?? null);
   createWindow();
 });
 
@@ -66,4 +66,10 @@ app.whenReady().then(() => {
 // (pas de convention « dock » comme sur macOS).
 app.on('window-all-closed', () => {
   app.quit();
+});
+
+// Fermer proprement la connexion SQLite à la sortie (flush du WAL —
+// important sur un disque externe qui sera débranché).
+app.on('will-quit', () => {
+  dbHandle?.close();
 });
