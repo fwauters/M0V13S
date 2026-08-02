@@ -7,10 +7,26 @@
   "author": "S13N",
   "packageManager": "pnpm@10.5.1",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.22.3"
   },
+  "main": "dist-electron/main.cjs",
   "scripts": {
-    "//": "Les scripts seront ajoutés au fil de la phase 0 (dev, build, test, package, prepare-tools)."
+    "dev": "concurrently -k -n ui,main,app \"pnpm --filter ui start\" \"node scripts/build-electron.mjs --watch\" \"pnpm dev:electron\"",
+    "dev:electron": "wait-on tcp:127.0.0.1:4200 file:dist-electron/main.cjs && electron .",
+    "build": "pnpm build:ui && pnpm build:electron",
+    "build:ui": "pnpm --filter ui exec ng build",
+    "build:electron": "node scripts/build-electron.mjs",
+    "typecheck": "tsc -p electron/tsconfig.json",
+    "test": "vitest run",
+    "test:ui": "pnpm --filter ui exec ng test --watch false",
+    "test:all": "pnpm test && pnpm test:ui",
+    "db:generate": "drizzle-kit generate",
+    "package": "pnpm build && electron-builder --win dir",
+    "prepare-tools": "node scripts/prepare-tools.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
@@ -23,9 +39,5 @@
     "typescript": "~6.0.2",
     "vitest": "^4.0.8",
     "wait-on": "^9.1.0"
-  },
-  "dependencies": {
-    "better-sqlite3": "^13.0.2",
-    "drizzle-orm": "^0.45.2"
   }
 }
