@@ -199,6 +199,8 @@ ne JAMAIS l'ajouter à `onlyBuiltDependencies` (le node-gyp auto échouerait).
 
 Détail étape par étape dans `TODO.md` (doc vivante, une étape validée par
 l'utilisateur à la fois avant exécution, cochée une fois livrée).
+**Reprise de session : lire `docs/REPRISE.md` en premier** (état exact,
+actions en attente, pièges d'environnement) — mis à jour en fin de session.
 
 - [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
 - [ ] Phase 1 — Bibliothèque locale & conformité
