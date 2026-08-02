@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "M0V13S"
+  },
+  "shell": {
+    "themeToLight": "Passer au thème clair",
+    "themeToDark": "Passer au thème sombre",
+    "language": "Langue"
+  },
+  "home": {
+    "tagline": "Votre vidéothèque, façon Netflix, 100 % hors ligne.",
+    "phase0Status": "Squelette de la phase 0 opérationnel",
+    "pingButton": "Tester le backend",
+    "pingResult": "Réponse du backend : {{value}}",
+    "pingPending": "Appel du backend en cours…"
+  }
+}
