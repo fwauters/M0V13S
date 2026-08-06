@@ -322,6 +322,9 @@ export class Scan implements OnDestroy {
         tmdbId: this.appliedTmdb()?.tmdbId ?? file.existing?.tmdbId ?? null,
         trailerYoutubeKey:
           this.appliedTmdb()?.trailerYoutubeKey ?? file.existing?.trailerYoutubeKey ?? null,
+        // Images à télécharger en sidecars (uniquement si fiche TMDB appliquée).
+        tmdbPosterPath: this.appliedTmdb()?.tmdbPosterPath ?? null,
+        tmdbBackdropPath: this.appliedTmdb()?.tmdbBackdropPath ?? null,
         directors: this.draft.directors,
         writers: this.draft.writers,
         actors: this.draft.actors.map((name) => ({

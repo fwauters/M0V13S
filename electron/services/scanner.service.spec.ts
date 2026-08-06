@@ -49,6 +49,8 @@ function makeInput(overrides: Partial<QualifyMovieInput> = {}): QualifyMovieInpu
     personalRating: 8,
     tmdbId: null,
     trailerYoutubeKey: null,
+    tmdbPosterPath: null,
+    tmdbBackdropPath: null,
     directors: ['Ridley Scott'],
     writers: ['Jon Spaihts', 'Damon Lindelof'],
     actors: [
@@ -174,9 +176,11 @@ describe('ScannerService.scan — import silencieux des .nfo (PLAN § 6.2.2)', (
     settings.setLibraryRoots(['Films']);
   });
 
-  it('importe sans question un fichier arrivé avec son .nfo', async () => {
+  it('importe sans question un fichier arrivé avec son .nfo (+ images sidecar)', async () => {
     makeVideoFile('Films/Alien (1979)/alien.mkv', ALIEN_NFO);
     makeVideoFile('Films/Inconnu (2020)/inconnu.mkv', null);
+    // Image sidecar arrivée avec le dossier partagé.
+    fs.writeFileSync(path.join(tmpDir, 'Films', 'Alien (1979)', 'alien-poster.jpg'), 'affiche');
 
     const result = await scanner.scan();
 
@@ -186,10 +190,13 @@ describe('ScannerService.scan — import silencieux des .nfo (PLAN § 6.2.2)', (
     ]);
     expect(result.newFiles.map((f) => f.relPath)).toEqual(['Films/Inconnu (2020)/inconnu.mkv']);
 
-    // La fiche est complète en base (tmdbId, personnage d'acteur).
+    // La fiche est complète en base (tmdbId, personnage d'acteur, image
+    // sidecar rattachée en chemin RELATIF).
     const m = db.select().from(media).all();
     expect(m).toHaveLength(1);
     expect(m[0]!.tmdbId).toBe(348);
+    expect(m[0]!.posterPath).toBe('Films/Alien (1979)/alien-poster.jpg');
+    expect(m[0]!.backdropPath).toBeNull();
     const characters = db.select().from(mediaPeople).all().map((p) => p.character);
     expect(characters).toContain('Ripley');
   });

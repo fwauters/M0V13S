@@ -40,8 +40,9 @@ import {
 import { diffLibrary } from './conformity.logic';
 import { probeFile } from './ffprobe.service';
 import { parseFilename } from './filename.service';
+import { MovieImages, ensureMovieImages, findExistingImages } from './images.service';
 import { MovieNfo, readMovieNfoFor, writeMovieNfo } from './nfo.service';
-import { fromDriveRelative } from './paths.logic';
+import { fromDriveRelative, toDriveRelative } from './paths.logic';
 import { getDriveRoot } from './paths.service';
 import type { SettingsService } from './settings.service';
 import { FoundFile, walkLibraryRoots } from './walker.service';
@@ -63,6 +64,8 @@ export class ScannerService {
     private readonly settings: SettingsService,
     /** Racine du lecteur — injectable pour tester sur un dossier temporaire. */
     private readonly driveRoot: () => string = getDriveRoot,
+    /** fetch pour les téléchargements d'images — injectable en test. */
+    private readonly fetchFn: typeof fetch = fetch,
   ) {}
 
   /** Demande l'arrêt du scan en cours (effectif au prochain fichier). */
@@ -208,7 +211,13 @@ export class ScannerService {
         continue;
       }
       try {
-        this.createOrAttachMovie(this.nfoToQualifyInput(file, nfo));
+        const mediaId = this.createOrAttachMovie(this.nfoToQualifyInput(file, nfo));
+        // Les images sidecar arrivées avec le dossier partagé sont
+        // rattachées à la fiche — détection fs uniquement, hors ligne.
+        this.applyImagePaths(
+          mediaId,
+          findExistingImages(fromDriveRelative(driveRoot, file.relPath)),
+        );
         importedFromNfo.push({
           relPath: file.relPath,
           title: nfo.titleVf ?? nfo.titleVo,
@@ -237,20 +246,46 @@ export class ScannerService {
    */
   async qualify(input: QualifyMovieInput): Promise<number> {
     const mediaId = this.createOrAttachMovie(input);
+    const videoAbsPath = fromDriveRelative(this.driveRoot(), input.relPath);
 
     // L'échec d'écriture du .nfo (dossier en lecture seule…) ne doit pas
     // annuler la qualification : la fiche est en base, le sidecar sera
     // réécrit à la prochaine édition.
     try {
-      await writeMovieNfo(
-        fromDriveRelative(this.driveRoot(), input.relPath),
-        this.qualifyInputToNfo(input),
-      );
+      await writeMovieNfo(videoAbsPath, this.qualifyInputToNfo(input));
     } catch (error) {
       console.warn(`Écriture du .nfo impossible pour ${input.relPath} :`, error);
     }
 
+    // Images sidecar : téléchargement TMDB si la fiche appliquée en
+    // fournit (en ligne), sinon détection des images déjà présentes.
+    // Jamais bloquant : l'image est un bonus visuel.
+    const images = await ensureMovieImages(
+      videoAbsPath,
+      input.tmdbPosterPath,
+      input.tmdbBackdropPath,
+      this.fetchFn,
+    );
+    this.applyImagePaths(mediaId, images);
+
     return mediaId;
+  }
+
+  /**
+   * Enregistre en base les chemins (RELATIFS au lecteur) des images
+   * sidecar d'une fiche — reflet exact de l'état du disque.
+   */
+  private applyImagePaths(mediaId: number, images: MovieImages): void {
+    const driveRoot = this.driveRoot();
+    this.db
+      .update(media)
+      .set({
+        posterPath: images.poster === null ? null : toDriveRelative(driveRoot, images.poster),
+        backdropPath: images.fanart === null ? null : toDriveRelative(driveRoot, images.fanart),
+        updatedAt: Date.now(),
+      })
+      .where(eq(media.id, mediaId))
+      .run();
   }
 
   /**
@@ -447,6 +482,10 @@ export class ScannerService {
       personalRating: nfo.personalRating,
       tmdbId: nfo.tmdbId,
       trailerYoutubeKey: nfo.trailerYoutubeKey,
+      // Les images d'un dossier partagé sont déjà en sidecars : détection
+      // fs uniquement, aucun téléchargement à l'import.
+      tmdbPosterPath: null,
+      tmdbBackdropPath: null,
       directors: nfo.directors,
       writers: nfo.writers,
       actors: nfo.actors,

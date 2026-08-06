@@ -96,6 +96,17 @@ redescend jamais au renderer (statut masqué uniquement).
   tmdbId, le trailer et les personnages suivent la fiche appliquée.
 - Messages clairs par statut : pas de clé (→ accueil), clé refusée,
   hors ligne (fiche manuelle possible), aucun résultat.
-### 2.5 — Poster/fanart en sidecars + cache miniatures — À VENIR
+### 2.5 — Poster/fanart en SIDECARS — FAIT
+- Convention Kodi : `<nom>-poster.jpg` / `<nom>-fanart.jpg` à côté de la
+  vidéo — le dossier de film est autonome et partageable.
+- À la qualification avec fiche TMDB appliquée : téléchargement (poster
+  w780, fanart w1280), écriture atomique, échec réseau silencieux avec
+  repli sur les images déjà présentes. À l'import `.nfo` (hors ligne) :
+  détection fs des sidecars arrivés avec le dossier.
+- Chemins RELATIFS au lecteur enregistrés dans `media.posterPath`/
+  `backdropPath` — reflet exact du disque. 6 tests (fetch mocké).
+- **Écart assumé** : le cache de miniatures (`thumbs.service`) est
+  reporté en phase 3 (3.2), où la grille le consommera — il exige aussi
+  le protocole de service des images au renderer (décision phase 3).
 ### 2.6 — Scan hors-ligne + « réessayer l'enrichissement » — À VENIR
 ### 2.7 — Fin de phase (deps, docs, portabilité, PR) — À VENIR

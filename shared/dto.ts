@@ -139,6 +139,10 @@ export interface QualifyMovieInput {
   tmdbId: number | null;
   /** Clé YouTube du trailer (enrichissement TMDB — lecture en phase 3). */
   trailerYoutubeKey: string | null;
+  /** Chemins d'images TMDB à télécharger en sidecars (fiche appliquée dans
+   *  l'assistant) — null : détection des sidecars existants uniquement. */
+  tmdbPosterPath: string | null;
+  tmdbBackdropPath: string | null;
   directors: string[];
   writers: string[];
   actors: QualifyActor[];

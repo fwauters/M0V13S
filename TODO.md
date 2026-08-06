@@ -73,8 +73,9 @@
 - [x] **2.4** UI scan : recherche TMDB auto-lancée, choix du bon film
   (vignettes), préremplissage du formulaire (tags/note perso conservés),
   recherche manuelle, messages par statut (sans clé / hors ligne…).
-- [ ] **2.5** Téléchargement poster/fanart **en sidecars** + `thumbs.service`
-  (cache de miniatures régénérable) + tests.
+- [x] **2.5** Téléchargement poster/fanart **en sidecars** (Kodi, atomique,
+  repli hors-ligne sur les images présentes) + chemins relatifs en base +
+  tests. (`thumbs.service` reporté en 3.2, où la grille le consommera.)
 - [ ] **2.6** Scan hors-ligne : fiches manuelles + bouton « réessayer
   l'enrichissement TMDB » sur fiche.
 - [ ] **2.7** Fin de phase : deps, docs, portabilité, push.
