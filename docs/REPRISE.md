@@ -6,19 +6,22 @@
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phases 0 et 1 : terminées, validées par l'utilisateur, mergées**
-   (PR #1 et #2 — la validation de la phase 1 a produit 5 correctifs,
-   dont le fix `pnpm dev` IPv4/wait-on, tous documentés dans phase_1.md).
-2. **Phase 2 (sidecars `.nfo` + enrichissement TMDB) : EN COURS**,
-   branche `phase-2` (TODO 2.1 → 2.7), rapport phase_2.md au fil de l'eau.
-3. Prochaine action utilisateur SANS urgence : créer une clé API TMDB
-   gratuite (themoviedb.org → Paramètres → API) — nécessaire pour VALIDER
-   la phase 2 en conditions réelles (le dev/les tests utilisent des mocks).
+1. **Phases 0 et 1 : terminées, validées, mergées** (PR #1, #2).
+2. **Phase 2 : quasi terminée** sur la branche `phase-2` — 2.1 à 2.5
+   livrées (+ scan complet forcé et gestion de la clé TMDB dans l'app,
+   demandes utilisateur en cours de phase). La clé API de l'utilisateur
+   est configurée et fonctionnelle.
+3. **Reste** : 2.6 (hors-ligne OK par construction ; question ouverte :
+   bouton « réessayer l'enrichissement » par fiche, ou couvert par le
+   scan complet ?) et 2.7 (fin de phase : deps, docs, packaging, PR #3,
+   validation utilisateur).
 
 ## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Aucune bloquante. Prévoir la clé API TMDB (voir ci-dessus) pour la
-validation de fin de phase 2.
+Répondre à la question 2.6 (bouton par fiche vs scan complet suffisant),
+puis valider la phase 2 en conditions réelles : scan complet d'un dossier
+avec la clé TMDB active → choix des films → fiches enrichies + `.nfo` +
+`-poster.jpg`/`-fanart.jpg` à côté des vidéos.
 
 ## Méthode de travail établie (récap opérationnel)
 
