@@ -54,6 +54,10 @@ function makeApiMock() {
       forcedScan: false,
     }),
     listMovies: async () => [],
+    // TMDB : l'assistant lance une recherche automatique par fichier —
+    // le double répond « pas de clé » (aucun réseau en test).
+    searchTmdb: async () => ({ status: 'noKey', results: [] }),
+    getTmdbDetails: async () => ({ status: 'noKey', details: null }),
   };
 }
 

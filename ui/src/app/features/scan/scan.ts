@@ -16,6 +16,9 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbCallStatus,
+  TmdbMovieDetails,
+  TmdbSearchResult,
 } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
@@ -128,6 +131,65 @@ export class Scan implements OnDestroy {
   protected draft: QualifyDraft = this.emptyDraft();
   /** Sauvegarde en cours (désactive le bouton). */
   protected readonly saving = signal(false);
+
+  /* ------------------- recherche TMDB (2.4) ---------------------- */
+
+  /** Requête de recherche (préremplie par le titre deviné/fiche). */
+  protected tmdbQuery = '';
+  /** Recherche en cours. */
+  protected readonly tmdbSearching = signal(false);
+  /** Statut du dernier appel ('idle' avant toute recherche). */
+  protected readonly tmdbStatus = signal<'idle' | TmdbCallStatus>('idle');
+  /** Résultats proposés au choix de l'utilisateur. */
+  protected readonly tmdbResults = signal<TmdbSearchResult[]>([]);
+  /** Chargement des détails du résultat cliqué. */
+  protected readonly tmdbLoadingDetails = signal(false);
+  /** Fiche TMDB appliquée au brouillon (source du tmdbId/trailer/personnages). */
+  protected readonly appliedTmdb = signal<TmdbMovieDetails | null>(null);
+
+  /** Lance (ou relance) la recherche TMDB pour le fichier courant. */
+  protected async searchTmdb(): Promise<void> {
+    const query = this.tmdbQuery.trim();
+    if (query === '') {
+      return;
+    }
+    this.tmdbSearching.set(true);
+    try {
+      const outcome = await this.api.searchTmdb(query, this.draft.year);
+      this.tmdbStatus.set(outcome.status);
+      this.tmdbResults.set(outcome.results);
+    } finally {
+      this.tmdbSearching.set(false);
+    }
+  }
+
+  /**
+   * Applique un résultat choisi : charge les détails complets et remplace
+   * les champs de la fiche (les TAGS et la note perso, personnels, sont
+   * conservés). Tout reste modifiable ensuite (PLAN § 6.2.3c).
+   */
+  protected async applyTmdbResult(result: TmdbSearchResult): Promise<void> {
+    this.tmdbLoadingDetails.set(true);
+    try {
+      const outcome = await this.api.getTmdbDetails(result.tmdbId);
+      if (outcome.status !== 'ok' || outcome.details === null) {
+        this.tmdbStatus.set(outcome.status === 'ok' ? 'unavailable' : outcome.status);
+        return;
+      }
+      const d = outcome.details;
+      this.appliedTmdb.set(d);
+      this.draft.titleVo = d.titleVo;
+      this.draft.titleVf = d.titleVf ?? '';
+      this.draft.year = d.year;
+      this.draft.overview = d.overview ?? '';
+      this.draft.directors = [...d.directors];
+      this.draft.writers = [...d.writers];
+      this.draft.actors = d.actors.map((a) => a.name);
+      this.draft.genres = [...d.genres];
+    } finally {
+      this.tmdbLoadingDetails.set(false);
+    }
+  }
 
   /** Désinscription de l'événement de progression (fuite sinon). */
   private readonly unsubscribeProgress: () => void;
@@ -254,17 +316,20 @@ export class Scan implements OnDestroy {
         year: this.draft.year,
         overview: this.draft.overview.trim() === '' ? null : this.draft.overview.trim(),
         personalRating: this.draft.personalRating,
-        // Mise à jour d'une fiche existante : son tmdbId et les personnages
-        // déjà connus des acteurs sont PRÉSERVÉS (les chips ne portent que
-        // des noms). Nouvelle fiche manuelle : tmdbId null (l'enrichissement
-        // 2.4 le fournira).
-        tmdbId: file.existing?.tmdbId ?? null,
-        trailerYoutubeKey: file.existing?.trailerYoutubeKey ?? null,
+        // Identifiant TMDB, trailer et personnages : priorité à la fiche
+        // TMDB appliquée dans l'assistant, sinon à la fiche existante
+        // (mise à jour) — les chips ne portent que des noms.
+        tmdbId: this.appliedTmdb()?.tmdbId ?? file.existing?.tmdbId ?? null,
+        trailerYoutubeKey:
+          this.appliedTmdb()?.trailerYoutubeKey ?? file.existing?.trailerYoutubeKey ?? null,
         directors: this.draft.directors,
         writers: this.draft.writers,
         actors: this.draft.actors.map((name) => ({
           name,
-          character: file.existing?.actors.find((a) => a.name === name)?.character ?? null,
+          character:
+            this.appliedTmdb()?.actors.find((a) => a.name === name)?.character ??
+            file.existing?.actors.find((a) => a.name === name)?.character ??
+            null,
         })),
         genres: this.draft.genres,
         tags: this.draft.tags,
@@ -296,7 +361,12 @@ export class Scan implements OnDestroy {
   private prepareDraft(): void {
     const file = this.currentFile();
     this.draft = this.emptyDraft();
+    // État TMDB remis à zéro pour chaque fichier.
+    this.appliedTmdb.set(null);
+    this.tmdbResults.set([]);
+    this.tmdbStatus.set('idle');
     if (file === null) {
+      this.tmdbQuery = '';
       return;
     }
     if (file.existing !== null) {
@@ -316,6 +386,12 @@ export class Scan implements OnDestroy {
       this.draft.titleVo = file.guess.title;
       this.draft.year = file.guess.year;
     }
+
+    // Recherche TMDB préremplie et lancée automatiquement (PLAN § 6.2.3b) :
+    // l'utilisateur CHOISIT ensuite dans la liste — jamais d'application
+    // automatique. Sans clé/hors ligne, le statut affiche quoi faire.
+    this.tmdbQuery = this.draft.titleVo;
+    void this.searchTmdb();
   }
 
   private emptyDraft(): QualifyDraft {

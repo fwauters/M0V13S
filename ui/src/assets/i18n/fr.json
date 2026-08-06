@@ -62,6 +62,17 @@
     "rootsHint": "Chemins relatifs à la racine du disque qui porte l'app, sans lettre de lecteur (ex. « Films » pour X:\\Films ; en dev, « Users/moi/Videos » pour C:\\Users\\moi\\Videos).",
     "rootPlaceholder": "Ajouter un dossier (ex. Films)",
     "rootInvalid": "Pas de lettre de lecteur (C:, E:…) : indiquez un chemin relatif à la racine du disque qui porte l'app — ex. « Films » ou « Users/moi/Videos ».",
+    "tmdb": {
+      "searchLabel": "Rechercher sur TMDB (titre)",
+      "searchButton": "Rechercher",
+      "searching": "Recherche TMDB en cours…",
+      "loadingDetails": "Chargement de la fiche TMDB…",
+      "applied": "Fiche préremplie depuis TMDB : {{title}} — tout reste modifiable ci-dessous.",
+      "noKey": "Aucune clé API TMDB configurée — ajoutez-la sur l'écran d'accueil pour préremplir les fiches.",
+      "invalidKey": "Clé API TMDB refusée : vérifiez-la sur l'écran d'accueil.",
+      "unavailable": "TMDB injoignable (hors ligne ?) — la fiche reste qualifiable manuellement.",
+      "noResults": "Aucun résultat : ajustez le titre ou l'année, ou remplissez la fiche à la main."
+    },
     "fullScanLabel": "Scan complet (repasser aussi les fichiers déjà indexés)",
     "updateBadge": "Fiche existante — l'enregistrement la mettra à jour",
     "importedTitle": "Importés automatiquement ({{count}})",

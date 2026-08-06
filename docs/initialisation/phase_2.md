@@ -73,8 +73,29 @@ redescend jamais au renderer (statut masqué uniquement).
 - Garde-fous : en scan complet, les fichiers indexés ne participent pas
   aux re-liens et leurs `.nfo` ne sont pas ré-importés. 3 nouveaux tests.
 
-### 2.3b — tmdb.service : recherche fr-FR, détails, mapping — À VENIR
-### 2.4 — UI scan : recherche TMDB + choix du film — À VENIR
+### 2.3b — tmdb.service : recherche, détails, mapping — FAIT
+- Recherche fr-FR (titre + année, 8 résultats max, vignettes
+  image.tmdb.org) ; détails en UN appel (`append_to_response=
+  credits,videos`) mappés vers notre schéma : VO/VF, genres, réalisateurs
+  (job Director), scénaristes (département Writing, dédoublonnés), casting
+  principal AVEC personnages (ordre TMDB), trailer YouTube (fr
+  prioritaire), chemins d'images pour 2.5.
+- Statuts typés `noKey`/`invalidKey`/`unavailable` — jamais d'exception
+  vers l'UI ; fonctions de mapping PURES testées sur fixtures réalistes.
+- Le trailer YouTube voyage désormais partout : schéma (`media`), `.nfo`
+  (balise <trailer> format plugin Kodi, parseur multi-formats), saisie de
+  qualification. 10 nouveaux tests.
+
+### 2.4 — UI scan : recherche TMDB + choix du film — FAIT
+- Dans l'assistant : recherche AUTO-lancée par fichier (requête = titre
+  deviné/fiche), champ modifiable + bouton Rechercher ; liste de choix
+  avec vignettes d'affiches, titre fr + VO + année + synopsis ;
+  **l'utilisateur choisit toujours** — jamais d'application automatique.
+- Choix d'un résultat → détails complets → fiche préremplie (tags et note
+  perso CONSERVÉS — champs personnels), tout reste modifiable ; le
+  tmdbId, le trailer et les personnages suivent la fiche appliquée.
+- Messages clairs par statut : pas de clé (→ accueil), clé refusée,
+  hors ligne (fiche manuelle possible), aucun résultat.
 ### 2.5 — Poster/fanart en sidecars + cache miniatures — À VENIR
 ### 2.6 — Scan hors-ligne + « réessayer l'enrichissement » — À VENIR
 ### 2.7 — Fin de phase (deps, docs, portabilité, PR) — À VENIR

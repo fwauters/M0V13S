@@ -9,8 +9,10 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbSearchOutcome,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
 
@@ -146,5 +148,15 @@ export class ApiService {
   /** Teste la clé fournie (ou la clé stockée) contre l'API TMDB. */
   async testTmdbKey(candidateKey?: string): Promise<TmdbKeyTestResult> {
     return window.api?.tmdb.testKey(candidateKey) ?? 'offline';
+  }
+
+  /** Recherche TMDB (titre + année, fr-FR). */
+  async searchTmdb(query: string, year?: number | null): Promise<TmdbSearchOutcome> {
+    return window.api?.tmdb.searchMovies(query, year) ?? { status: 'unavailable', results: [] };
+  }
+
+  /** Détails complets d'un film TMDB, mappés vers notre schéma. */
+  async getTmdbDetails(tmdbId: number): Promise<TmdbDetailsOutcome> {
+    return window.api?.tmdb.getDetails(tmdbId) ?? { status: 'unavailable', details: null };
   }
 }

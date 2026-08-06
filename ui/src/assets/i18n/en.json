@@ -62,6 +62,17 @@
     "rootsHint": "Paths relative to the root of the drive the app lives on, without a drive letter (e.g. “Movies” for X:\\Movies; in dev, “Users/me/Videos” for C:\\Users\\me\\Videos).",
     "rootPlaceholder": "Add a folder (e.g. Movies)",
     "rootInvalid": "No drive letter (C:, E:…): enter a path relative to the root of the drive the app lives on — e.g. “Movies” or “Users/me/Videos”.",
+    "tmdb": {
+      "searchLabel": "Search TMDB (title)",
+      "searchButton": "Search",
+      "searching": "Searching TMDB…",
+      "loadingDetails": "Loading TMDB details…",
+      "applied": "Entry pre-filled from TMDB: {{title}} — everything below remains editable.",
+      "noKey": "No TMDB API key configured — add it on the home screen to pre-fill entries.",
+      "invalidKey": "TMDB API key rejected: check it on the home screen.",
+      "unavailable": "TMDB unreachable (offline?) — the entry can still be filled manually.",
+      "noResults": "No results: adjust the title or year, or fill in the entry manually."
+    },
     "fullScanLabel": "Full scan (also revisit already indexed files)",
     "updateBadge": "Existing entry — saving will update it",
     "importedTitle": "Imported automatically ({{count}})",

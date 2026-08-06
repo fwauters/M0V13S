@@ -157,6 +157,80 @@
             }
           </div>
 
+          <!-- Recherche TMDB (en ligne) : l'utilisateur choisit le bon film
+               dans la liste — jamais d'application automatique. Les vignettes
+               viennent d'image.tmdb.org (online-only, autorisé par PLAN). -->
+          <section class="flex flex-col gap-2 rounded-lg border border-black/10 p-3 dark:border-white/10">
+            <div class="flex items-end gap-2">
+              <mat-form-field class="grow" subscriptSizing="dynamic">
+                <mat-label>{{ t('scan.tmdb.searchLabel') }}</mat-label>
+                <input matInput [(ngModel)]="tmdbQuery" (keydown.enter)="searchTmdb()" />
+              </mat-form-field>
+              <button matButton [disabled]="tmdbSearching()" (click)="searchTmdb()">
+                {{ t('scan.tmdb.searchButton') }}
+              </button>
+            </div>
+
+            @if (tmdbSearching()) {
+              <p class="text-sm opacity-70">{{ t('scan.tmdb.searching') }}</p>
+            } @else if (tmdbLoadingDetails()) {
+              <p class="text-sm opacity-70">{{ t('scan.tmdb.loadingDetails') }}</p>
+            } @else {
+              @switch (tmdbStatus()) {
+                @case ('noKey') {
+                  <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.noKey') }}</p>
+                }
+                @case ('invalidKey') {
+                  <p class="text-sm text-red-600 dark:text-red-400">{{ t('scan.tmdb.invalidKey') }}</p>
+                }
+                @case ('unavailable') {
+                  <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.unavailable') }}</p>
+                }
+                @case ('ok') {
+                  @if (appliedTmdb(); as applied) {
+                    <p class="text-sm font-medium text-green-700 dark:text-green-400">
+                      {{ t('scan.tmdb.applied', { title: applied.titleVo }) }}
+                    </p>
+                  } @else if (tmdbResults().length === 0) {
+                    <p class="text-sm opacity-70">{{ t('scan.tmdb.noResults') }}</p>
+                  } @else {
+                    <div class="flex flex-col gap-1">
+                      @for (result of tmdbResults(); track result.tmdbId) {
+                        <button
+                          type="button"
+                          class="flex items-center gap-3 rounded-lg border border-black/10 p-2 text-left transition hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
+                          (click)="applyTmdbResult(result)"
+                        >
+                          @if (result.posterUrl !== null) {
+                            <img [src]="result.posterUrl" alt="" class="h-16 w-11 shrink-0 rounded object-cover" />
+                          } @else {
+                            <div class="flex h-16 w-11 shrink-0 items-center justify-center rounded bg-black/10 dark:bg-white/10">
+                              <mat-icon inline>movie</mat-icon>
+                            </div>
+                          }
+                          <span class="flex flex-col">
+                            <span class="font-medium">
+                              {{ result.title }}
+                              @if (result.year !== null) {
+                                ({{ result.year }})
+                              }
+                            </span>
+                            @if (result.originalTitle !== result.title) {
+                              <span class="text-sm opacity-70">{{ result.originalTitle }}</span>
+                            }
+                            @if (result.overview !== null) {
+                              <span class="line-clamp-2 text-xs opacity-60">{{ result.overview }}</span>
+                            }
+                          </span>
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              }
+            }
+          </section>
+
           <!-- Formulaire de fiche (Material — préremplissage : nom de fichier). -->
           <div class="grid gap-3 sm:grid-cols-2">
             <mat-form-field>
