@@ -80,14 +80,18 @@ app.whenReady().then(() => {
   // les handlers IPC gèrent explicitement le cas dégradé (null).
   if (db !== null) {
     const settingsService = new SettingsService(db);
+    // TmdbService partagé : clé API (tmdb.ipc) ET ré-enrichissement des
+    // fiches (library.ipc).
+    const tmdbService = new TmdbService(settingsService);
     registerSettingsIpc(settingsService);
-    registerTmdbIpc(new TmdbService(settingsService));
+    registerTmdbIpc(tmdbService);
     registerLibraryIpc({
       settings: settingsService,
       conformity: new ConformityService(db, settingsService),
       library: new LibraryService(db),
       scanner: new ScannerService(db, settingsService),
       adminTables: new AdminTablesService(db),
+      tmdb: tmdbService,
     });
   } else {
     registerSettingsIpc(null);

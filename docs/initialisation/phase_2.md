@@ -108,5 +108,14 @@ redescend jamais au renderer (statut masqué uniquement).
 - **Écart assumé** : le cache de miniatures (`thumbs.service`) est
   reporté en phase 3 (3.2), où la grille le consommera — il exige aussi
   le protocole de service des images au renderer (décision phase 3).
-### 2.6 — Scan hors-ligne + « réessayer l'enrichissement » — À VENIR
+### 2.6 — Hors-ligne + « Compléter via TMDB » par fiche — FAIT
+- Hors-ligne : déjà couvert par construction (import `.nfo` silencieux
+  hors ligne, statut `unavailable` explicite dans l'assistant, fiche
+  manuelle toujours possible, images en repli sur les sidecars présents).
+- **Décision utilisateur** : bouton « Compléter via TMDB » sur la page
+  fiche (en plus du scan complet) → dialogue Material de recherche
+  (auto-lancée, mêmes états i18n que l'assistant), choix du film →
+  `enrichMedia` côté main : fiche mise à jour par la MÊME voie que la
+  qualification (upsert + `.nfo` + images sidecar), tags et note perso
+  CONSERVÉS. La fiche se recharge après enrichissement. 2 tests.
 ### 2.7 — Fin de phase (deps, docs, portabilité, PR) — À VENIR

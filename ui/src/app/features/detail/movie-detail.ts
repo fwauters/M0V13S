@@ -1,12 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { firstValueFrom } from 'rxjs';
 import type { MovieDetail as MovieDetailDto } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { JoinPipe } from '../../core/pipes/join.pipe';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
+import { TmdbEnrichDialog, TmdbEnrichDialogData } from './tmdb-enrich-dialog';
 
 /**
  * Fiche sommaire d'un film (phase 1) : tous les champs de la fiche, la
@@ -15,7 +19,7 @@ import { MinutesPipe } from '../../core/pipes/minutes.pipe';
  */
 @Component({
   selector: 'app-movie-detail',
-  imports: [TranslocoDirective, RouterLink, MatIcon, MinutesPipe, JoinPipe],
+  imports: [TranslocoDirective, RouterLink, MatButton, MatIcon, MinutesPipe, JoinPipe],
   templateUrl: './movie-detail.html',
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
   host: { class: 'flex grow flex-col' },
@@ -23,6 +27,7 @@ import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 export class MovieDetail {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
 
   /** Fiche chargée (null = introuvable une fois `loaded` vrai). */
   protected readonly movie = signal<MovieDetailDto | null>(null);
@@ -40,10 +45,32 @@ export class MovieDetail {
   );
 
   constructor() {
+    void this.load();
+  }
+
+  /** (Re)charge la fiche depuis la route courante. */
+  private async load(): Promise<void> {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    void this.api.getMovie(id).then((movie) => {
-      this.movie.set(movie);
-      this.loaded.set(true);
-    });
+    this.movie.set(await this.api.getMovie(id));
+    this.loaded.set(true);
+  }
+
+  /**
+   * Ouvre le dialogue « Compléter via TMDB » (décision utilisateur 2.6) :
+   * si la fiche a été enrichie, elle est rechargée pour refléter la mise
+   * à jour (fiche + `.nfo` + images réécrits côté main).
+   */
+  protected async openEnrichDialog(): Promise<void> {
+    const m = this.movie();
+    if (m === null) {
+      return;
+    }
+    const data: TmdbEnrichDialogData = { mediaId: m.id, query: m.titleVo, year: m.year };
+    const enriched = await firstValueFrom(
+      this.dialog.open(TmdbEnrichDialog, { data }).afterClosed(),
+    );
+    if (enriched === true) {
+      await this.load();
+    }
   }
 }

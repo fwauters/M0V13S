@@ -18,6 +18,7 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbCallStatus,
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
@@ -46,6 +47,8 @@ export const IPC = {
     /** Racines de bibliothèque (chemins relatifs au lecteur). */
     getRoots: 'library:get-roots',
     setRoots: 'library:set-roots',
+    /** Ré-enrichit une fiche existante depuis un film TMDB choisi. */
+    enrichFromTmdb: 'library:enrich-from-tmdb',
   },
   scanner: {
     /** Scan complet (mode Scanner) : nouveaux / manquants / renommés. */
@@ -120,6 +123,8 @@ export interface WindowApi {
     getMovie(id: number): Promise<MovieDetail | null>;
     getRoots(): Promise<string[]>;
     setRoots(roots: string[]): Promise<void>;
+    /** Ré-enrichit une fiche depuis un tmdbId choisi (fiche + .nfo + images). */
+    enrichFromTmdb(mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }>;
   };
   scanner: {
     /** Scan des racines ; `full` repasse aussi les fichiers déjà indexés

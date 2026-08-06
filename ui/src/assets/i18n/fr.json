@@ -45,6 +45,8 @@
   },
   "detail": {
     "back": "Retour à la bibliothèque",
+    "enrichButton": "Compléter via TMDB",
+    "enrichTitle": "Compléter la fiche depuis TMDB",
     "files": "Fichiers",
     "part": "Partie {{part}}",
     "missingBadge": "Introuvable sur le disque",

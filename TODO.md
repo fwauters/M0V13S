@@ -76,8 +76,9 @@
 - [x] **2.5** Téléchargement poster/fanart **en sidecars** (Kodi, atomique,
   repli hors-ligne sur les images présentes) + chemins relatifs en base +
   tests. (`thumbs.service` reporté en 3.2, où la grille le consommera.)
-- [ ] **2.6** Scan hors-ligne : fiches manuelles + bouton « réessayer
-  l'enrichissement TMDB » sur fiche.
+- [x] **2.6** Scan hors-ligne (statuts explicites, import .nfo et images en
+  repli hors ligne) + bouton « Compléter via TMDB » sur la fiche (dialogue
+  de recherche, tags/note perso conservés — décision utilisateur).
 - [ ] **2.7** Fin de phase : deps, docs, portabilité, push.
 
 ## Phase 3 — UI « Netflix »

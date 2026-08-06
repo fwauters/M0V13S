@@ -11,7 +11,8 @@
     } @else if (movie(); as m) {
       <div class="flex flex-col gap-4">
         <!-- Titres : VF en vedette si présente, VO en sous-titre. -->
-        <div>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
           <h1 class="text-3xl font-medium">{{ m.titleVf ?? m.titleVo }}</h1>
           @if (m.titleVf !== null && m.titleVf !== m.titleVo) {
             <p class="opacity-70">{{ m.titleVo }}</p>
@@ -24,6 +25,13 @@
               · {{ t('detail.rating', { rating: m.personalRating }) }}
             }
           </p>
+          </div>
+
+          <!-- Ré-enrichissement TMDB de CETTE fiche (décision 2.6). -->
+          <button matButton (click)="openEnrichDialog()">
+            <mat-icon>cloud_download</mat-icon>
+            {{ t('detail.enrichButton') }}
+          </button>
         </div>
 
         @if (m.overview !== null) {

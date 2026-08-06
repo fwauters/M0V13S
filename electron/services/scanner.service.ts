@@ -14,7 +14,7 @@
  * Le scan est asynchrone, remonte sa progression et est annulable
  * (exigence CLAUDE.md : ne jamais bloquer l'UI).
  */
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 
 import type {
   ExistingFiche,
@@ -25,6 +25,7 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbMovieDetails,
 } from '@shared/dto';
 import type { AppDatabase } from '../db/client';
 import {
@@ -269,6 +270,57 @@ export class ScannerService {
     this.applyImagePaths(mediaId, images);
 
     return mediaId;
+  }
+
+  /**
+   * Ré-enrichit une fiche EXISTANTE depuis des détails TMDB choisis par
+   * l'utilisateur (bouton « Compléter via TMDB » de la page fiche).
+   * Les champs PERSONNELS (tags, note) sont conservés ; le reste (titres,
+   * synopsis, personnes, genres, trailer, images) vient de TMDB. Passe par
+   * la même voie que la qualification : fiche + `.nfo` + images sidecar.
+   * @returns faux si la fiche n'a pas de fichier rattaché (rien à faire)
+   */
+  async enrichMedia(mediaId: number, details: TmdbMovieDetails): Promise<boolean> {
+    const file = this.db
+      .select()
+      .from(videoFiles)
+      .where(eq(videoFiles.mediaId, mediaId))
+      .orderBy(asc(videoFiles.partNumber))
+      .get();
+    const existing = this.loadExistingFiche(mediaId);
+    if (file === undefined || existing === null) {
+      return false;
+    }
+
+    await this.qualify({
+      relPath: file.relPath,
+      sizeBytes: file.sizeBytes,
+      mtimeMs: file.mtimeMs,
+      tech: {
+        durationSec: file.durationSec,
+        videoCodec: file.videoCodec,
+        audioCodec: file.audioCodec,
+        width: file.width,
+        height: file.height,
+      },
+      partNumber: file.partNumber,
+      titleVo: details.titleVo,
+      titleVf: details.titleVf,
+      year: details.year,
+      overview: details.overview,
+      // Champs personnels : jamais écrasés par TMDB.
+      personalRating: existing.personalRating,
+      tags: existing.tags,
+      tmdbId: details.tmdbId,
+      trailerYoutubeKey: details.trailerYoutubeKey,
+      tmdbPosterPath: details.tmdbPosterPath,
+      tmdbBackdropPath: details.tmdbBackdropPath,
+      directors: details.directors,
+      writers: details.writers,
+      actors: details.actors,
+      genres: details.genres,
+    });
+    return true;
   }
 
   /**

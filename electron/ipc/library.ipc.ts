@@ -9,6 +9,7 @@ import type {
   AdminTableName,
   QualifyMovieInput,
   ScanRelinkCandidate,
+  TmdbCallStatus,
 } from '@shared/dto';
 import { IPC } from '@shared/ipc';
 import type { AdminTablesService } from '../services/admin-tables.service';
@@ -16,6 +17,7 @@ import type { ConformityService } from '../services/conformity.service';
 import type { LibraryService } from '../services/library.service';
 import type { ScannerService } from '../services/scanner.service';
 import type { SettingsService } from '../services/settings.service';
+import type { TmdbService } from '../services/tmdb.service';
 
 /** Ensemble des services métier requis par ces handlers (null = DB KO). */
 export interface LibraryIpcServices {
@@ -24,6 +26,7 @@ export interface LibraryIpcServices {
   scanner: ScannerService;
   settings: SettingsService;
   adminTables: AdminTablesService;
+  tmdb: TmdbService;
 }
 
 export function registerLibraryIpc(services: LibraryIpcServices | null): void {
@@ -42,6 +45,24 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
 
   ipcMain.handle(IPC.library.getMovie, (_e, id: number) =>
     services?.library.getMovie(Number(id)) ?? null,
+  );
+
+  ipcMain.handle(
+    IPC.library.enrichFromTmdb,
+    async (_e, mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }> => {
+      if (!services) {
+        return { status: 'unavailable' };
+      }
+      // 1. Détails TMDB (crédits, trailer, images) — statuts remontés tels
+      //    quels à l'UI (noKey / invalidKey / unavailable).
+      const outcome = await services.tmdb.getMovieDetails(Number(tmdbId));
+      if (outcome.status !== 'ok' || outcome.details === null) {
+        return { status: outcome.status === 'ok' ? 'unavailable' : outcome.status };
+      }
+      // 2. Mise à jour de la fiche (tags et note perso conservés) + .nfo + images.
+      const enriched = await services.scanner.enrichMedia(Number(mediaId), outcome.details);
+      return { status: enriched ? 'ok' : 'unavailable' };
+    },
   );
 
   ipcMain.handle(IPC.library.getRoots, () => services?.settings.getLibraryRoots() ?? []);

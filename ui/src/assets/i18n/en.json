@@ -45,6 +45,8 @@
   },
   "detail": {
     "back": "Back to the library",
+    "enrichButton": "Complete from TMDB",
+    "enrichTitle": "Complete the entry from TMDB",
     "files": "Files",
     "part": "Part {{part}}",
     "missingBadge": "Missing from the drive",

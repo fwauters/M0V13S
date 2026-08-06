@@ -9,6 +9,7 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbCallStatus,
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
@@ -81,6 +82,11 @@ export class ApiService {
   /** Remplace les racines de bibliothèque. */
   async setLibraryRoots(roots: string[]): Promise<void> {
     await window.api?.library.setRoots(roots);
+  }
+
+  /** Ré-enrichit une fiche depuis un film TMDB choisi (fiche + .nfo + images). */
+  async enrichFromTmdb(mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }> {
+    return window.api?.library.enrichFromTmdb(mediaId, tmdbId) ?? { status: 'unavailable' };
   }
 
   /* ------------------------ scanner ------------------------- */

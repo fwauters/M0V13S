@@ -30,6 +30,8 @@ const api: WindowApi = {
     getMovie: (id: number) => ipcRenderer.invoke(IPC.library.getMovie, id),
     getRoots: () => ipcRenderer.invoke(IPC.library.getRoots),
     setRoots: (roots: string[]) => ipcRenderer.invoke(IPC.library.setRoots, roots),
+    enrichFromTmdb: (mediaId: number, tmdbId: number) =>
+      ipcRenderer.invoke(IPC.library.enrichFromTmdb, mediaId, tmdbId),
   },
   scanner: {
     scan: (full?: boolean) => ipcRenderer.invoke(IPC.scanner.scan, full === true),

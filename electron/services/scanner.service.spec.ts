@@ -287,6 +287,54 @@ describe('ScannerService — scan complet forcé et mise à jour de fiche', () =
   });
 });
 
+describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => {
+  it('met à jour la fiche depuis TMDB en CONSERVANT tags et note perso', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(
+      makeInput({ titleVf: 'Titre approximatif', genres: ['Inconnu'], tags: ['a-revoir'] }),
+    );
+
+    const enriched = await scanner.enrichMedia(mediaId, {
+      tmdbId: 70981,
+      titleVo: 'Prometheus',
+      titleVf: 'Prometheus (VF officielle)',
+      year: 2012,
+      overview: 'Synopsis officiel TMDB.',
+      genres: ['Science-Fiction', 'Aventure'],
+      directors: ['Ridley Scott'],
+      writers: ['Jon Spaihts', 'Damon Lindelof'],
+      actors: [{ name: 'Noomi Rapace', character: 'Elizabeth Shaw' }],
+      trailerYoutubeKey: 'trailerKey',
+      tmdbPosterPath: null, // pas de téléchargement dans ce test (hors ligne)
+      tmdbBackdropPath: null,
+    });
+
+    expect(enriched).toBe(true);
+    const m = db.select().from(media).all();
+    expect(m).toHaveLength(1); // toujours pas de doublon
+    expect(m[0]!.titleVf).toBe('Prometheus (VF officielle)');
+    expect(m[0]!.tmdbId).toBe(70981);
+    expect(m[0]!.trailerYoutubeKey).toBe('trailerKey');
+    expect(m[0]!.personalRating).toBe(8); // note perso CONSERVÉE
+    // Genres remplacés par TMDB, tags personnels conservés.
+    expect(db.select().from(mediaGenres).all()).toHaveLength(2);
+    expect(db.select().from(mediaTags).all()).toHaveLength(1);
+    // Le .nfo reflète la fiche enrichie.
+    const nfoPath = path.join(tmpDir, 'Films', 'Prometheus (2012)', 'prometheus.nfo');
+    expect(parseMovieNfoXml(fs.readFileSync(nfoPath, 'utf8'))?.tmdbId).toBe(70981);
+  });
+
+  it('retourne faux pour une fiche sans fichier rattaché', async () => {
+    expect(
+      await scanner.enrichMedia(999, {
+        tmdbId: 1, titleVo: 'X', titleVf: null, year: null, overview: null,
+        genres: [], directors: [], writers: [], actors: [],
+        trailerYoutubeKey: null, tmdbPosterPath: null, tmdbBackdropPath: null,
+      }),
+    ).toBe(false);
+  });
+});
+
 describe('ScannerService.relink / deleteMedia', () => {
   it('relink met à jour le chemin et repasse le fichier en ok', async () => {
     const mediaId = await scanner.qualify(makeInput());
