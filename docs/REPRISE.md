@@ -6,20 +6,19 @@
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phase 0 (squelette portable) : terminée, validée sur machine B hors
-   ligne, mergée** (PR #1).
-2. **Phase 1 (bibliothèque locale & conformité) : terminée et poussée —
-   PR #2 OUVERTE, en attente de la validation utilisateur puis du merge.**
-3. **Prochaine étape : phase 2** (sidecars `.nfo` + images, import
-   silencieux/partage, enrichissement TMDB — TODO 2.1 → 2.7).
+1. **Phases 0 et 1 : terminées, validées par l'utilisateur, mergées**
+   (PR #1 et #2 — la validation de la phase 1 a produit 5 correctifs,
+   dont le fix `pnpm dev` IPv4/wait-on, tous documentés dans phase_1.md).
+2. **Phase 2 (sidecars `.nfo` + enrichissement TMDB) : EN COURS**,
+   branche `phase-2` (TODO 2.1 → 2.7), rapport phase_2.md au fil de l'eau.
+3. Prochaine action utilisateur SANS urgence : créer une clé API TMDB
+   gratuite (themoviedb.org → Paramètres → API) — nécessaire pour VALIDER
+   la phase 2 en conditions réelles (le dev/les tests utilisent des mocks).
 
 ## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Re-valider la phase 1 après les 3 correctifs du 2026-08-06 (reset du
-formulaire entre fichiers, chips addOnBlur, hauteur de la vue admin —
-détail dans phase_1.md § Corrections) : `nvm use 22.23.2` puis `pnpm dev`,
-re-dérouler le parcours en vérifiant ces trois points, puis **merger la
-PR #2**. En cas de souci : le signaler, correction sur `phase-1`.
+Aucune bloquante. Prévoir la clé API TMDB (voir ci-dessus) pour la
+validation de fin de phase 2.
 
 ## Méthode de travail établie (récap opérationnel)
 
