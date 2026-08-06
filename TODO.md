@@ -64,10 +64,12 @@
 
 - [x] **2.1** `nfo.service` : lecture/écriture `.nfo` (XML Kodi), écritures
   atomiques, parseur tolérant + tests.
-- [ ] **2.2** Import silencieux en masse des fichiers arrivés avec `.nfo`
-  (+ images) — le scénario « partage » fonctionne, hors ligne + tests.
-- [ ] **2.3** `tmdb.service` : recherche (titre + année, fr-FR), détails,
-  mapping vers le schéma + tests (HTTP mocké).
+- [x] **2.2** Import silencieux en masse des fichiers arrivés avec `.nfo`
+  — le scénario « partage » fonctionne, hors ligne + tests (les images
+  sidecars arrivent en 2.5).
+- [ ] **2.3** `tmdb.service` : gestion de la clé API dans l'app (accueil,
+  test de validité — décision utilisateur), recherche (titre + année,
+  fr-FR), détails, mapping vers le schéma + tests (HTTP mocké).
 - [ ] **2.4** UI scan : recherche TMDB, choix du bon film (vignettes),
   préremplissage du formulaire, recherche manuelle.
 - [ ] **2.5** Téléchargement poster/fanart **en sidecars** + `thumbs.service`

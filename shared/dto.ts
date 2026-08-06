@@ -66,11 +66,20 @@ export interface ScanRelinkCandidate {
   newMtimeMs: number;
 }
 
+/** Fichier importé SILENCIEUSEMENT depuis son sidecar `.nfo` (PLAN § 6.2.2). */
+export interface ScanImportedFile {
+  relPath: string;
+  /** Titre d'affichage de la fiche créée/complétée (VF sinon VO). */
+  title: string;
+}
+
 /** Résultat complet d'un scan (mode Scanner). */
 export interface ScanResult {
   newFiles: ScanNewFile[];
   missingFiles: ScanMissingFile[];
   relinkCandidates: ScanRelinkCandidate[];
+  /** Fichiers arrivés avec leur `.nfo` : importés sans question, hors ligne. */
+  importedFromNfo: ScanImportedFile[];
 }
 
 /** Progression du scan (analyse ffprobe des nouveaux fichiers). */
@@ -81,9 +90,15 @@ export interface ScanProgress {
   current: string;
 }
 
+/** Un acteur saisi/importé (le personnage vient des `.nfo` et de TMDB). */
+export interface QualifyActor {
+  name: string;
+  character: string | null;
+}
+
 /**
- * Saisie de l'assistant de qualification (fiche 100 % manuelle en phase 1 ;
- * préremplie par TMDB en phase 2). Tout est modifiable par l'utilisateur.
+ * Saisie de l'assistant de qualification (fiche manuelle, import `.nfo`,
+ * ou préremplissage TMDB). Tout est modifiable par l'utilisateur.
  */
 export interface QualifyMovieInput {
   /** Fichier concerné (identité disque). */
@@ -98,9 +113,12 @@ export interface QualifyMovieInput {
   year: number | null;
   overview: string | null;
   personalRating: number | null;
+  /** Identifiant TMDB (import `.nfo` ou enrichissement) — déduplique les
+   *  fiches multi-fichiers. Null pour une saisie purement manuelle. */
+  tmdbId: number | null;
   directors: string[];
   writers: string[];
-  actors: string[];
+  actors: QualifyActor[];
   genres: string[];
   tags: string[];
 }

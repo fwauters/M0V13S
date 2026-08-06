@@ -84,6 +84,23 @@
         </section>
       }
 
+      <!-- 3b-bis. Importés silencieusement depuis leur sidecar .nfo :
+           le scénario « partage » (PLAN § 6.2.2) — aucune question posée. -->
+      @if (r.importedFromNfo.length > 0) {
+        <section class="flex max-w-3xl flex-col gap-2">
+          <h2 class="text-lg font-medium">
+            {{ t('scan.importedTitle', { count: r.importedFromNfo.length }) }}
+          </h2>
+          <p class="text-sm opacity-70">{{ t('scan.importedHint') }}</p>
+          @for (imported of r.importedFromNfo; track imported.relPath) {
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+              <span class="font-medium">{{ imported.title }}</span>
+              <span class="font-mono opacity-70">{{ imported.relPath }}</span>
+            </div>
+          }
+        </section>
+      }
+
       <!-- 3c. Séries détectées : signalées, non gérées en v1. -->
       @if (episodeFiles().length > 0) {
         <section class="flex max-w-3xl flex-col gap-2">

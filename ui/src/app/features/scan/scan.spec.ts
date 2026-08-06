@@ -31,6 +31,7 @@ const SCAN_RESULT: ScanResult = {
   ],
   missingFiles: [],
   relinkCandidates: [],
+  importedFromNfo: [],
 };
 
 /** Double d'ApiService : uniquement ce que Scan et LibraryStore consomment. */

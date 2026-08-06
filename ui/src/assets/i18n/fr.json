@@ -47,6 +47,8 @@
     "rootsHint": "Chemins relatifs à la racine du disque qui porte l'app, sans lettre de lecteur (ex. « Films » pour X:\\Films ; en dev, « Users/moi/Videos » pour C:\\Users\\moi\\Videos).",
     "rootPlaceholder": "Ajouter un dossier (ex. Films)",
     "rootInvalid": "Pas de lettre de lecteur (C:, E:…) : indiquez un chemin relatif à la racine du disque qui porte l'app — ex. « Films » ou « Users/moi/Videos ».",
+    "importedTitle": "Importés automatiquement ({{count}})",
+    "importedHint": "Ces fichiers sont arrivés avec leur fiche .nfo : ils ont été ajoutés à la bibliothèque sans question, hors ligne.",
     "addRoot": "Ajouter",
     "start": "Lancer le scan",
     "scanning": "Analyse {{done}}/{{total}} : {{current}}",

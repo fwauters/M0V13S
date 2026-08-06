@@ -47,6 +47,8 @@
     "rootsHint": "Paths relative to the root of the drive the app lives on, without a drive letter (e.g. “Movies” for X:\\Movies; in dev, “Users/me/Videos” for C:\\Users\\me\\Videos).",
     "rootPlaceholder": "Add a folder (e.g. Movies)",
     "rootInvalid": "No drive letter (C:, E:…): enter a path relative to the root of the drive the app lives on — e.g. “Movies” or “Users/me/Videos”.",
+    "importedTitle": "Imported automatically ({{count}})",
+    "importedHint": "These files arrived with their .nfo sidecar: they were added to the library without questions, offline.",
     "addRoot": "Add",
     "start": "Start scanning",
     "scanning": "Analyzing {{done}}/{{total}}: {{current}}",

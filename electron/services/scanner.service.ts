@@ -17,7 +17,9 @@
 import { and, eq } from 'drizzle-orm';
 
 import type {
+  QualifyActor,
   QualifyMovieInput,
+  ScanImportedFile,
   ScanNewFile,
   ScanProgress,
   ScanRelinkCandidate,
@@ -37,6 +39,7 @@ import {
 import { diffLibrary } from './conformity.logic';
 import { probeFile } from './ffprobe.service';
 import { parseFilename } from './filename.service';
+import { MovieNfo, readMovieNfoFor, writeMovieNfo } from './nfo.service';
 import { fromDriveRelative } from './paths.logic';
 import { getDriveRoot } from './paths.service';
 import type { SettingsService } from './settings.service';
@@ -45,6 +48,11 @@ import { FoundFile, walkLibraryRoots } from './walker.service';
 /** Type de la transaction Drizzle (même interface de requête que la DB). */
 type Tx = Parameters<Parameters<AppDatabase['transaction']>[0]>[0];
 
+/** Réalisateurs/scénaristes : simples noms -> forme commune sans personnage. */
+function asActors(names: string[]): QualifyActor[] {
+  return names.map((name) => ({ name, character: null }));
+}
+
 export class ScannerService {
   /** Drapeau d'annulation du scan en cours (vérifié entre chaque fichier). */
   private cancelRequested = false;
@@ -52,6 +60,8 @@ export class ScannerService {
   constructor(
     private readonly db: AppDatabase,
     private readonly settings: SettingsService,
+    /** Racine du lecteur — injectable pour tester sur un dossier temporaire. */
+    private readonly driveRoot: () => string = getDriveRoot,
   ) {}
 
   /** Demande l'arrêt du scan en cours (effectif au prochain fichier). */
@@ -65,7 +75,7 @@ export class ScannerService {
    */
   async scan(onProgress?: (p: ScanProgress) => void): Promise<ScanResult> {
     this.cancelRequested = false;
-    const driveRoot = getDriveRoot();
+    const driveRoot = this.driveRoot();
     const found = walkLibraryRoots(driveRoot, this.settings.getLibraryRoots());
     const foundByRelPath = new Map(found.map((f) => [f.relPath, f]));
 
@@ -156,24 +166,88 @@ export class ScannerService {
     // Les candidats au re-lien ne sont pas proposés en qualification :
     // l'utilisateur tranchera (re-lien ou nouvelle fiche) dans l'UI.
     const relinkPaths = new Set(relinkCandidates.map((c) => c.newRelPath));
+    const remaining = newFiles.filter((f) => !relinkPaths.has(f.relPath));
+
+    // --- Import SILENCIEUX des fichiers arrivés avec leur .nfo (PLAN
+    //     § 6.2.2) : la fiche voyage avec le fichier, elle est importée
+    //     sans question et HORS LIGNE — c'est ce qui rend le partage
+    //     fluide. Après les re-liens : un fichier renommé garde sa fiche
+    //     au lieu d'en créer une seconde. Le .nfo existant n'est PAS
+    //     réécrit (il peut porter des champs d'autres outils qu'on ne
+    //     modélise pas — on ne détruit jamais de données utilisateur). ---
+    const importedFromNfo: ScanImportedFile[] = [];
+    const toQualify: ScanNewFile[] = [];
+    for (const file of remaining) {
+      const nfo = await readMovieNfoFor(fromDriveRelative(driveRoot, file.relPath));
+      if (nfo === null) {
+        toQualify.push(file);
+        continue;
+      }
+      try {
+        this.createOrAttachMovie(this.nfoToQualifyInput(file, nfo));
+        importedFromNfo.push({
+          relPath: file.relPath,
+          title: nfo.titleVf ?? nfo.titleVo,
+        });
+      } catch (error) {
+        // Un .nfo importable mais une insertion qui échoue : le fichier
+        // repart en qualification manuelle, le scan continue.
+        console.warn(`Import .nfo impossible pour ${file.relPath} :`, error);
+        toQualify.push(file);
+      }
+    }
+
     return {
-      newFiles: newFiles.filter((f) => !relinkPaths.has(f.relPath)),
+      newFiles: toQualify,
       missingFiles,
       relinkCandidates,
+      importedFromNfo,
     };
   }
 
   /**
-   * Crée la fiche d'un film qualifié manuellement (transaction unique).
-   * Si `partNumber` est fourni et qu'une fiche de même titre VO existe
-   * déjà, le fichier y est rattaché (rips CD1/CD2).
+   * Qualifie un film (assistant manuel ou préremplissage TMDB) :
+   * crée/complète la fiche en transaction PUIS écrit le sidecar `.nfo`
+   * (règle CLAUDE.md : les sidecars sont le reflet exact de l'index).
    * @returns l'id du média créé ou complété
    */
-  qualify(input: QualifyMovieInput): number {
+  async qualify(input: QualifyMovieInput): Promise<number> {
+    const mediaId = this.createOrAttachMovie(input);
+
+    // L'échec d'écriture du .nfo (dossier en lecture seule…) ne doit pas
+    // annuler la qualification : la fiche est en base, le sidecar sera
+    // réécrit à la prochaine édition.
+    try {
+      await writeMovieNfo(
+        fromDriveRelative(this.driveRoot(), input.relPath),
+        this.qualifyInputToNfo(input),
+      );
+    } catch (error) {
+      console.warn(`Écriture du .nfo impossible pour ${input.relPath} :`, error);
+    }
+
+    return mediaId;
+  }
+
+  /**
+   * Cœur transactionnel de la création de fiche (assistant ET import .nfo).
+   * Réutilisation d'une fiche existante, dans l'ordre :
+   * 1. même identifiant TMDB (import .nfo multi-fichiers, enrichissement) ;
+   * 2. même titre VO si le fichier est une partie (rips CD1/CD2).
+   * @returns l'id du média créé ou complété
+   */
+  private createOrAttachMovie(input: QualifyMovieInput): number {
     return this.db.transaction((tx) => {
-      // 1. Fiche : réutilisée pour les parties suivantes d'un multi-CD.
       let mediaId: number | null = null;
-      if (input.partNumber !== null) {
+      if (input.tmdbId !== null) {
+        const existing = tx
+          .select({ id: media.id })
+          .from(media)
+          .where(and(eq(media.type, 'movie'), eq(media.tmdbId, input.tmdbId)))
+          .get();
+        mediaId = existing?.id ?? null;
+      }
+      if (mediaId === null && input.partNumber !== null) {
         const existing = tx
           .select({ id: media.id })
           .from(media)
@@ -192,20 +266,21 @@ export class ScannerService {
             year: input.year,
             overview: input.overview,
             personalRating: input.personalRating,
+            tmdbId: input.tmdbId,
           })
           .returning({ id: media.id })
           .get();
         mediaId = created.id;
 
-        // 2. Relations (uniquement à la création de la fiche).
-        this.linkPeople(tx, mediaId, input.directors, 'director');
-        this.linkPeople(tx, mediaId, input.writers, 'writer');
+        // Relations (uniquement à la création de la fiche).
+        this.linkPeople(tx, mediaId, asActors(input.directors), 'director');
+        this.linkPeople(tx, mediaId, asActors(input.writers), 'writer');
         this.linkPeople(tx, mediaId, input.actors, 'actor');
         this.linkGenres(tx, mediaId, input.genres);
         this.linkTags(tx, mediaId, input.tags);
       }
 
-      // 3. Le fichier vidéo, rattaché à la fiche.
+      // Le fichier vidéo, rattaché à la fiche.
       tx.insert(videoFiles)
         .values({
           mediaId,
@@ -223,6 +298,45 @@ export class ScannerService {
 
       return mediaId;
     });
+  }
+
+  /** Convertit une fiche `.nfo` importée en saisie de qualification. */
+  private nfoToQualifyInput(file: ScanNewFile, nfo: MovieNfo): QualifyMovieInput {
+    return {
+      relPath: file.relPath,
+      sizeBytes: file.sizeBytes,
+      mtimeMs: file.mtimeMs,
+      tech: file.tech,
+      partNumber: file.guess.partNumber,
+      titleVo: nfo.titleVo,
+      titleVf: nfo.titleVf,
+      year: nfo.year,
+      overview: nfo.overview,
+      personalRating: nfo.personalRating,
+      tmdbId: nfo.tmdbId,
+      directors: nfo.directors,
+      writers: nfo.writers,
+      actors: nfo.actors,
+      genres: nfo.genres,
+      tags: nfo.tags,
+    };
+  }
+
+  /** Convertit une saisie de qualification en fiche `.nfo` à écrire. */
+  private qualifyInputToNfo(input: QualifyMovieInput): MovieNfo {
+    return {
+      titleVo: input.titleVo,
+      titleVf: input.titleVf,
+      year: input.year,
+      overview: input.overview,
+      personalRating: input.personalRating,
+      tmdbId: input.tmdbId,
+      directors: input.directors,
+      writers: input.writers,
+      actors: input.actors,
+      genres: input.genres,
+      tags: input.tags,
+    };
   }
 
   /** Re-lie un fichier renommé/déplacé sur sa fiche existante. */
@@ -254,23 +368,28 @@ export class ScannerService {
     return row?.titleVf ?? row?.titleVo ?? '?';
   }
 
-  /** Trouve-ou-crée des personnes par nom et les lie avec un rôle. */
+  /** Trouve-ou-crée des personnes par nom et les lie avec un rôle
+   *  (+ personnage pour les acteurs, venu des `.nfo` ou de TMDB). */
   private linkPeople(
     tx: Tx,
     mediaId: number,
-    names: string[],
+    persons: QualifyActor[],
     role: 'director' | 'writer' | 'actor',
   ): void {
-    names
-      .map((n) => n.trim())
-      .filter((n) => n !== '')
-      .forEach((name, sortOrder) => {
-        const existing = tx.select({ id: people.id }).from(people).where(eq(people.name, name)).get();
+    persons
+      .map((p) => ({ ...p, name: p.name.trim() }))
+      .filter((p) => p.name !== '')
+      .forEach((person, sortOrder) => {
+        const existing = tx
+          .select({ id: people.id })
+          .from(people)
+          .where(eq(people.name, person.name))
+          .get();
         const personId =
           existing?.id ??
-          tx.insert(people).values({ name }).returning({ id: people.id }).get().id;
+          tx.insert(people).values({ name: person.name }).returning({ id: people.id }).get().id;
         tx.insert(mediaPeople)
-          .values({ mediaId, personId, role, sortOrder })
+          .values({ mediaId, personId, role, character: person.character, sortOrder })
           .onConflictDoNothing()
           .run();
       });

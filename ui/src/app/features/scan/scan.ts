@@ -177,6 +177,11 @@ export class Scan implements OnDestroy {
       const result = await this.api.scan();
       this.result.set(result);
       this.prepareDraft();
+      // Des fiches ont pu être créées par l'import silencieux des .nfo :
+      // la conformité (et donc la bibliothèque) doit être rafraîchie.
+      if (result.importedFromNfo.length > 0) {
+        await this.store.refreshConformity();
+      }
     } finally {
       this.scanning.set(false);
     }
@@ -243,9 +248,12 @@ export class Scan implements OnDestroy {
         year: this.draft.year,
         overview: this.draft.overview.trim() === '' ? null : this.draft.overview.trim(),
         personalRating: this.draft.personalRating,
+        // Saisie manuelle : pas d'identifiant TMDB (l'enrichissement 2.4
+        // le fournira) ni de personnages pour les acteurs (chips = noms).
+        tmdbId: null,
         directors: this.draft.directors,
         writers: this.draft.writers,
-        actors: this.draft.actors,
+        actors: this.draft.actors.map((name) => ({ name, character: null })),
         genres: this.draft.genres,
         tags: this.draft.tags,
       };

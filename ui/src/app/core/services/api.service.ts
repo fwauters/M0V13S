@@ -88,6 +88,7 @@ export class ApiService {
         newFiles: [],
         missingFiles: [],
         relinkCandidates: [],
+        importedFromNfo: [],
       }
     );
   }
