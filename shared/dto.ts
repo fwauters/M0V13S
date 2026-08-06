@@ -32,7 +32,24 @@ export interface ConformitySummary {
 /* Scanner (mode admin — PLAN § 6.2)                                   */
 /* ------------------------------------------------------------------ */
 
-/** Un nouveau fichier détecté, prêt pour l'assistant de qualification. */
+/** Fiche existante d'un fichier déjà indexé (scan complet forcé) :
+ *  préremplit l'assistant, et l'enregistrement MET À JOUR la fiche. */
+export interface ExistingFiche {
+  mediaId: number;
+  titleVo: string;
+  titleVf: string | null;
+  year: number | null;
+  overview: string | null;
+  personalRating: number | null;
+  tmdbId: number | null;
+  directors: string[];
+  writers: string[];
+  actors: QualifyActor[];
+  genres: string[];
+  tags: string[];
+}
+
+/** Un fichier proposé à l'assistant de qualification. */
 export interface ScanNewFile {
   relPath: string;
   sizeBytes: number;
@@ -46,6 +63,9 @@ export interface ScanNewFile {
     partNumber: number | null;
     looksLikeEpisode: boolean;
   };
+  /** Fiche existante si le fichier est déjà indexé (scan complet forcé),
+   *  null pour un fichier réellement nouveau. */
+  existing: ExistingFiche | null;
 }
 
 /** Un fichier indexé devenu introuvable (suppression sur confirmation). */

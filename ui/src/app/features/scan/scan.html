@@ -31,10 +31,15 @@
 
     <!-- 2. Lancement du scan + progression + annulation. -->
     <section class="flex max-w-2xl flex-col gap-3">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <button matButton="filled" [disabled]="scanning() || roots().length === 0" (click)="startScan()">
           {{ t('scan.start') }}
         </button>
+        <!-- Scan complet forcé : repasse aussi les fichiers déjà indexés
+             (leur fiche préremplit l'assistant, l'enregistrement la met à jour). -->
+        <mat-checkbox [(ngModel)]="fullScan" [disabled]="scanning()">
+          {{ t('scan.fullScanLabel') }}
+        </mat-checkbox>
         @if (scanning()) {
           <button matButton (click)="cancelScan()">{{ t('common.cancel') }}</button>
         }
@@ -127,6 +132,11 @@
           <!-- Identité disque + infos techniques (ffprobe). -->
           <div class="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
             <p class="font-mono">{{ file.relPath }}</p>
+            @if (file.existing !== null) {
+              <p class="mt-1 w-fit rounded bg-sky-500/20 px-2 py-0.5 text-xs text-sky-700 dark:text-sky-300">
+                {{ t('scan.updateBadge') }}
+              </p>
+            }
             @if (file.tech; as tech) {
               <p class="mt-1 opacity-70">
                 @if (tech.durationSec | minutes; as min) {

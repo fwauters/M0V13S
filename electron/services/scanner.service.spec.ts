@@ -224,6 +224,60 @@ describe('ScannerService.scan — import silencieux des .nfo (PLAN § 6.2.2)', (
   });
 });
 
+describe('ScannerService — scan complet forcé et mise à jour de fiche', () => {
+  beforeEach(() => {
+    settings.setLibraryRoots(['Films']);
+  });
+
+  it('scan normal : rien à requalifier quand tout est indexé ; scan complet : tout repasse, prérempli', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    await scanner.qualify(makeInput());
+
+    // Scan normal : bibliothèque conforme, rien à proposer.
+    const normal = await scanner.scan();
+    expect(normal.newFiles).toEqual([]);
+
+    // Scan complet : le fichier indexé repasse, prérempli avec sa fiche.
+    const full = await scanner.scan(undefined, { full: true });
+    expect(full.newFiles).toHaveLength(1);
+    const existing = full.newFiles[0]!.existing;
+    expect(existing?.titleVo).toBe('Prometheus');
+    expect(existing?.genres).toEqual(['Science-Fiction', 'Horreur']);
+    expect(existing?.actors).toEqual(makeInput().actors);
+  });
+
+  it('requalifier un fichier déjà indexé MET À JOUR la fiche (aucun doublon)', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const id1 = await scanner.qualify(makeInput());
+    const id2 = await scanner.qualify(
+      makeInput({
+        titleVf: 'Prometheus — édition corrigée',
+        personalRating: 9,
+        genres: ['Science-Fiction'], // « Horreur » retiré
+      }),
+    );
+
+    expect(id2).toBe(id1);
+    const allMedia = db.select().from(media).all();
+    expect(allMedia).toHaveLength(1);
+    expect(allMedia[0]!.titleVf).toBe('Prometheus — édition corrigée');
+    expect(allMedia[0]!.personalRating).toBe(9);
+    expect(db.select().from(videoFiles).all()).toHaveLength(1);
+    // Les relations reflètent exactement la nouvelle saisie.
+    expect(db.select().from(mediaGenres).all()).toHaveLength(1);
+  });
+
+  it('scan complet : les .nfo des fichiers indexés ne sont PAS ré-importés', async () => {
+    makeVideoFile('Films/Alien (1979)/alien.mkv', ALIEN_NFO);
+    await scanner.scan(); // import silencieux initial
+
+    const full = await scanner.scan(undefined, { full: true });
+    expect(full.importedFromNfo).toEqual([]);
+    expect(full.newFiles).toHaveLength(1); // repasse en assistant (mise à jour)
+    expect(db.select().from(media).all()).toHaveLength(1); // pas de doublon
+  });
+});
+
 describe('ScannerService.relink / deleteMedia', () => {
   it('relink met à jour le chemin et repasse le fichier en ok', async () => {
     const mediaId = await scanner.qualify(makeInput());

@@ -56,15 +56,20 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
 
   /* ---------------------- scanner ---------------------- */
 
-  ipcMain.handle(IPC.scanner.scan, async (event) => {
+  ipcMain.handle(IPC.scanner.scan, async (event, full?: boolean) => {
     if (!services) {
-      return { newFiles: [], missingFiles: [], relinkCandidates: [] };
+      return { newFiles: [], missingFiles: [], relinkCandidates: [], importedFromNfo: [] };
     }
     // La progression est poussée vers la fenêtre appelante.
     const win = BrowserWindow.fromWebContents(event.sender);
-    return services.scanner.scan((progress) => {
-      win?.webContents.send(IPC.scanner.progress, progress);
-    });
+    return services.scanner.scan(
+      (progress) => {
+        win?.webContents.send(IPC.scanner.progress, progress);
+      },
+      // `full` : scan complet forcé (les fichiers indexés repassent
+      // dans l'assistant pour mise à jour de fiche).
+      { full: full === true },
+    );
   });
 
   ipcMain.handle(IPC.scanner.cancel, () => services?.scanner.cancel());

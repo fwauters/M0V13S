@@ -83,10 +83,14 @@ export class ApiService {
 
   /* ------------------------ scanner ------------------------- */
 
-  /** Scan complet (mode Scanner). */
-  async scan(): Promise<ScanResult> {
+  /**
+   * Scan des racines (mode Scanner).
+   * @param full vrai = scan complet forcé : les fichiers déjà indexés
+   *             repassent dans l'assistant (mise à jour de fiche)
+   */
+  async scan(full = false): Promise<ScanResult> {
     return (
-      window.api?.scanner.scan() ?? {
+      window.api?.scanner.scan(full) ?? {
         newFiles: [],
         missingFiles: [],
         relinkCandidates: [],

@@ -17,6 +17,7 @@
 import { and, eq } from 'drizzle-orm';
 
 import type {
+  ExistingFiche,
   QualifyActor,
   QualifyMovieInput,
   ScanImportedFile,
@@ -70,11 +71,19 @@ export class ScannerService {
   }
 
   /**
-   * Scan complet des racines de bibliothèque.
-   * @param onProgress rappel de progression (analyse des nouveaux fichiers)
+   * Scan des racines de bibliothèque.
+   * @param onProgress rappel de progression (analyse des fichiers)
+   * @param options `full` = scan complet FORCÉ : les fichiers déjà indexés
+   *                repassent aussi dans l'assistant, préremplis avec leur
+   *                fiche existante — l'enregistrement la met à jour
+   *                (demande utilisateur, phase 2).
    */
-  async scan(onProgress?: (p: ScanProgress) => void): Promise<ScanResult> {
+  async scan(
+    onProgress?: (p: ScanProgress) => void,
+    options: { full?: boolean } = {},
+  ): Promise<ScanResult> {
     this.cancelRequested = false;
+    const full = options.full === true;
     const driveRoot = this.driveRoot();
     const found = walkLibraryRoots(driveRoot, this.settings.getLibraryRoots());
     const foundByRelPath = new Map(found.map((f) => [f.relPath, f]));
@@ -89,24 +98,26 @@ export class ScannerService {
       })
       .from(videoFiles)
       .all();
+    const knownByRelPath = new Map(knownRows.map((k) => [k.relPath, k]));
 
     const diff = diffLibrary(
       knownRows.map((k) => k.relPath),
       found.map((f) => f.relPath),
     );
 
-    // --- Nouveaux fichiers : ffprobe + parsing du nom (progression). ---
+    // --- Fichiers à analyser : les inconnus, + TOUS les fichiers présents
+    //     en mode complet forcé (progression ffprobe dans les deux cas). ---
     const newFiles: ScanNewFile[] = [];
-    const unknownFiles = diff.unknownPresent
+    const candidates = (full ? found.map((f) => f.relPath) : diff.unknownPresent)
       .map((relPath) => foundByRelPath.get(relPath))
       .filter((f): f is FoundFile => f !== undefined);
 
     let done = 0;
-    for (const file of unknownFiles) {
+    for (const file of candidates) {
       if (this.cancelRequested) {
         break; // scan partiel : l'UI présente ce qui a été analysé
       }
-      onProgress?.({ done, total: unknownFiles.length, current: file.relPath });
+      onProgress?.({ done, total: candidates.length, current: file.relPath });
 
       // L'échec de ffprobe (fichier corrompu, outil absent) n'interrompt
       // pas le scan : la fiche restera qualifiable, sans infos techniques.
@@ -117,16 +128,20 @@ export class ScannerService {
         tech = null;
       }
 
+      // Fichier déjà indexé (mode complet) : sa fiche préremplit l'assistant.
+      const knownMediaId = knownByRelPath.get(file.relPath)?.mediaId ?? null;
+
       newFiles.push({
         relPath: file.relPath,
         sizeBytes: file.sizeBytes,
         mtimeMs: file.mtimeMs,
         tech,
         guess: parseFilename(file.relPath),
+        existing: knownMediaId === null ? null : this.loadExistingFiche(knownMediaId),
       });
       done += 1;
     }
-    onProgress?.({ done, total: unknownFiles.length, current: '' });
+    onProgress?.({ done, total: candidates.length, current: '' });
 
     // --- Manquants : fiches dont le fichier a disparu. ---
     const missingRows = knownRows.filter((k) => diff.missingKnown.includes(k.relPath));
@@ -140,11 +155,14 @@ export class ScannerService {
       }));
 
     // --- Re-liens probables : disparu <-> nouveau de même taille
-    //     (+ même durée quand les deux sont connues). ---
+    //     (+ même durée quand les deux sont connues). Seuls les fichiers
+    //     RÉELLEMENT inconnus participent (en scan complet, les fichiers
+    //     déjà indexés ne sont pas des renommages). ---
     const relinkCandidates: ScanRelinkCandidate[] = [];
     for (const missing of missingRows) {
       const candidate = newFiles.find(
         (n) =>
+          n.existing === null &&
           n.sizeBytes === missing.sizeBytes &&
           (missing.durationSec === null ||
             n.tech === null ||
@@ -178,6 +196,12 @@ export class ScannerService {
     const importedFromNfo: ScanImportedFile[] = [];
     const toQualify: ScanNewFile[] = [];
     for (const file of remaining) {
+      // Fichier déjà indexé (scan complet) : sa fiche existe, l'import .nfo
+      // n'a pas de sens — il va directement à l'assistant (mise à jour).
+      if (file.existing !== null) {
+        toQualify.push(file);
+        continue;
+      }
       const nfo = await readMovieNfoFor(fromDriveRelative(driveRoot, file.relPath));
       if (nfo === null) {
         toQualify.push(file);
@@ -238,6 +262,57 @@ export class ScannerService {
    */
   private createOrAttachMovie(input: QualifyMovieInput): number {
     return this.db.transaction((tx) => {
+      // --- Fichier DÉJÀ indexé (scan complet forcé) : MISE À JOUR de la
+      //     fiche existante — jamais de doublon. Les relations sont
+      //     remplacées intégralement (reflet exact de la saisie). ---
+      const existingFile = tx
+        .select({ id: videoFiles.id, mediaId: videoFiles.mediaId })
+        .from(videoFiles)
+        .where(eq(videoFiles.relPath, input.relPath))
+        .get();
+      if (existingFile !== undefined && existingFile.mediaId !== null) {
+        const mediaId = existingFile.mediaId;
+        tx.update(media)
+          .set({
+            titleVo: input.titleVo,
+            titleVf: input.titleVf,
+            year: input.year,
+            overview: input.overview,
+            personalRating: input.personalRating,
+            tmdbId: input.tmdbId,
+            updatedAt: Date.now(),
+          })
+          .where(eq(media.id, mediaId))
+          .run();
+
+        tx.delete(mediaPeople).where(eq(mediaPeople.mediaId, mediaId)).run();
+        tx.delete(mediaGenres).where(eq(mediaGenres.mediaId, mediaId)).run();
+        tx.delete(mediaTags).where(eq(mediaTags.mediaId, mediaId)).run();
+        this.linkPeople(tx, mediaId, asActors(input.directors), 'director');
+        this.linkPeople(tx, mediaId, asActors(input.writers), 'writer');
+        this.linkPeople(tx, mediaId, input.actors, 'actor');
+        this.linkGenres(tx, mediaId, input.genres);
+        this.linkTags(tx, mediaId, input.tags);
+
+        tx.update(videoFiles)
+          .set({
+            sizeBytes: input.sizeBytes,
+            mtimeMs: input.mtimeMs,
+            partNumber: input.partNumber,
+            durationSec: input.tech?.durationSec ?? null,
+            videoCodec: input.tech?.videoCodec ?? null,
+            audioCodec: input.tech?.audioCodec ?? null,
+            width: input.tech?.width ?? null,
+            height: input.tech?.height ?? null,
+            status: 'ok',
+            scannedAt: Date.now(),
+          })
+          .where(eq(videoFiles.id, existingFile.id))
+          .run();
+
+        return mediaId;
+      }
+
       let mediaId: number | null = null;
       if (input.tmdbId !== null) {
         const existing = tx
@@ -298,6 +373,60 @@ export class ScannerService {
 
       return mediaId;
     });
+  }
+
+  /**
+   * Charge la fiche existante d'un média pour préremplir l'assistant
+   * (scan complet forcé) : champs + personnes par rôle + genres + tags.
+   */
+  private loadExistingFiche(mediaId: number): ExistingFiche | null {
+    const m = this.db.select().from(media).where(eq(media.id, mediaId)).get();
+    if (m === undefined) {
+      return null;
+    }
+
+    const personRows = this.db
+      .select({
+        name: people.name,
+        role: mediaPeople.role,
+        character: mediaPeople.character,
+      })
+      .from(mediaPeople)
+      .innerJoin(people, eq(people.id, mediaPeople.personId))
+      .where(eq(mediaPeople.mediaId, mediaId))
+      .orderBy(mediaPeople.sortOrder)
+      .all();
+
+    const genreRows = this.db
+      .select({ name: genres.name })
+      .from(mediaGenres)
+      .innerJoin(genres, eq(genres.id, mediaGenres.genreId))
+      .where(eq(mediaGenres.mediaId, mediaId))
+      .all();
+
+    const tagRows = this.db
+      .select({ name: tags.name })
+      .from(mediaTags)
+      .innerJoin(tags, eq(tags.id, mediaTags.tagId))
+      .where(eq(mediaTags.mediaId, mediaId))
+      .all();
+
+    return {
+      mediaId,
+      titleVo: m.titleVo,
+      titleVf: m.titleVf,
+      year: m.year,
+      overview: m.overview,
+      personalRating: m.personalRating,
+      tmdbId: m.tmdbId,
+      directors: personRows.filter((p) => p.role === 'director').map((p) => p.name),
+      writers: personRows.filter((p) => p.role === 'writer').map((p) => p.name),
+      actors: personRows
+        .filter((p) => p.role === 'actor')
+        .map((p) => ({ name: p.name, character: p.character })),
+      genres: genreRows.map((g) => g.name),
+      tags: tagRows.map((t) => t.name),
+    };
   }
 
   /** Convertit une fiche `.nfo` importée en saisie de qualification. */

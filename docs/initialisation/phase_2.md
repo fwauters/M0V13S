@@ -61,6 +61,18 @@ redescend jamais au renderer (statut masqué uniquement).
   automatique après enregistrement, mention d'attribution TMDB.
 - 9 tests (masquage, statut, effacement, verdicts, clé candidate).
 
+### Ajout en cours de phase — Scan complet forcé (demande utilisateur)
+- Case « Scan complet » à côté de « Lancer le scan » : les fichiers DÉJÀ
+  indexés repassent dans l'assistant, PRÉREMPLIS avec leur fiche
+  existante (badge « Fiche existante — l'enregistrement la mettra à
+  jour »). C'est aussi, de fait, l'édition de fiche via re-scan.
+- `qualify()` détecte un `relPath` déjà indexé → MISE À JOUR de la fiche
+  (champs + relations remplacées + fichier + réécriture `.nfo`), jamais
+  de doublon. Le `tmdbId` et les personnages d'acteurs connus sont
+  préservés lors d'une mise à jour manuelle.
+- Garde-fous : en scan complet, les fichiers indexés ne participent pas
+  aux re-liens et leurs `.nfo` ne sont pas ré-importés. 3 nouveaux tests.
+
 ### 2.3b — tmdb.service : recherche fr-FR, détails, mapping — À VENIR
 ### 2.4 — UI scan : recherche TMDB + choix du film — À VENIR
 ### 2.5 — Poster/fanart en sidecars + cache miniatures — À VENIR

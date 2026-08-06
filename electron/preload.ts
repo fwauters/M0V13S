@@ -32,7 +32,7 @@ const api: WindowApi = {
     setRoots: (roots: string[]) => ipcRenderer.invoke(IPC.library.setRoots, roots),
   },
   scanner: {
-    scan: () => ipcRenderer.invoke(IPC.scanner.scan),
+    scan: (full?: boolean) => ipcRenderer.invoke(IPC.scanner.scan, full === true),
     cancel: () => ipcRenderer.invoke(IPC.scanner.cancel),
     qualify: (input: QualifyMovieInput) => ipcRenderer.invoke(IPC.scanner.qualify, input),
     relink: (candidate: ScanRelinkCandidate) =>

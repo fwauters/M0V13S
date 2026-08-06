@@ -1,6 +1,7 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -52,6 +53,7 @@ interface QualifyDraft {
     FormsModule,
     MatButton,
     MatIconButton,
+    MatCheckbox,
     MatIcon,
     MatFormField,
     MatLabel,
@@ -84,6 +86,10 @@ export class Scan implements OnDestroy {
   protected readonly scanning = signal(false);
   protected readonly progress = signal<ScanProgress | null>(null);
   protected readonly result = signal<ScanResult | null>(null);
+  /** Case « scan complet » : repasse AUSSI les fichiers déjà indexés dans
+   *  l'assistant (préremplis avec leur fiche — l'enregistrement la met à
+   *  jour). Demande utilisateur, phase 2. */
+  protected fullScan = false;
   /** Valeur 0-100 pour la barre de progression Material. */
   protected readonly progressPercent = computed(() => {
     const p = this.progress();
@@ -174,7 +180,7 @@ export class Scan implements OnDestroy {
     this.result.set(null);
     this.currentIndex.set(0);
     try {
-      const result = await this.api.scan();
+      const result = await this.api.scan(this.fullScan);
       this.result.set(result);
       this.prepareDraft();
       // Des fiches ont pu être créées par l'import silencieux des .nfo :
@@ -248,12 +254,17 @@ export class Scan implements OnDestroy {
         year: this.draft.year,
         overview: this.draft.overview.trim() === '' ? null : this.draft.overview.trim(),
         personalRating: this.draft.personalRating,
-        // Saisie manuelle : pas d'identifiant TMDB (l'enrichissement 2.4
-        // le fournira) ni de personnages pour les acteurs (chips = noms).
-        tmdbId: null,
+        // Mise à jour d'une fiche existante : son tmdbId et les personnages
+        // déjà connus des acteurs sont PRÉSERVÉS (les chips ne portent que
+        // des noms). Nouvelle fiche manuelle : tmdbId null (l'enrichissement
+        // 2.4 le fournira).
+        tmdbId: file.existing?.tmdbId ?? null,
         directors: this.draft.directors,
         writers: this.draft.writers,
-        actors: this.draft.actors.map((name) => ({ name, character: null })),
+        actors: this.draft.actors.map((name) => ({
+          name,
+          character: file.existing?.actors.find((a) => a.name === name)?.character ?? null,
+        })),
         genres: this.draft.genres,
         tags: this.draft.tags,
       };
@@ -276,11 +287,31 @@ export class Scan implements OnDestroy {
     this.prepareDraft();
   }
 
-  /** Préremplit le brouillon depuis le parsing du nom de fichier. */
+  /**
+   * Préremplit le brouillon : depuis la FICHE EXISTANTE si le fichier est
+   * déjà indexé (scan complet — l'enregistrement mettra la fiche à jour),
+   * sinon depuis le parsing du nom de fichier.
+   */
   private prepareDraft(): void {
     const file = this.currentFile();
     this.draft = this.emptyDraft();
-    if (file !== null) {
+    if (file === null) {
+      return;
+    }
+    if (file.existing !== null) {
+      const f = file.existing;
+      this.draft.titleVo = f.titleVo;
+      this.draft.titleVf = f.titleVf ?? '';
+      this.draft.year = f.year;
+      this.draft.overview = f.overview ?? '';
+      this.draft.personalRating = f.personalRating;
+      // Copies des tableaux : le brouillon est modifiable sans toucher au DTO.
+      this.draft.directors = [...f.directors];
+      this.draft.writers = [...f.writers];
+      this.draft.actors = f.actors.map((a) => a.name);
+      this.draft.genres = [...f.genres];
+      this.draft.tags = [...f.tags];
+    } else {
       this.draft.titleVo = file.guess.title;
       this.draft.year = file.guess.year;
     }

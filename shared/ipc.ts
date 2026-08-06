@@ -116,7 +116,9 @@ export interface WindowApi {
     setRoots(roots: string[]): Promise<void>;
   };
   scanner: {
-    scan(): Promise<ScanResult>;
+    /** Scan des racines ; `full` repasse aussi les fichiers déjà indexés
+     *  dans l'assistant (leur enregistrement met la fiche à jour). */
+    scan(full?: boolean): Promise<ScanResult>;
     /** S'abonne à la progression du scan ; retourne la désinscription. */
     onProgress(listener: (progress: ScanProgress) => void): () => void;
     cancel(): Promise<void>;
