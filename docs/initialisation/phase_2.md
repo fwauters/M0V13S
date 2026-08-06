@@ -2,8 +2,10 @@
 
 > Doc vivante anti-crash : mise à jour à chaque étape, statut ci-dessous.
 
-**Statut : EN COURS** — démarrée après merge de la PR #2 (phase 1 validée
-avec 5 correctifs de validation). Branche `phase-2`, un commit par étape.
+**Statut : LIVRÉE** — étapes 2.1 → 2.7 faites et committées (un commit par
+étape, branche `phase-2`, PR #3), plus deux ajouts demandés en cours de
+phase : scan complet forcé et clé TMDB gérée dans l'app. Reste la
+validation utilisateur de fin de phase (procédure en fin de rapport).
 
 ## Objectif de la phase
 
@@ -118,4 +120,26 @@ redescend jamais au renderer (statut masqué uniquement).
   `enrichMedia` côté main : fiche mise à jour par la MÊME voie que la
   qualification (upsert + `.nfo` + images sidecar), tags et note perso
   CONSERVÉS. La fiche se recharge après enrichissement. 2 tests.
-### 2.7 — Fin de phase (deps, docs, portabilité, PR) — À VENIR
+### 2.7 — Fin de phase (ce commit)
+- `pnpm outdated` : better-sqlite3 13.0.3 (patch) et Electron 43.3.0
+  (minor) appliqués, suites re-passées (89 + 8 tests) ; TypeScript 7
+  (majeure) exclu — Angular 22.1 exige ~6.0, à revoir avec la montée
+  Angular. `pnpm audit --prod` : aucune vulnérabilité connue.
+- Packaging portable revalidé : build copié ailleurs → fenêtre vivante,
+  DB créée/migrée à côté de l'exe (rituel après montée d'Electron).
+- Docs à jour, PR #3 ouverte.
+
+## Validation utilisateur attendue (avant merge)
+
+1. `git pull` sur `phase-2`, `nvm use 22.23.2`, `pnpm dev`.
+2. Accueil : la carte TMDB montre ta clé (masquée) ; « Tester » → valide.
+3. Scanner : coche « Scan complet », lance — chaque film repasse dans
+   l'assistant avec sa fiche préremplie ET la recherche TMDB auto-lancée :
+   choisis le bon film (vignettes), vérifie le préremplissage (tes tags
+   sont conservés), enregistre.
+4. À côté de chaque vidéo : `.nfo` réécrit + `-poster.jpg` + `-fanart.jpg`.
+5. Fiche : bouton « Compléter via TMDB » → dialogue → choix → fiche mise à
+   jour (recharge automatique).
+6. Partage : copie un dossier film complet (vidéo + .nfo + images) dans
+   une racine, re-scan simple → « Importés automatiquement », hors ligne.
+7. Merge de la PR #3 → phase 3 (UI Netflix — les affiches vont enfin servir !).

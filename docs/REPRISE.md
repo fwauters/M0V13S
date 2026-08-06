@@ -7,21 +7,22 @@
 ## Où on en est — résumé en 3 lignes
 
 1. **Phases 0 et 1 : terminées, validées, mergées** (PR #1, #2).
-2. **Phase 2 : quasi terminée** sur la branche `phase-2` — 2.1 à 2.5
-   livrées (+ scan complet forcé et gestion de la clé TMDB dans l'app,
-   demandes utilisateur en cours de phase). La clé API de l'utilisateur
-   est configurée et fonctionnelle.
-3. **Reste** : 2.6 (hors-ligne OK par construction ; question ouverte :
-   bouton « réessayer l'enrichissement » par fiche, ou couvert par le
-   scan complet ?) et 2.7 (fin de phase : deps, docs, packaging, PR #3,
-   validation utilisateur).
+2. **Phase 2 : TERMINÉE et poussée — PR #3 OUVERTE, en attente de la
+   validation utilisateur puis du merge.** Tout y est : sidecars .nfo +
+   images, import silencieux (partage), TMDB de bout en bout (clé dans
+   l'app, recherche dans l'assistant, bouton « Compléter via TMDB » par
+   fiche), scan complet forcé, deps à jour, portabilité revalidée.
+3. **Ensuite : phase 3 (UI « Netflix »)** — branche `phase-3` depuis main
+   mergé, TODO 3.1 → 3.6 (+ thumbs.service reporté de 2.5 vers 3.2, et le
+   protocole de service des images au renderer à concevoir en 3.1/3.2).
 
 ## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Répondre à la question 2.6 (bouton par fiche vs scan complet suffisant),
-puis valider la phase 2 en conditions réelles : scan complet d'un dossier
-avec la clé TMDB active → choix des films → fiches enrichies + `.nfo` +
-`-poster.jpg`/`-fanart.jpg` à côté des vidéos.
+Valider la phase 2 (procédure détaillée : phase_2.md § Validation) —
+l'essentiel : scan complet avec clé TMDB active → choix des films →
+fiches enrichies + `.nfo` + images à côté des vidéos ; bouton « Compléter
+via TMDB » sur une fiche ; import silencieux d'un dossier partagé.
+Puis **merger la PR #3**.
 
 ## Méthode de travail établie (récap opérationnel)
 

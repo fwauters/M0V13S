@@ -79,7 +79,9 @@
 - [x] **2.6** Scan hors-ligne (statuts explicites, import .nfo et images en
   repli hors ligne) + bouton « Compléter via TMDB » sur la fiche (dialogue
   de recherche, tags/note perso conservés — décision utilisateur).
-- [ ] **2.7** Fin de phase : deps, docs, portabilité, push.
+- [x] **2.7** Fin de phase : deps à jour (better-sqlite3 patch, Electron
+  minor ; TS 7 exclu), audit sans vulnérabilité, portabilité revalidée,
+  docs, PR #3 ouverte.
 
 ## Phase 3 — UI « Netflix »
 
