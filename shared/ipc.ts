@@ -18,6 +18,8 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbKeyStatus,
+  TmdbKeyTestResult,
 } from './dto';
 
 /** Noms des canaux IPC, groupés par domaine. */
@@ -60,6 +62,14 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+  },
+  tmdb: {
+    /** Statut de la clé API (masquée — jamais la clé en clair). */
+    getKeyStatus: 'tmdb:get-key-status',
+    /** Enregistre (ou efface, si vide) la clé API. */
+    setKey: 'tmdb:set-key',
+    /** Teste la validité d'une clé contre l'API TMDB. */
+    testKey: 'tmdb:test-key',
   },
 } as const;
 
@@ -116,5 +126,11 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+  };
+  tmdb: {
+    getKeyStatus(): Promise<TmdbKeyStatus>;
+    setKey(key: string): Promise<void>;
+    /** Teste la clé fournie, ou la clé stockée si omise. */
+    testKey(candidateKey?: string): Promise<TmdbKeyTestResult>;
   };
 }

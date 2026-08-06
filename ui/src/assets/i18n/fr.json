@@ -11,9 +11,24 @@
   "common": {
     "loading": "Chargement…",
     "cancel": "Annuler",
-    "remove": "Retirer"
+    "remove": "Retirer",
+    "save": "Enregistrer"
   },
   "home": {
+    "tmdb": {
+      "title": "Enrichissement TMDB",
+      "configured": "Clé API configurée ({{masked}})",
+      "missing": "Aucune clé API : le scan fonctionnera, sans préremplissage automatique des fiches.",
+      "add": "Ajouter ma clé",
+      "change": "Remplacer",
+      "test": "Tester",
+      "testing": "Vérification de la clé auprès de TMDB…",
+      "placeholder": "Clé API TMDB (v3)",
+      "hint": "Clé gratuite et personnelle : themoviedb.org → Paramètres → API. Stockée uniquement sur ce disque (data\\), jamais partagée. Ce produit utilise l'API TMDB sans être approuvé ni certifié par TMDB.",
+      "resultValid": "Clé valide — l'enrichissement des fiches est opérationnel.",
+      "resultInvalid": "Clé refusée par TMDB : vérifiez la saisie.",
+      "resultOffline": "Hors ligne : impossible de vérifier maintenant. La clé est enregistrée et sera testable en ligne."
+    },
     "tagline": "Votre vidéothèque, façon Netflix, 100 % hors ligne.",
     "launch": "Lancer le programme",
     "launchHint": "Parcourir et regarder votre bibliothèque",

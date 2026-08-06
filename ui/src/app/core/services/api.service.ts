@@ -9,6 +9,8 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbKeyStatus,
+  TmdbKeyTestResult,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
 
@@ -123,5 +125,22 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /* -------------------------- tmdb -------------------------- */
+
+  /** Statut (masqué) de la clé API TMDB. */
+  async getTmdbKeyStatus(): Promise<TmdbKeyStatus> {
+    return window.api?.tmdb.getKeyStatus() ?? { configured: false, maskedKey: null };
+  }
+
+  /** Enregistre (ou efface, si vide) la clé API TMDB. */
+  async setTmdbKey(key: string): Promise<void> {
+    await window.api?.tmdb.setKey(key);
+  }
+
+  /** Teste la clé fournie (ou la clé stockée) contre l'API TMDB. */
+  async testTmdbKey(candidateKey?: string): Promise<TmdbKeyTestResult> {
+    return window.api?.tmdb.testKey(candidateKey) ?? 'offline';
   }
 }

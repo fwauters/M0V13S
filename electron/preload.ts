@@ -50,6 +50,11 @@ const api: WindowApi = {
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
   },
+  tmdb: {
+    getKeyStatus: () => ipcRenderer.invoke(IPC.tmdb.getKeyStatus),
+    setKey: (key: string) => ipcRenderer.invoke(IPC.tmdb.setKey, key),
+    testKey: (candidateKey?: string) => ipcRenderer.invoke(IPC.tmdb.testKey, candidateKey),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

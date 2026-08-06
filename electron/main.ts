@@ -11,12 +11,14 @@ import { AppDatabaseHandle, openDatabase } from './db/client';
 import { registerLibraryIpc } from './ipc/library.ipc';
 import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
+import { registerTmdbIpc } from './ipc/tmdb.ipc';
 import { AdminTablesService } from './services/admin-tables.service';
 import { ConformityService } from './services/conformity.service';
 import { LibraryService } from './services/library.service';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
 import { ScannerService } from './services/scanner.service';
 import { SettingsService } from './services/settings.service';
+import { TmdbService } from './services/tmdb.service';
 
 /**
  * URL du serveur de dev Angular (ng serve) — utilisée hors packaging.
@@ -79,6 +81,7 @@ app.whenReady().then(() => {
   if (db !== null) {
     const settingsService = new SettingsService(db);
     registerSettingsIpc(settingsService);
+    registerTmdbIpc(new TmdbService(settingsService));
     registerLibraryIpc({
       settings: settingsService,
       conformity: new ConformityService(db, settingsService),
@@ -88,6 +91,7 @@ app.whenReady().then(() => {
     });
   } else {
     registerSettingsIpc(null);
+    registerTmdbIpc(null);
     registerLibraryIpc(null);
   }
 

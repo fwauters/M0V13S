@@ -49,7 +49,19 @@ La **clé API TMDB se gère DANS l'app** (pas seulement en phase 5) : carte
 sur l'écran d'accueil — saisie, statut masqué, bouton « Tester » (3 états :
 valide / invalide / hors ligne). Canal IPC dédié : la clé complète ne
 redescend jamais au renderer (statut masqué uniquement).
-### 2.3 — tmdb.service (recherche fr-FR, mapping, HTTP mocké) — À VENIR
+### 2.3a — Clé API TMDB gérée dans l'app — FAIT
+- `TmdbService` (fetch injectable, testé sans réseau) : statut MASQUÉ
+  (`****7890`), enregistrement (clé vide = effacement), test de validité
+  contre `/3/configuration` avec 3 verdicts : `valid` / `invalid` /
+  `offline` (timeout 8 s — offline-first, la clé saisie hors ligne reste
+  enregistrée et testable plus tard).
+- Canal IPC DÉDIÉ `tmdb:*` : la clé complète ne redescend jamais au
+  renderer. Carte sur l'écran d'ACCUEIL (choix utilisateur) : statut,
+  ajout/remplacement (champ type password), bouton « Tester », test
+  automatique après enregistrement, mention d'attribution TMDB.
+- 9 tests (masquage, statut, effacement, verdicts, clé candidate).
+
+### 2.3b — tmdb.service : recherche fr-FR, détails, mapping — À VENIR
 ### 2.4 — UI scan : recherche TMDB + choix du film — À VENIR
 ### 2.5 — Poster/fanart en sidecars + cache miniatures — À VENIR
 ### 2.6 — Scan hors-ligne + « réessayer l'enrichissement » — À VENIR

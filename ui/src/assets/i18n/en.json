@@ -11,9 +11,24 @@
   "common": {
     "loading": "Loading…",
     "cancel": "Cancel",
-    "remove": "Remove"
+    "remove": "Remove",
+    "save": "Save"
   },
   "home": {
+    "tmdb": {
+      "title": "TMDB enrichment",
+      "configured": "API key configured ({{masked}})",
+      "missing": "No API key: scanning will work, without automatic pre-filling of movie details.",
+      "add": "Add my key",
+      "change": "Replace",
+      "test": "Test",
+      "testing": "Checking the key with TMDB…",
+      "placeholder": "TMDB API key (v3)",
+      "hint": "Free personal key: themoviedb.org → Settings → API. Stored only on this drive (data\\), never shared. This product uses the TMDB API but is not endorsed or certified by TMDB.",
+      "resultValid": "Valid key — movie enrichment is operational.",
+      "resultInvalid": "Key rejected by TMDB: check your input.",
+      "resultOffline": "Offline: cannot verify right now. The key is saved and can be tested when online."
+    },
     "tagline": "Your movie library, Netflix-style, 100% offline.",
     "launch": "Start the program",
     "launchHint": "Browse and watch your library",

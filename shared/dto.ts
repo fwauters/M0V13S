@@ -124,6 +124,23 @@ export interface QualifyMovieInput {
 }
 
 /* ------------------------------------------------------------------ */
+/* TMDB (enrichissement — PLAN § 6.2, clé gérée dans l'app)            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Statut de la clé API TMDB, tel qu'exposé au renderer.
+ * La clé COMPLÈTE ne redescend jamais : seulement une version masquée.
+ */
+export interface TmdbKeyStatus {
+  configured: boolean;
+  /** Derniers caractères de la clé (ex. « ****3f2a »), null si absente. */
+  maskedKey: string | null;
+}
+
+/** Résultat du test de validité de la clé (bouton « Tester »). */
+export type TmdbKeyTestResult = 'valid' | 'invalid' | 'offline';
+
+/* ------------------------------------------------------------------ */
 /* Bibliothèque (mode classique — liste et fiches)                     */
 /* ------------------------------------------------------------------ */
 
