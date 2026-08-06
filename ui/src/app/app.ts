@@ -1,27 +1,27 @@
-import { Component, inject, signal } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { Component, inject } from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIcon } from '@angular/material/icon';
-import { UpperCasePipe } from '@angular/common';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
-import { ApiService } from './core/api.service';
-import { AppLang, LanguageService } from './core/language.service';
-import { ThemeService } from './core/theme.service';
+import { AppLang, LanguageService } from './core/services/language.service';
+import { LibraryStore } from './core/library.store';
+import { ThemeService } from './core/services/theme.service';
 
 /**
- * Composant racine : shell de l'application.
- * En phase 0 il sert de démonstrateur des piliers du socle : thèmes
- * light/dark, i18n à chaud, Material + Tailwind, et l'aller-retour IPC
- * complet (UI -> preload -> main -> SQLite). Le routing des features
- * (home, browse, scan…) arrive en phase 1.
+ * Composant racine : header permanent (wordmark, navigation, langue,
+ * thème) + router-outlet des features. Déclenche le contrôle de
+ * conformité dès le démarrage (PLAN § 6.1).
  */
 @Component({
   selector: 'app-root',
   imports: [
     TranslocoDirective,
     UpperCasePipe,
-    MatButton,
+    RouterOutlet,
+    RouterLink,
     MatIconButton,
     MatIcon,
     MatButtonToggleGroup,
@@ -36,40 +36,16 @@ export class App {
   /** Langue active (signal) + liste des langues — voir LanguageService. */
   protected readonly language = inject(LanguageService);
 
-  private readonly api = inject(ApiService);
+  private readonly store = inject(LibraryStore);
 
-  /** Appel de ping en cours (désactive le bouton). */
-  protected readonly pingPending = signal(false);
-
-  /** Résumé lisible du dernier ping réussi (null tant qu'aucun). */
-  protected readonly pingSummary = signal<string | null>(null);
-
-  /** Vrai si le dernier ping a constaté l'absence du backend (hors Electron). */
-  protected readonly pingUnavailable = signal(false);
+  constructor() {
+    // Conformité vérifiée dès l'ouverture, sans bloquer le rendu :
+    // l'accueil et le guard consommeront le résultat.
+    void this.store.ensureConformity();
+  }
 
   /** Relaye le choix de langue du sélecteur du header. */
   protected onLangChange(lang: AppLang): void {
     this.language.setLang(lang);
-  }
-
-  /** Démonstration IPC : ping du backend et affichage du résultat. */
-  protected async onPing(): Promise<void> {
-    this.pingPending.set(true);
-    this.pingUnavailable.set(false);
-    try {
-      const result = await this.api.pingSystem();
-      if (result === null) {
-        this.pingSummary.set(null);
-        this.pingUnavailable.set(true);
-        return;
-      }
-      // Données techniques (non traduites) ; le libellé autour est traduit.
-      this.pingSummary.set(
-        `v${result.appVersion} · Electron ${result.electronVersion} · ` +
-          `Node ${result.nodeVersion} · DB ${result.dbOk ? 'OK' : 'KO'}`,
-      );
-    } finally {
-      this.pingPending.set(false);
-    }
   }
 }

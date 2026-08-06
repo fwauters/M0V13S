@@ -7,15 +7,28 @@
 import { BrowserWindow, app } from 'electron';
 import path from 'node:path';
 
-import { AppDatabase, openDatabase } from './db/client';
+import { AppDatabaseHandle, openDatabase } from './db/client';
+import { registerLibraryIpc } from './ipc/library.ipc';
+import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
+import { AdminTablesService } from './services/admin-tables.service';
+import { ConformityService } from './services/conformity.service';
+import { LibraryService } from './services/library.service';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
+import { ScannerService } from './services/scanner.service';
+import { SettingsService } from './services/settings.service';
 
-/** URL du serveur de dev Angular (ng serve) — utilisée hors packaging. */
-const DEV_SERVER_URL = 'http://localhost:4200';
+/**
+ * URL du serveur de dev Angular (ng serve) — utilisée hors packaging.
+ * IPv4 EXPLICITE partout (ng serve --host 127.0.0.1, wait-on
+ * tcp:127.0.0.1:4200, et ce loadURL) : `localhost` peut résoudre en IPv6
+ * (::1) selon la machine, et le trio ne se trouvait pas (wait-on qui
+ * attendait indéfiniment — bug relevé en validation de phase 1).
+ */
+const DEV_SERVER_URL = 'http://127.0.0.1:4200';
 
 /** Base applicative, ouverte au démarrage (null si l'ouverture a échoué). */
-let db: AppDatabase | null = null;
+let dbHandle: AppDatabaseHandle | null = null;
 
 /** Crée la fenêtre principale et charge l'UI (dev server ou build). */
 function createWindow(): void {
@@ -52,13 +65,32 @@ app.whenReady().then(() => {
   // L'échec d'ouverture de la DB ne doit pas empêcher l'app de démarrer :
   // le ping IPC remontera dbOk=false et l'UI pourra l'afficher.
   try {
-    db = openDatabase(getDbPath(), getMigrationsDir());
+    dbHandle = openDatabase(getDbPath(), getMigrationsDir());
   } catch (error) {
     console.error('Ouverture de la base impossible :', error);
-    db = null;
+    dbHandle = null;
   }
 
+  const db = dbHandle?.db ?? null;
   registerSystemIpc(db);
+
+  // Les services métier ne sont instanciés que si la DB est ouverte ;
+  // les handlers IPC gèrent explicitement le cas dégradé (null).
+  if (db !== null) {
+    const settingsService = new SettingsService(db);
+    registerSettingsIpc(settingsService);
+    registerLibraryIpc({
+      settings: settingsService,
+      conformity: new ConformityService(db, settingsService),
+      library: new LibraryService(db),
+      scanner: new ScannerService(db, settingsService),
+      adminTables: new AdminTablesService(db),
+    });
+  } else {
+    registerSettingsIpc(null);
+    registerLibraryIpc(null);
+  }
+
   createWindow();
 });
 
@@ -66,4 +98,10 @@ app.whenReady().then(() => {
 // (pas de convention « dock » comme sur macOS).
 app.on('window-all-closed', () => {
   app.quit();
+});
+
+// Fermer proprement la connexion SQLite à la sortie (flush du WAL —
+// important sur un disque externe qui sera débranché).
+app.on('will-quit', () => {
+  dbHandle?.close();
 });

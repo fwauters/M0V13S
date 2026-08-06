@@ -1,0 +1,102 @@
+<!-- Fiche sommaire (phase 1) — lecture seule. -->
+<ng-container *transloco="let t">
+  <div class="flex grow flex-col gap-6 p-8">
+    <a routerLink="/browse" class="flex w-fit items-center gap-1 text-sm opacity-70 hover:opacity-100">
+      <mat-icon inline>arrow_back</mat-icon>
+      {{ t('detail.back') }}
+    </a>
+
+    @if (!loaded()) {
+      <p class="opacity-70">{{ t('common.loading') }}</p>
+    } @else if (movie(); as m) {
+      <div class="flex flex-col gap-4">
+        <!-- Titres : VF en vedette si présente, VO en sous-titre. -->
+        <div>
+          <h1 class="text-3xl font-medium">{{ m.titleVf ?? m.titleVo }}</h1>
+          @if (m.titleVf !== null && m.titleVf !== m.titleVo) {
+            <p class="opacity-70">{{ m.titleVo }}</p>
+          }
+          <p class="mt-1 text-sm opacity-70">
+            @if (m.year !== null) {
+              {{ m.year }}
+            }
+            @if (m.personalRating !== null) {
+              · {{ t('detail.rating', { rating: m.personalRating }) }}
+            }
+          </p>
+        </div>
+
+        @if (m.overview !== null) {
+          <p class="max-w-3xl">{{ m.overview }}</p>
+        }
+
+        <!-- Équipe et classement — listes précalculées dans le composant. -->
+        <dl class="grid max-w-3xl gap-2 text-sm">
+          @if (directors().length > 0) {
+            <div class="flex gap-2">
+              <dt class="font-medium">{{ t('detail.directors') }} :</dt>
+              <dd class="opacity-80">{{ directors() | join }}</dd>
+            </div>
+          }
+          @if (writers().length > 0) {
+            <div class="flex gap-2">
+              <dt class="font-medium">{{ t('detail.writers') }} :</dt>
+              <dd class="opacity-80">{{ writers() | join }}</dd>
+            </div>
+          }
+          @if (actors().length > 0) {
+            <div class="flex gap-2">
+              <dt class="font-medium">{{ t('detail.actors') }} :</dt>
+              <dd class="opacity-80">{{ actors() | join }}</dd>
+            </div>
+          }
+          @if (m.genres.length > 0) {
+            <div class="flex gap-2">
+              <dt class="font-medium">{{ t('detail.genres') }} :</dt>
+              <dd class="opacity-80">{{ m.genres | join }}</dd>
+            </div>
+          }
+          @if (m.tags.length > 0) {
+            <div class="flex gap-2">
+              <dt class="font-medium">{{ t('detail.tags') }} :</dt>
+              <dd class="opacity-80">{{ m.tags | join }}</dd>
+            </div>
+          }
+        </dl>
+
+        <!-- Fichiers de la fiche (multi-parties, statut). -->
+        <div class="flex flex-col gap-2">
+          <h2 class="text-lg font-medium">{{ t('detail.files') }}</h2>
+          @for (file of m.files; track file.id) {
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+              <span class="font-mono">{{ file.relPath }}</span>
+              @if (file.partNumber !== null) {
+                <span class="rounded bg-black/10 px-2 py-0.5 text-xs dark:bg-white/10">
+                  {{ t('detail.part', { part: file.partNumber }) }}
+                </span>
+              }
+              @if (file.status === 'missing') {
+                <span class="rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">
+                  {{ t('detail.missingBadge') }}
+                </span>
+              }
+              <span class="opacity-70">
+                @if (file.tech.durationSec | minutes; as min) {
+                  {{ t('browse.minutes', { min }) }} ·
+                }
+                @if (file.tech.videoCodec !== null) {
+                  {{ file.tech.videoCodec }}
+                }
+                @if (file.tech.width !== null && file.tech.height !== null) {
+                  · {{ file.tech.width }}×{{ file.tech.height }}
+                }
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="opacity-70">{{ t('detail.notFound') }}</p>
+    }
+  </div>
+</ng-container>

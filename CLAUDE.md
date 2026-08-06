@@ -124,6 +124,9 @@ tools\      binaires embarqués au packaging (vlc, ffprobe)
   stores à base de signaux. RxJS seulement quand un flux le justifie vraiment.
 - Composants standalone, control flow moderne (`@if`, `@for`), `inject()`
   plutôt que l'injection par constructeur, `ChangeDetectionStrategy.OnPush`.
+- **Imports au grain fin** : importer le composant/directive précis
+  (`MatIcon`, `MatButton`, `TranslocoDirective`…), jamais un module entier
+  (`MatIconModule`…) quand seul un élément est utilisé.
 - **Jamais d'appel de méthode directement dans un template** : précalculer via
   `computed()` (ou pipe pur si pertinent).
 - **Transloco : directive structurelle** `*transloco="let t"` → `t('clé')`,
@@ -191,14 +194,19 @@ Pièges connus : tester un exe Electron depuis un terminal VS Code exige de
 retirer `ELECTRON_RUN_AS_NODE` (hérité de l'hôte d'extension — sinon l'exe
 quitte immédiatement en mode Node pur). better-sqlite3 v13 = N-API prebuilds,
 ne JAMAIS l'ajouter à `onlyBuiltDependencies` (le node-gyp auto échouerait).
+ag-grid exige une HAUTEUR EXPLICITE sur son élément (`h-100`…) — un simple
+`min-height` donne une grille invisible. En dev, tout est en IPv4 explicite
+(127.0.0.1) : ne pas réintroduire `localhost` (résolution IPv6 selon machine).
 
 ## État d'avancement — à mettre à jour à chaque étape franchie
 
 Détail étape par étape dans `TODO.md` (doc vivante, une étape validée par
 l'utilisateur à la fois avant exécution, cochée une fois livrée).
+**Reprise de session : lire `docs/REPRISE.md` en premier** (état exact,
+actions en attente, pièges d'environnement) — mis à jour en fin de session.
 
 - [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
-- [ ] Phase 1 — Bibliothèque locale & conformité
+- [x] Phase 1 — Bibliothèque locale & conformité (validée par l'utilisateur : scan, qualification, fiche, vue admin)
 - [ ] Phase 2 — Sidecars & enrichissement TMDB
 - [ ] Phase 3 — UI « Netflix »
 - [ ] Phase 4 — Lecture VLC & suivi

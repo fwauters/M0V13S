@@ -5,14 +5,86 @@
   "shell": {
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
-    "language": "Language"
+    "language": "Language",
+    "adminData": "Data view (admin)"
+  },
+  "common": {
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "remove": "Remove"
   },
   "home": {
     "tagline": "Your movie library, Netflix-style, 100% offline.",
-    "phase0Status": "Phase 0 skeleton up and running",
-    "pingButton": "Test the backend",
-    "pingResult": "Backend response: {{value}}",
-    "pingPending": "Calling the backend…",
-    "pingUnavailable": "Backend unavailable (window running outside Electron)"
+    "launch": "Start the program",
+    "launchHint": "Browse and watch your library",
+    "scan": "Scan the files",
+    "scanHint": "Detect and qualify new files",
+    "forcedScanNotice": "No movie recognized: scanning is required.",
+    "toQualifyNotice": "{{count}} file(s) to qualify — run a scan.",
+    "missingNotice": "{{count}} indexed file(s) not found on the drive."
+  },
+  "browse": {
+    "title": "My library",
+    "empty": "Nothing to show. Run a scan to qualify your files.",
+    "minutes": "{{min}} min"
+  },
+  "detail": {
+    "back": "Back to the library",
+    "files": "Files",
+    "part": "Part {{part}}",
+    "missingBadge": "Missing from the drive",
+    "directors": "Directed by",
+    "writers": "Written by",
+    "actors": "Cast",
+    "genres": "Genres",
+    "tags": "Tags",
+    "rating": "Rating {{rating}}/10",
+    "notFound": "Movie not found."
+  },
+  "scan": {
+    "title": "Scan the files",
+    "rootsTitle": "Library folders",
+    "rootsHint": "Paths relative to the root of the drive the app lives on, without a drive letter (e.g. “Movies” for X:\\Movies; in dev, “Users/me/Videos” for C:\\Users\\me\\Videos).",
+    "rootPlaceholder": "Add a folder (e.g. Movies)",
+    "rootInvalid": "No drive letter (C:, E:…): enter a path relative to the root of the drive the app lives on — e.g. “Movies” or “Users/me/Videos”.",
+    "addRoot": "Add",
+    "start": "Start scanning",
+    "scanning": "Analyzing {{done}}/{{total}}: {{current}}",
+    "relinkTitle": "Probable renames",
+    "relinkAction": "Relink",
+    "missingTitle": "Indexed files not found",
+    "missingHint": "Deleting a movie entry is permanent and asks for confirmation. A file that comes back will reappear automatically on the next scan.",
+    "deleteAction": "Delete the entry",
+    "confirmDeleteTitle": "Delete this entry?",
+    "confirmDeleteMessage": "“{{title}}” and all its information (cast, genres, tags, watch state) will be removed from the index. The video file itself is never touched.",
+    "seriesTitle": "TV episodes detected",
+    "seriesHint": "Series are not handled yet (planned after v1): these files are set aside.",
+    "newTitle": "New files to qualify",
+    "fileOf": "file {{index}} / {{total}}",
+    "techDuration": "{{min}} min",
+    "noTech": "Technical analysis failed (corrupted file or missing ffprobe).",
+    "chipsHint": "Press Enter or comma to add an item to the lists.",
+    "form": {
+      "titleVo": "Original title",
+      "titleVf": "French title",
+      "year": "Year",
+      "rating": "Personal rating (0-10)",
+      "overview": "Overview",
+      "directors": "Director(s)",
+      "writers": "Writer(s)",
+      "actors": "Actors",
+      "genres": "Genres",
+      "tags": "Tags",
+      "save": "Save the entry",
+      "skip": "Skip this file"
+    },
+    "noNewFiles": "Nothing new: the library matches the drive.",
+    "done": "All new files have been processed."
+  },
+  "admin": {
+    "dataTitle": "Database tables (read-only)",
+    "table": "Table",
+    "totalRows": "{{count}} row(s)",
+    "truncated": "display truncated"
   }
 }

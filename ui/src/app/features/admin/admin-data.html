@@ -1,0 +1,38 @@
+<!-- Vue admin des tables (ag-grid, lecture seule en phase 1). -->
+<ng-container *transloco="let t">
+  <div class="flex grow flex-col gap-4 p-8">
+    <h1 class="text-2xl font-medium">{{ t('admin.dataTitle') }}</h1>
+
+    <!-- Sélecteur de table (liste blanche alignée sur le backend). -->
+    <mat-button-toggle-group
+      hideSingleSelectionIndicator
+      class="flex-wrap"
+      [value]="selected()"
+      (change)="onTableChange($event.value)"
+      [attr.aria-label]="t('admin.table')"
+    >
+      @for (table of tables; track table) {
+        <mat-button-toggle [value]="table">{{ table }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+
+    <p class="text-sm opacity-70">
+      {{ t('admin.totalRows', { count: totalCount() }) }}
+      @if (truncated()) {
+        — {{ t('admin.truncated') }}
+      }
+    </p>
+
+    <!-- Grille : tri, filtre par colonne, virtualisation (Community).
+         IMPORTANT : ag-grid exige une HAUTEUR EXPLICITE (h-100) — un simple
+         min-height produit une grille invisible (son layout interne en 100 %
+         ne se résout pas). Leçon apprise en validation de phase 1. -->
+    <ag-grid-angular
+      class="h-100 grow"
+      [theme]="gridTheme()"
+      [columnDefs]="columns()"
+      [defaultColDef]="defaultColDef"
+      [rowData]="rows()"
+    />
+  </div>
+</ng-container>

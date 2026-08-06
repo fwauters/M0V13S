@@ -38,25 +38,27 @@
 
 ## Phase 1 — Bibliothèque locale & conformité
 
-- [ ] **1.1** Schéma Drizzle complet (PLAN § 5) + migrations + tests de migration.
-- [ ] **1.2** `paths.service` complet : chemins relatifs à la racine du lecteur,
+- [x] **1.1** Schéma Drizzle complet (PLAN § 5) + migrations + tests de migration.
+- [x] **1.2** `paths.service` complet : chemins relatifs à la racine du lecteur,
   interdiction des chemins absolus, tests.
-- [ ] **1.3** `settings.service` (racines de bibliothèque, thème, langue, clé
-  TMDB, hash admin) + IPC + tests.
-- [ ] **1.4** `filename.service` : parsing titre/année depuis le nom de fichier
-  + tests (batterie de cas réels).
-- [ ] **1.5** `ffprobe.service` : durée, codecs, résolution + tests sur fixtures.
-- [ ] **1.6** `conformity.service` : scan rapide au lancement — règle « présent
+- [x] **1.3** `settings.service` (racines de bibliothèque, thème, langue — clé
+  TMDB et hash admin prévus) + IPC liste blanche + tests + persistance réelle
+  du thème et de la langue en DB.
+- [x] **1.4** `filename.service` : parsing titre/année depuis le nom de fichier
+  + tests (batterie de cas réels, pièges français).
+- [x] **1.5** `ffprobe.service` : durée, codecs, résolution + tests sur fixtures.
+- [x] **1.6** `conformity.service` : scan rapide au lancement — règle « présent
   ET reconnu », notice « X à qualifier », scan forcé si index vide + tests.
-- [ ] **1.7** `scanner.service` : nouveaux / manquants / renommés (re-lien) +
-  suppression sur confirmation + tests.
-- [ ] **1.8** UI : écran d'accueil (« Lancer » / « Scanner »), redirection scan
-  forcé.
-- [ ] **1.9** UI : assistant de scan minimal — formulaire de fiche 100 % manuel
-  (Material), sans API.
-- [ ] **1.10** UI : liste brute des films + fiche sommaire (données réelles).
-- [ ] **1.11** Vue admin des tables DB en lecture seule (ag-grid Community).
-- [ ] **1.12** Fin de phase : deps, docs, test de portabilité, push.
+- [x] **1.7** `scanner.service` : nouveaux / manquants / renommés (re-lien) +
+  suppression sur confirmation + qualification transactionnelle + tests.
+- [x] **1.8** UI : écran d'accueil (« Lancer » / « Scanner »), redirection scan
+  forcé (guard + store signaux testé).
+- [x] **1.9** UI : assistant de scan — formulaire de fiche 100 % manuel
+  (Material + chips), progression, annulation, re-liens, suppressions confirmées.
+- [x] **1.10** UI : liste brute des films + fiche sommaire (données réelles).
+- [x] **1.11** Vue admin des tables DB en lecture seule (ag-grid Community).
+- [x] **1.12** Fin de phase : deps (outdated/audit OK), docs, packaging vérifié,
+  PR #2 — validation utilisateur avant merge.
 
 ## Phase 2 — Sidecars & enrichissement TMDB
 

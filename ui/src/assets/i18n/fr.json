@@ -5,14 +5,86 @@
   "shell": {
     "themeToLight": "Passer au thème clair",
     "themeToDark": "Passer au thème sombre",
-    "language": "Langue"
+    "language": "Langue",
+    "adminData": "Vue des données (admin)"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "cancel": "Annuler",
+    "remove": "Retirer"
   },
   "home": {
     "tagline": "Votre vidéothèque, façon Netflix, 100 % hors ligne.",
-    "phase0Status": "Squelette de la phase 0 opérationnel",
-    "pingButton": "Tester le backend",
-    "pingResult": "Réponse du backend : {{value}}",
-    "pingPending": "Appel du backend en cours…",
-    "pingUnavailable": "Backend indisponible (fenêtre ouverte hors Electron)"
+    "launch": "Lancer le programme",
+    "launchHint": "Parcourir et regarder votre bibliothèque",
+    "scan": "Scanner les fichiers",
+    "scanHint": "Détecter et qualifier les nouveaux fichiers",
+    "forcedScanNotice": "Aucun film reconnu : le scan est obligatoire.",
+    "toQualifyNotice": "{{count}} fichier(s) à qualifier — lancez un scan.",
+    "missingNotice": "{{count}} fichier(s) indexé(s) introuvable(s) sur le disque."
+  },
+  "browse": {
+    "title": "Ma bibliothèque",
+    "empty": "Aucun film affichable. Lancez un scan pour qualifier vos fichiers.",
+    "minutes": "{{min}} min"
+  },
+  "detail": {
+    "back": "Retour à la bibliothèque",
+    "files": "Fichiers",
+    "part": "Partie {{part}}",
+    "missingBadge": "Introuvable sur le disque",
+    "directors": "Réalisation",
+    "writers": "Scénario",
+    "actors": "Casting",
+    "genres": "Genres",
+    "tags": "Tags",
+    "rating": "Note {{rating}}/10",
+    "notFound": "Fiche introuvable."
+  },
+  "scan": {
+    "title": "Scanner les fichiers",
+    "rootsTitle": "Dossiers de la bibliothèque",
+    "rootsHint": "Chemins relatifs à la racine du disque qui porte l'app, sans lettre de lecteur (ex. « Films » pour X:\\Films ; en dev, « Users/moi/Videos » pour C:\\Users\\moi\\Videos).",
+    "rootPlaceholder": "Ajouter un dossier (ex. Films)",
+    "rootInvalid": "Pas de lettre de lecteur (C:, E:…) : indiquez un chemin relatif à la racine du disque qui porte l'app — ex. « Films » ou « Users/moi/Videos ».",
+    "addRoot": "Ajouter",
+    "start": "Lancer le scan",
+    "scanning": "Analyse {{done}}/{{total}} : {{current}}",
+    "relinkTitle": "Renommages probables",
+    "relinkAction": "Re-lier",
+    "missingTitle": "Fichiers indexés introuvables",
+    "missingHint": "La suppression d'une fiche est définitive et demande confirmation. Un fichier revenu au prochain scan réapparaîtra automatiquement.",
+    "deleteAction": "Supprimer la fiche",
+    "confirmDeleteTitle": "Supprimer la fiche ?",
+    "confirmDeleteMessage": "La fiche « {{title}} » et toutes ses informations (casting, genres, tags, état de visionnage) seront supprimées de l'index. Le fichier vidéo, lui, n'est jamais touché.",
+    "seriesTitle": "Épisodes de série détectés",
+    "seriesHint": "Les séries ne sont pas encore gérées (prévu après la v1) : ces fichiers sont laissés de côté.",
+    "newTitle": "Nouveaux fichiers à qualifier",
+    "fileOf": "fichier {{index}} / {{total}}",
+    "techDuration": "{{min}} min",
+    "noTech": "Analyse technique impossible (fichier corrompu ou ffprobe absent).",
+    "chipsHint": "Entrée ou virgule pour ajouter un élément dans les listes.",
+    "form": {
+      "titleVo": "Titre original (VO)",
+      "titleVf": "Titre français (VF)",
+      "year": "Année",
+      "rating": "Note personnelle (0-10)",
+      "overview": "Synopsis",
+      "directors": "Réalisateur(s)",
+      "writers": "Scénariste(s)",
+      "actors": "Acteurs",
+      "genres": "Genres",
+      "tags": "Tags",
+      "save": "Enregistrer la fiche",
+      "skip": "Ignorer ce fichier"
+    },
+    "noNewFiles": "Rien de nouveau : la bibliothèque est conforme au disque.",
+    "done": "Tous les nouveaux fichiers ont été traités."
+  },
+  "admin": {
+    "dataTitle": "Tables de la base (lecture seule)",
+    "table": "Table",
+    "totalRows": "{{count}} ligne(s)",
+    "truncated": "affichage tronqué"
   }
 }

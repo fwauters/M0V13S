@@ -8,7 +8,7 @@ import { provideTransloco } from '@jsverse/transloco';
 
 import { routes } from './app.routes';
 import { TranslocoStaticLoader } from './core/i18n/transloco-static.loader';
-import { APP_LANGS } from './core/language.service';
+import { APP_LANGS } from './core/services/language.service';
 
 /**
  * Configuration racine de l'application (Angular zoneless).

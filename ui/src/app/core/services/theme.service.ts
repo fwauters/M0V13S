@@ -1,10 +1,16 @@
-import { Injectable, Signal, signal } from '@angular/core';
+import { Injectable, Signal, inject, signal } from '@angular/core';
+
+import { ApiService } from './api.service';
 
 /** Les deux thèmes de l'app (décision CLAUDE.md « Thèmes »). */
 export type AppTheme = 'light' | 'dark';
 
-/** Clé de persistance temporaire (localStorage).
- *  TODO(phase 1) : migrer vers la table `settings` (SQLite) via IPC. */
+/**
+ * Cache localStorage : évite un flash de mauvais thème au démarrage
+ * (appliqué immédiatement, avant la réponse IPC). La source de vérité
+ * durable est la table `settings` (clé `ui.theme`), qui voyage avec le
+ * disque — le localStorage n'est qu'un miroir local par machine.
+ */
 const STORAGE_KEY = 'm0v13s.theme';
 
 /**
@@ -31,14 +37,19 @@ function resolveInitialTheme(): AppTheme {
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+  private readonly api = inject(ApiService);
+
   private readonly _theme = signal<AppTheme>(resolveInitialTheme());
 
   /** Thème actif, exposé en lecture seule pour les composants. */
   readonly theme: Signal<AppTheme> = this._theme.asReadonly();
 
   constructor() {
-    // Applique le thème initial dès la construction du service.
+    // Applique immédiatement le thème du cache local (pas de flash),
+    // puis se resynchronise sur la valeur durable de la DB (le disque
+    // peut avoir été utilisé sur une autre machine entre-temps).
     this.apply(this._theme());
+    void this.restoreFromSettings();
   }
 
   /** Bascule light <-> dark (bouton du header). */
@@ -46,11 +57,22 @@ export class ThemeService {
     this.setTheme(this._theme() === 'dark' ? 'light' : 'dark');
   }
 
-  /** Fixe un thème explicite et persiste le choix. */
+  /** Fixe un thème explicite et persiste le choix (DB + cache local). */
   setTheme(theme: AppTheme): void {
     this._theme.set(theme);
     localStorage.setItem(STORAGE_KEY, theme);
+    void this.api.setSetting('ui.theme', theme);
     this.apply(theme);
+  }
+
+  /** Aligne le thème sur la valeur persistée en DB, si elle existe. */
+  private async restoreFromSettings(): Promise<void> {
+    const stored = await this.api.getSetting('ui.theme');
+    if ((stored === 'light' || stored === 'dark') && stored !== this._theme()) {
+      this._theme.set(stored);
+      localStorage.setItem(STORAGE_KEY, stored);
+      this.apply(stored);
+    }
   }
 
   /** Propage le thème aux deux systèmes de style (Material + Tailwind). */

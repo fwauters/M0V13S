@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
   driveRootOf,
   fromDriveRelative,
+  isVideoFile,
   resolveDataDir,
   resolveDbPath,
   toDriveRelative,
@@ -40,6 +41,21 @@ describe('toDriveRelative', () => {
     expect(() => toDriveRelative('E:\\', 'D:\\Films\\film.mkv')).toThrow(
       /hors du lecteur/,
     );
+  });
+});
+
+describe('isVideoFile', () => {
+  it('reconnaît les extensions vidéo, insensible à la casse', () => {
+    expect(isVideoFile('E:\\Films\\alien.mkv')).toBe(true);
+    expect(isVideoFile('E:\\Films\\ALIEN.MP4')).toBe(true);
+    expect(isVideoFile('film.avi')).toBe(true);
+  });
+
+  it('rejette les fichiers non vidéo (sidecars, sous-titres, images)', () => {
+    expect(isVideoFile('alien.nfo')).toBe(false);
+    expect(isVideoFile('alien.srt')).toBe(false);
+    expect(isVideoFile('alien-poster.jpg')).toBe(false);
+    expect(isVideoFile('sans-extension')).toBe(false);
   });
 });
 
