@@ -62,7 +62,7 @@
 
 ## Phase 2 — Sidecars & enrichissement TMDB
 
-- [ ] **2.1** `nfo.service` : lecture/écriture `.nfo` (XML Kodi), écritures
+- [x] **2.1** `nfo.service` : lecture/écriture `.nfo` (XML Kodi), écritures
   atomiques, parseur tolérant + tests.
 - [ ] **2.2** Import silencieux en masse des fichiers arrivés avec `.nfo`
   (+ images) — le scénario « partage » fonctionne, hors ligne + tests.

@@ -16,7 +16,18 @@ commitée.
 
 ## Déroulé étape par étape
 
-### 2.1 — nfo.service (lecture/écriture XML Kodi, atomique) — EN COURS
+### 2.1 — nfo.service (lecture/écriture XML Kodi, atomique) — FAIT
+- `fast-xml-parser` (pur JS) ; fiche `MovieNfo` complète : titres VO/VF,
+  année, synopsis, note perso, tmdbId (`<uniqueid type="tmdb">`),
+  réalisateurs, scénaristes (`<credits>`), acteurs (+ personnage + ordre),
+  genres, tags. `watch_state` jamais exporté (personnel).
+- Écriture ATOMIQUE (tmp + rename, même dossier) ; parseur TOLÉRANT :
+  balises inconnues ignorées (Kodi/Jellyfin/tinyMediaManager), valeur
+  unique normalisée en tableau, uniqueid imdb ignoré au profit du tmdb,
+  XML illisible ou racine non-movie → null (jamais d'exception).
+- Piège évité : `parseTagValue: false` — un titre « 1917 » reste une
+  chaîne. 7 tests (aller-retour complet et minimal, fixture Kodi réelle,
+  invalides, écriture disque atomique sans résidu .tmp).
 ### 2.2 — Import silencieux des `.nfo` au scan — À VENIR
 ### 2.3 — tmdb.service (recherche fr-FR, mapping, HTTP mocké) — À VENIR
 ### 2.4 — UI scan : recherche TMDB + choix du film — À VENIR
