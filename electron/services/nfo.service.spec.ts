@@ -24,6 +24,7 @@ const FULL_NFO: MovieNfo = {
   overview: 'Une expédition scientifique aux confins de l’univers.',
   personalRating: 8,
   tmdbId: 70981,
+  trailerYoutubeKey: 'dQw4w9WgXcQ',
   directors: ['Ridley Scott'],
   writers: ['Jon Spaihts', 'Damon Lindelof'],
   actors: [
@@ -56,6 +57,7 @@ describe('aller-retour build -> parse', () => {
       overview: null,
       personalRating: null,
       tmdbId: null,
+      trailerYoutubeKey: null,
       directors: [],
       writers: [],
       actors: [],
@@ -95,6 +97,20 @@ describe('tolérance aux .nfo d autres outils', () => {
     expect(parsed?.tmdbId).toBe(348); // le uniqueid imdb est ignoré
     expect(parsed?.genres).toEqual(['Science-Fiction']); // valeur unique -> tableau
     expect(parsed?.actors).toEqual([{ name: 'Sigourney Weaver', character: 'Ripley' }]);
+  });
+
+  it('extrait la clé YouTube des différents formats de <trailer>', () => {
+    const withUrl = `<movie><title>X</title>
+      <trailer>https://www.youtube.com/watch?v=AbC123xyz_-</trailer></movie>`;
+    expect(parseMovieNfoXml(withUrl)?.trailerYoutubeKey).toBe('AbC123xyz_-');
+
+    const withShort = `<movie><title>X</title>
+      <trailer>https://youtu.be/AbC123xyz_-</trailer></movie>`;
+    expect(parseMovieNfoXml(withShort)?.trailerYoutubeKey).toBe('AbC123xyz_-');
+
+    const withLocalFile = `<movie><title>X</title>
+      <trailer>trailers/x-trailer.mp4</trailer></movie>`;
+    expect(parseMovieNfoXml(withLocalFile)?.trailerYoutubeKey).toBeNull();
   });
 
   it('retourne null pour un XML illisible ou une racine non-movie', () => {

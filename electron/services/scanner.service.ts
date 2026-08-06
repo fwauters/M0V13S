@@ -280,6 +280,7 @@ export class ScannerService {
             overview: input.overview,
             personalRating: input.personalRating,
             tmdbId: input.tmdbId,
+            trailerYoutubeKey: input.trailerYoutubeKey,
             updatedAt: Date.now(),
           })
           .where(eq(media.id, mediaId))
@@ -342,6 +343,7 @@ export class ScannerService {
             overview: input.overview,
             personalRating: input.personalRating,
             tmdbId: input.tmdbId,
+            trailerYoutubeKey: input.trailerYoutubeKey,
           })
           .returning({ id: media.id })
           .get();
@@ -419,6 +421,7 @@ export class ScannerService {
       overview: m.overview,
       personalRating: m.personalRating,
       tmdbId: m.tmdbId,
+      trailerYoutubeKey: m.trailerYoutubeKey,
       directors: personRows.filter((p) => p.role === 'director').map((p) => p.name),
       writers: personRows.filter((p) => p.role === 'writer').map((p) => p.name),
       actors: personRows
@@ -443,6 +446,7 @@ export class ScannerService {
       overview: nfo.overview,
       personalRating: nfo.personalRating,
       tmdbId: nfo.tmdbId,
+      trailerYoutubeKey: nfo.trailerYoutubeKey,
       directors: nfo.directors,
       writers: nfo.writers,
       actors: nfo.actors,
@@ -460,6 +464,7 @@ export class ScannerService {
       overview: input.overview,
       personalRating: input.personalRating,
       tmdbId: input.tmdbId,
+      trailerYoutubeKey: input.trailerYoutubeKey,
       directors: input.directors,
       writers: input.writers,
       actors: input.actors,

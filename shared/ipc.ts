@@ -18,8 +18,10 @@ import type {
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbSearchOutcome,
 } from './dto';
 
 /** Noms des canaux IPC, groupés par domaine. */
@@ -70,6 +72,10 @@ export const IPC = {
     setKey: 'tmdb:set-key',
     /** Teste la validité d'une clé contre l'API TMDB. */
     testKey: 'tmdb:test-key',
+    /** Recherche de films (titre + année, fr-FR). */
+    searchMovies: 'tmdb:search-movies',
+    /** Détails complets d'un film (crédits, trailer), mappés au schéma. */
+    getDetails: 'tmdb:get-details',
   },
 } as const;
 
@@ -134,5 +140,7 @@ export interface WindowApi {
     setKey(key: string): Promise<void>;
     /** Teste la clé fournie, ou la clé stockée si omise. */
     testKey(candidateKey?: string): Promise<TmdbKeyTestResult>;
+    searchMovies(query: string, year?: number | null): Promise<TmdbSearchOutcome>;
+    getDetails(tmdbId: number): Promise<TmdbDetailsOutcome>;
   };
 }

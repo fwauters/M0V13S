@@ -6,7 +6,12 @@
 import { ipcMain } from 'electron';
 
 import { IPC } from '@shared/ipc';
-import type { TmdbKeyStatus, TmdbKeyTestResult } from '@shared/dto';
+import type {
+  TmdbDetailsOutcome,
+  TmdbKeyStatus,
+  TmdbKeyTestResult,
+  TmdbSearchOutcome,
+} from '@shared/dto';
 import type { TmdbService } from '../services/tmdb.service';
 
 /**
@@ -30,6 +35,26 @@ export function registerTmdbIpc(service: TmdbService | null): void {
         return 'invalid';
       }
       return service.testKey(candidateKey === undefined ? undefined : String(candidateKey));
+    },
+  );
+
+  ipcMain.handle(
+    IPC.tmdb.searchMovies,
+    async (_event, query: string, year?: number | null): Promise<TmdbSearchOutcome> => {
+      if (!service) {
+        return { status: 'unavailable', results: [] };
+      }
+      return service.searchMovies(String(query), typeof year === 'number' ? year : null);
+    },
+  );
+
+  ipcMain.handle(
+    IPC.tmdb.getDetails,
+    async (_event, tmdbId: number): Promise<TmdbDetailsOutcome> => {
+      if (!service) {
+        return { status: 'unavailable', details: null };
+      }
+      return service.getMovieDetails(Number(tmdbId));
     },
   );
 }

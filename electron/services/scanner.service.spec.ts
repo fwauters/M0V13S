@@ -48,6 +48,7 @@ function makeInput(overrides: Partial<QualifyMovieInput> = {}): QualifyMovieInpu
     overview: 'Des scientifiques partent aux origines de l’humanité.',
     personalRating: 8,
     tmdbId: null,
+    trailerYoutubeKey: null,
     directors: ['Ridley Scott'],
     writers: ['Jon Spaihts', 'Damon Lindelof'],
     actors: [
@@ -68,6 +69,7 @@ const ALIEN_NFO: MovieNfo = {
   overview: 'Un vaisseau reçoit un signal inconnu.',
   personalRating: null,
   tmdbId: 348,
+  trailerYoutubeKey: 'jQ5lPt9edzQ',
   directors: ['Ridley Scott'],
   writers: ['Dan O’Bannon'],
   actors: [{ name: 'Sigourney Weaver', character: 'Ripley' }],

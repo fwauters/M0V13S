@@ -42,6 +42,7 @@ export interface ExistingFiche {
   overview: string | null;
   personalRating: number | null;
   tmdbId: number | null;
+  trailerYoutubeKey: string | null;
   directors: string[];
   writers: string[];
   actors: QualifyActor[];
@@ -136,6 +137,8 @@ export interface QualifyMovieInput {
   /** Identifiant TMDB (import `.nfo` ou enrichissement) — déduplique les
    *  fiches multi-fichiers. Null pour une saisie purement manuelle. */
   tmdbId: number | null;
+  /** Clé YouTube du trailer (enrichissement TMDB — lecture en phase 3). */
+  trailerYoutubeKey: string | null;
   directors: string[];
   writers: string[];
   actors: QualifyActor[];
@@ -159,6 +162,53 @@ export interface TmdbKeyStatus {
 
 /** Résultat du test de validité de la clé (bouton « Tester »). */
 export type TmdbKeyTestResult = 'valid' | 'invalid' | 'offline';
+
+/** Statut d'un appel TMDB (recherche/détails) — l'UI adapte son message. */
+export type TmdbCallStatus = 'ok' | 'noKey' | 'invalidKey' | 'unavailable';
+
+/** Un résultat de recherche TMDB (liste de choix de l'assistant). */
+export interface TmdbSearchResult {
+  tmdbId: number;
+  /** Titre localisé (fr-FR). */
+  title: string;
+  /** Titre original (VO). */
+  originalTitle: string;
+  year: number | null;
+  overview: string | null;
+  /** URL de la vignette d'affiche (image.tmdb.org, en ligne uniquement). */
+  posterUrl: string | null;
+}
+
+/** Résultat d'une recherche TMDB (statut + liste, vide hors `ok`). */
+export interface TmdbSearchOutcome {
+  status: TmdbCallStatus;
+  results: TmdbSearchResult[];
+}
+
+/** Détails complets d'un film TMDB, mappés vers NOTRE schéma. */
+export interface TmdbMovieDetails {
+  tmdbId: number;
+  titleVo: string;
+  /** Titre fr si différent de la VO, sinon null. */
+  titleVf: string | null;
+  year: number | null;
+  overview: string | null;
+  genres: string[];
+  directors: string[];
+  writers: string[];
+  /** Casting principal (ordre TMDB), avec personnages. */
+  actors: QualifyActor[];
+  trailerYoutubeKey: string | null;
+  /** Chemins d'images TMDB (téléchargées en sidecars à l'étape 2.5). */
+  tmdbPosterPath: string | null;
+  tmdbBackdropPath: string | null;
+}
+
+/** Détails TMDB (statut + fiche, null hors `ok`). */
+export interface TmdbDetailsOutcome {
+  status: TmdbCallStatus;
+  details: TmdbMovieDetails | null;
+}
 
 /* ------------------------------------------------------------------ */
 /* Bibliothèque (mode classique — liste et fiches)                     */

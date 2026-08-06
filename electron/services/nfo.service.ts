@@ -38,6 +38,8 @@ export interface MovieNfo {
   personalRating: number | null;
   /** Identifiant TMDB — <uniqueid type="tmdb">. */
   tmdbId: number | null;
+  /** Clé YouTube du trailer — <trailer> (formats Kodi et URL acceptés). */
+  trailerYoutubeKey: string | null;
   directors: string[];
   /** Scénaristes — balises <credits>. */
   writers: string[];
@@ -90,6 +92,11 @@ export function buildMovieNfoXml(nfo: MovieNfo): string {
   }
   if (nfo.tmdbId !== null) {
     movie['uniqueid'] = { '@_type': 'tmdb', '@_default': 'true', '#text': nfo.tmdbId };
+  }
+  if (nfo.trailerYoutubeKey !== null) {
+    // Format plugin Kodi : lisible par Kodi/Jellyfin, re-parsable par nous.
+    movie['trailer'] =
+      `plugin://plugin.video.youtube/?action=play_video&videoid=${nfo.trailerYoutubeKey}`;
   }
   if (nfo.genres.length > 0) {
     movie['genre'] = nfo.genres;
@@ -159,6 +166,21 @@ function intOf(node: unknown): number | null {
 }
 
 /**
+ * Extrait la clé YouTube d'une balise <trailer>, quel que soit le format
+ * rencontré dans la nature : plugin Kodi (`videoid=` / `video_id=`),
+ * URL watch (`v=`) ou lien court (`youtu.be/`). Null si aucun ne matche.
+ */
+function youtubeKeyOf(node: unknown): string | null {
+  const text = textOf(node);
+  if (text === null) {
+    return null;
+  }
+  const match =
+    /(?:videoid=|video_id=|[?&]v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(text);
+  return match?.[1] ?? null;
+}
+
+/**
  * Parse un contenu `.nfo` en fiche film.
  * @returns null si le XML est illisible ou si la racine n'est pas <movie>
  *          (ex. <episodedetails> d'une série) — l'appelant traite alors le
@@ -203,6 +225,7 @@ export function parseMovieNfoXml(xml: string): MovieNfo | null {
     overview: textOf(m['plot']),
     personalRating: intOf(m['userrating']),
     tmdbId: tmdbNode === undefined ? null : intOf(tmdbNode),
+    trailerYoutubeKey: youtubeKeyOf(m['trailer']),
     directors: asArray(m['director'])
       .map(textOf)
       .filter((n): n is string => n !== null && n !== ''),

@@ -259,6 +259,7 @@ export class Scan implements OnDestroy {
         // des noms). Nouvelle fiche manuelle : tmdbId null (l'enrichissement
         // 2.4 le fournira).
         tmdbId: file.existing?.tmdbId ?? null,
+        trailerYoutubeKey: file.existing?.trailerYoutubeKey ?? null,
         directors: this.draft.directors,
         writers: this.draft.writers,
         actors: this.draft.actors.map((name) => ({

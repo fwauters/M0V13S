@@ -54,6 +54,9 @@ const api: WindowApi = {
     getKeyStatus: () => ipcRenderer.invoke(IPC.tmdb.getKeyStatus),
     setKey: (key: string) => ipcRenderer.invoke(IPC.tmdb.setKey, key),
     testKey: (candidateKey?: string) => ipcRenderer.invoke(IPC.tmdb.testKey, candidateKey),
+    searchMovies: (query: string, year?: number | null) =>
+      ipcRenderer.invoke(IPC.tmdb.searchMovies, query, year),
+    getDetails: (tmdbId: number) => ipcRenderer.invoke(IPC.tmdb.getDetails, tmdbId),
   },
 };
 
