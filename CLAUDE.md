@@ -194,6 +194,9 @@ Pièges connus : tester un exe Electron depuis un terminal VS Code exige de
 retirer `ELECTRON_RUN_AS_NODE` (hérité de l'hôte d'extension — sinon l'exe
 quitte immédiatement en mode Node pur). better-sqlite3 v13 = N-API prebuilds,
 ne JAMAIS l'ajouter à `onlyBuiltDependencies` (le node-gyp auto échouerait).
+ag-grid exige une HAUTEUR EXPLICITE sur son élément (`h-100`…) — un simple
+`min-height` donne une grille invisible. En dev, tout est en IPv4 explicite
+(127.0.0.1) : ne pas réintroduire `localhost` (résolution IPv6 selon machine).
 
 ## État d'avancement — à mettre à jour à chaque étape franchie
 
@@ -203,7 +206,7 @@ l'utilisateur à la fois avant exécution, cochée une fois livrée).
 actions en attente, pièges d'environnement) — mis à jour en fin de session.
 
 - [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
-- [ ] Phase 1 — Bibliothèque locale & conformité
+- [x] Phase 1 — Bibliothèque locale & conformité (validée par l'utilisateur : scan, qualification, fiche, vue admin)
 - [ ] Phase 2 — Sidecars & enrichissement TMDB
 - [ ] Phase 3 — UI « Netflix »
 - [ ] Phase 4 — Lecture VLC & suivi

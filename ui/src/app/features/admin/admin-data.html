@@ -23,9 +23,12 @@
       }
     </p>
 
-    <!-- Grille : tri, filtre par colonne, virtualisation (Community). -->
+    <!-- Grille : tri, filtre par colonne, virtualisation (Community).
+         IMPORTANT : ag-grid exige une HAUTEUR EXPLICITE (h-100) — un simple
+         min-height produit une grille invisible (son layout interne en 100 %
+         ne se résout pas). Leçon apprise en validation de phase 1. -->
     <ag-grid-angular
-      class="min-h-[420px] grow"
+      class="h-100 grow"
       [theme]="gridTheme()"
       [columnDefs]="columns()"
       [defaultColDef]="defaultColDef"

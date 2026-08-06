@@ -132,11 +132,13 @@ merge (commit `fix(phase1)`) :
    Entrée/virgule était PERDUE (cas typique des champs à valeur unique).
    Correctif : `matChipInputAddOnBlur` — la perte de focus (clic sur
    Enregistrer…) ajoute la valeur au lieu de la jeter.
-3. **Vue admin sans lignes** (seul le compteur s'affichait) : l'élément
-   hôte des composants de feature ne relayait pas la chaîne flex du layout
-   → hauteur non propagée → ag-grid (100 % interne) rendu VIDE. Correctif :
-   `host: { class: 'flex grow flex-col' }` sur les cinq features (layout
-   cohérent partout), la grille récupère une vraie hauteur.
+3. **Vue admin sans lignes** (seul le compteur s'affichait) : deux
+   correctifs cumulés. (a) L'élément hôte des composants de feature ne
+   relayait pas la chaîne flex du layout → `host: { class: 'flex grow
+   flex-col' }` sur les cinq features. (b) Insuffisant pour ag-grid :
+   **la grille exige une HAUTEUR EXPLICITE** (`h-100`) — un `min-height`
+   seul la laisse invisible (layout interne en 100 % non résolu).
+   Correctif (b) trouvé et appliqué par l'utilisateur.
 
 Au passage : import cassé corrigé dans `library.store.spec.ts`
 (ApiService déplacé dans `core/services/` pendant la phase).
