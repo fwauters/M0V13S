@@ -76,6 +76,8 @@ export class Scan implements OnDestroy {
   protected readonly roots = signal<string[]>([]);
   /** Saisie en cours d'ajout de racine. */
   protected rootDraft = '';
+  /** Vrai si la dernière saisie de racine était invalide (lettre de lecteur…). */
+  protected readonly rootInvalid = signal(false);
 
   /* --------------------------- scan ------------------------------ */
 
@@ -136,7 +138,22 @@ export class Scan implements OnDestroy {
   /* ------------------- racines : ajout/retrait ------------------- */
 
   protected addRoot(): void {
-    const value = this.rootDraft.trim().replace(/\\/g, '/');
+    // Normalisation : séparateurs /, pas de / de tête ni de fin.
+    const value = this.rootDraft
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/^\/+|\/+$/g, '');
+
+    // Une lettre de lecteur (C:, E:…) est INTERDITE par principe : les
+    // racines sont relatives au disque qui porte l'app (portabilité).
+    // On refuse avec un message clair plutôt que de laisser un scan
+    // silencieusement vide (retour utilisateur de validation).
+    if (/^[a-zA-Z]:/.test(value)) {
+      this.rootInvalid.set(true);
+      return;
+    }
+    this.rootInvalid.set(false);
+
     if (value !== '' && !this.roots().includes(value)) {
       this.roots.update((r) => [...r, value]);
       void this.api.setLibraryRoots(this.roots());

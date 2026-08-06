@@ -44,8 +44,9 @@
   "scan": {
     "title": "Scanner les fichiers",
     "rootsTitle": "Dossiers de la bibliothèque",
-    "rootsHint": "Chemins relatifs à la racine du disque (ex. « Films » pour X:\\Films). La lettre du lecteur ne doit jamais y figurer.",
+    "rootsHint": "Chemins relatifs à la racine du disque qui porte l'app, sans lettre de lecteur (ex. « Films » pour X:\\Films ; en dev, « Users/moi/Videos » pour C:\\Users\\moi\\Videos).",
     "rootPlaceholder": "Ajouter un dossier (ex. Films)",
+    "rootInvalid": "Pas de lettre de lecteur (C:, E:…) : indiquez un chemin relatif à la racine du disque qui porte l'app — ex. « Films » ou « Users/moi/Videos ».",
     "addRoot": "Ajouter",
     "start": "Lancer le scan",
     "scanning": "Analyse {{done}}/{{total}} : {{current}}",

@@ -24,6 +24,9 @@
         </mat-form-field>
         <button matButton (click)="addRoot()">{{ t('scan.addRoot') }}</button>
       </div>
+      @if (rootInvalid()) {
+        <p class="text-sm text-red-600 dark:text-red-400">{{ t('scan.rootInvalid') }}</p>
+      }
     </section>
 
     <!-- 2. Lancement du scan + progression + annulation. -->
