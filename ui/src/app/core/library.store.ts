@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import type { ConformitySummary, MovieListItem } from '@shared/dto';
 
-import { ApiService } from './api.service';
+import { ApiService } from './services/api.service';
 
 /**
  * Store (signaux) de l'état de la bibliothèque côté UI.

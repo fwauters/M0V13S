@@ -15,11 +15,11 @@
 
 ## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Valider la phase 1 : `nvm use 22.23.2` puis `pnpm dev`, dérouler :
-premier lancement → scan forcé → ajouter une racine (ex. `Films`) →
-scanner → qualifier un film → le voir dans « Ma bibliothèque » → fiche →
-vue admin (icône tableau). Puis **merger la PR #2**.
-En cas de souci : le signaler, correction sur la branche `phase-1`.
+Re-valider la phase 1 après les 3 correctifs du 2026-08-06 (reset du
+formulaire entre fichiers, chips addOnBlur, hauteur de la vue admin —
+détail dans phase_1.md § Corrections) : `nvm use 22.23.2` puis `pnpm dev`,
+re-dérouler le parcours en vérifiant ces trois points, puis **merger la
+PR #2**. En cas de souci : le signaler, correction sur `phase-1`.
 
 ## Méthode de travail établie (récap opérationnel)
 

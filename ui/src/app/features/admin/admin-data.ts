@@ -11,8 +11,8 @@ import {
 } from 'ag-grid-community';
 import type { AdminTableName } from '@shared/dto';
 
-import { ApiService } from '../../core/api.service';
-import { ThemeService } from '../../core/theme.service';
+import { ApiService } from '../../core/services/api.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 // Enregistrement unique des modules Community (tri, filtre, virtualisation).
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -43,6 +43,10 @@ const TABLES: readonly AdminTableName[] = [
   selector: 'app-admin-data',
   imports: [TranslocoDirective, MatButtonToggleGroup, MatButtonToggle, AgGridAngular],
   templateUrl: './admin-data.html',
+  // L'élément hôte doit relayer la chaîne flex du layout (main -> feature),
+  // sinon la hauteur ne se propage pas et ag-grid (100 % interne) s'affiche
+  // VIDE — bug relevé en validation de phase 1.
+  host: { class: 'flex grow flex-col' },
 })
 export class AdminData {
   private readonly api = inject(ApiService);

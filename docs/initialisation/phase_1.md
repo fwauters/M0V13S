@@ -116,6 +116,31 @@ films dans l'UI, vue admin des tables (lecture seule).
 - `personalRating`, prévu au schéma, est saisissable dès maintenant dans
   l'assistant.
 
+## Corrections post-validation (retour utilisateur du 2026-08-06)
+
+Trois bugs relevés lors du test utilisateur, corrigés sur la branche avant
+merge (commit `fix(phase1)`) :
+
+1. **Formulaire du wizard non réinitialisé** entre deux fichiers : le bloc
+   `@if` réutilisait les mêmes widgets (ngModel, chips) d'un fichier à
+   l'autre — en zoneless, leur remise à zéro n'était pas garantie.
+   Correctif : sous-arbre du formulaire RECRÉÉ à chaque fichier
+   (`@for … track file.relPath`). Non-régression : `scan.spec.ts`
+   (brouillon réinitialisé après enregistrement ET après skip).
+2. **Réalisateur/scénariste absents de la fiche** quand peu de champs
+   remplis : une valeur tapée dans un champ chips sans être validée par
+   Entrée/virgule était PERDUE (cas typique des champs à valeur unique).
+   Correctif : `matChipInputAddOnBlur` — la perte de focus (clic sur
+   Enregistrer…) ajoute la valeur au lieu de la jeter.
+3. **Vue admin sans lignes** (seul le compteur s'affichait) : l'élément
+   hôte des composants de feature ne relayait pas la chaîne flex du layout
+   → hauteur non propagée → ag-grid (100 % interne) rendu VIDE. Correctif :
+   `host: { class: 'flex grow flex-col' }` sur les cinq features (layout
+   cohérent partout), la grille récupère une vraie hauteur.
+
+Au passage : import cassé corrigé dans `library.store.spec.ts`
+(ApiService déplacé dans `core/services/` pendant la phase).
+
 ## Validation utilisateur attendue (avant merge)
 
 1. `nvm use 22.23.2` puis `pnpm dev` : vérifier accueil → scan forcé au

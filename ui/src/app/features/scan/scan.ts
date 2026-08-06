@@ -17,9 +17,9 @@ import type {
   ScanResult,
 } from '@shared/dto';
 
-import { ApiService } from '../../core/api.service';
+import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
-import { MinutesPipe } from '../../core/minutes.pipe';
+import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 import { ChipsInput } from './chips-input';
 import { ConfirmDialog, ConfirmDialogData } from './confirm-dialog';
 
@@ -61,6 +61,8 @@ interface QualifyDraft {
     ChipsInput,
   ],
   templateUrl: './scan.html',
+  // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
+  host: { class: 'flex grow flex-col' },
 })
 export class Scan implements OnDestroy {
   private readonly api = inject(ApiService);
@@ -94,6 +96,17 @@ export class Scan implements OnDestroy {
   protected readonly currentFile = computed<ScanNewFile | null>(() => {
     const files = this.filmFiles();
     return files[this.currentIndex()] ?? null;
+  });
+  /**
+   * Fichier courant sous forme de liste 0-ou-1 élément : le template
+   * l'itère avec `track file.relPath` pour que le sous-arbre du formulaire
+   * soit DÉTRUIT ET RECRÉÉ à chaque changement de fichier. Sans cela, les
+   * widgets (inputs ngModel, chips) sont réutilisés et peuvent conserver
+   * les saisies du film précédent (bug relevé en validation de phase 1).
+   */
+  protected readonly currentFileList = computed<ScanNewFile[]>(() => {
+    const file = this.currentFile();
+    return file === null ? [] : [file];
   });
   /** Nouveaux fichiers « film » (les épisodes détectés sont écartés en v1). */
   protected readonly filmFiles = computed(() =>

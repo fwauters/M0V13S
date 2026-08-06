@@ -6,9 +6,9 @@ import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
-import { AppLang, LanguageService } from './core/language.service';
+import { AppLang, LanguageService } from './core/services/language.service';
 import { LibraryStore } from './core/library.store';
-import { ThemeService } from './core/theme.service';
+import { ThemeService } from './core/services/theme.service';
 
 /**
  * Composant racine : header permanent (wordmark, navigation, langue,

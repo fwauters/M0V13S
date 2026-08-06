@@ -92,8 +92,12 @@
         </section>
       }
 
-      <!-- 4. Assistant de qualification, un fichier à la fois. -->
-      @if (currentFile(); as file) {
+      <!-- 4. Assistant de qualification, un fichier à la fois.
+           Le @for tracké sur relPath force la RECRÉATION complète du
+           formulaire à chaque fichier : aucun widget (input, chips) ne peut
+           conserver les saisies du film précédent. -->
+      @if (currentFile() !== null) {
+        @for (file of currentFileList(); track file.relPath) {
         <section class="flex max-w-3xl flex-col gap-4">
           <h2 class="text-lg font-medium">
             {{ t('scan.newTitle') }} —
@@ -167,6 +171,7 @@
             </button>
           </div>
         </section>
+        }
       } @else if (filmFiles().length === 0 && r.relinkCandidates.length === 0 && r.missingFiles.length === 0) {
         <p class="opacity-70">{{ t('scan.noNewFiles') }}</p>
       } @else if (filmFiles().length > 0) {

@@ -4,9 +4,9 @@ import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import type { MovieDetail as MovieDetailDto } from '@shared/dto';
 
-import { ApiService } from '../../core/api.service';
-import { JoinPipe } from '../../core/join.pipe';
-import { MinutesPipe } from '../../core/minutes.pipe';
+import { ApiService } from '../../core/services/api.service';
+import { JoinPipe } from '../../core/pipes/join.pipe';
+import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 
 /**
  * Fiche sommaire d'un film (phase 1) : tous les champs de la fiche, la
@@ -17,6 +17,8 @@ import { MinutesPipe } from '../../core/minutes.pipe';
   selector: 'app-movie-detail',
   imports: [TranslocoDirective, RouterLink, MatIcon, MinutesPipe, JoinPipe],
   templateUrl: './movie-detail.html',
+  // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
+  host: { class: 'flex grow flex-col' },
 })
 export class MovieDetail {
   private readonly api = inject(ApiService);

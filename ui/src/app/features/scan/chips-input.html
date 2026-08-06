@@ -1,4 +1,4 @@
-<!-- Champ chips réutilisable (ajout : Entrée/virgule ; retrait : croix). -->
+<!-- Champ chips réutilisable (ajout : Entrée/virgule OU perte de focus ; retrait : croix). -->
 <mat-form-field class="w-full">
   <mat-label>{{ label() }}</mat-label>
   <mat-chip-grid #grid [attr.aria-label]="label()">
@@ -10,9 +10,14 @@
         </button>
       </mat-chip-row>
     }
+    <!-- addOnBlur : une valeur tapée puis abandonnée (clic ailleurs, bouton
+         Enregistrer…) est AJOUTÉE au lieu d'être perdue — indispensable pour
+         les champs à valeur unique (réalisateur…) où l'on ne pense pas à
+         valider par Entrée. -->
     <input
       [matChipInputFor]="grid"
       [matChipInputSeparatorKeyCodes]="separatorKeys"
+      matChipInputAddOnBlur
       (matChipInputTokenEnd)="add($event)"
     />
   </mat-chip-grid>

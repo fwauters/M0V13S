@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import type { ConformitySummary, MovieListItem } from '@shared/dto';
 
-import { ApiService } from './api.service';
+import { ApiService } from './services/api.service';
 import { LibraryStore } from './library.store';
 
 /**

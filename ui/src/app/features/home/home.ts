@@ -16,6 +16,8 @@ import { LibraryStore } from '../../core/library.store';
   selector: 'app-home',
   imports: [TranslocoDirective, RouterLink, MatIcon],
   templateUrl: './home.html',
+  // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
+  host: { class: 'flex grow flex-col' },
 })
 export class Home {
   protected readonly store = inject(LibraryStore);
