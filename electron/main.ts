@@ -18,8 +18,14 @@ import { getDbPath, getMigrationsDir } from './services/paths.service';
 import { ScannerService } from './services/scanner.service';
 import { SettingsService } from './services/settings.service';
 
-/** URL du serveur de dev Angular (ng serve) — utilisée hors packaging. */
-const DEV_SERVER_URL = 'http://localhost:4200';
+/**
+ * URL du serveur de dev Angular (ng serve) — utilisée hors packaging.
+ * IPv4 EXPLICITE partout (ng serve --host 127.0.0.1, wait-on
+ * tcp:127.0.0.1:4200, et ce loadURL) : `localhost` peut résoudre en IPv6
+ * (::1) selon la machine, et le trio ne se trouvait pas (wait-on qui
+ * attendait indéfiniment — bug relevé en validation de phase 1).
+ */
+const DEV_SERVER_URL = 'http://127.0.0.1:4200';
 
 /** Base applicative, ouverte au démarrage (null si l'ouverture a échoué). */
 let dbHandle: AppDatabaseHandle | null = null;

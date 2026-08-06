@@ -141,6 +141,23 @@ merge (commit `fix(phase1)`) :
 Au passage : import cassé corrigé dans `library.store.spec.ts`
 (ApiService déplacé dans `core/services/` pendant la phase).
 
+4. **`pnpm dev` n'ouvrait jamais la fenêtre Electron** (l'utilisateur
+   testait donc dans un navigateur, où le backend n'existe pas par
+   conception). Deux causes cumulées + un durcissement :
+   - wait-on attendait `file:dist-electron/main.cjs` — préfixe invalide,
+     interprété comme un nom de fichier littéral jamais créé → attente
+     infinie, sans erreur. Corrigé en chemin nu.
+   - `ng serve` écoute `localhost` (résolu IPv6 `::1` sur la machine)
+     alors que wait-on testait `127.0.0.1` (IPv4) → jamais satisfait.
+     Corrigé en IPv4 EXPLICITE de bout en bout : `ng serve --host
+     127.0.0.1`, `wait-on tcp:127.0.0.1:4200`, `loadURL` idem.
+   - Nouveau `scripts/start-electron.mjs` : lance Electron avec un
+     environnement assaini (suppression d'`ELECTRON_RUN_AS_NODE` hérité
+     des terminaux VS Code — le piège documenté en phase 0).
+   Vérifié en réel cette fois : `pnpm dev` → fenêtre Electron ouverte.
+   Également : validation des racines de bibliothèque (lettre de lecteur
+   refusée avec message + exemples concrets dans les hints).
+
 ## Validation utilisateur attendue (avant merge)
 
 1. `nvm use 22.23.2` puis `pnpm dev` : vérifier accueil → scan forcé au
