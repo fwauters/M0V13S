@@ -65,14 +65,9 @@ export interface TmdbEnrichDialogData {
           <p class="text-sm opacity-70">{{ t('scan.tmdb.loadingDetails') }}</p>
         } @else {
           @switch (status()) {
+            @case ('idle') {}
             @case ('noKey') {
               <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.noKey') }}</p>
-            }
-            @case ('invalidKey') {
-              <p class="text-sm text-red-600 dark:text-red-400">{{ t('scan.tmdb.invalidKey') }}</p>
-            }
-            @case ('unavailable') {
-              <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.unavailable') }}</p>
             }
             @case ('ok') {
               @if (results().length === 0) {
@@ -108,6 +103,13 @@ export interface TmdbEnrichDialogData {
                 </div>
               }
             }
+            <!-- Toute erreur : message ROUGE avec code + explication —
+                 jamais bloquant (mêmes clés i18n que l'assistant). -->
+            @default {
+              <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                {{ t('scan.tmdb.errors.' + status(), { code: httpStatus() }) }}
+              </p>
+            }
           }
         }
       </mat-dialog-content>
@@ -127,6 +129,8 @@ export class TmdbEnrichDialog {
   protected query = this.data.query;
   protected readonly searching = signal(false);
   protected readonly status = signal<'idle' | TmdbCallStatus>('idle');
+  /** Code HTTP de la dernière erreur (affiché dans le message). */
+  protected readonly httpStatus = signal<number | null>(null);
   protected readonly results = signal<TmdbSearchResult[]>([]);
   /** Enrichissement du film choisi en cours. */
   protected readonly applying = signal(false);
@@ -146,6 +150,7 @@ export class TmdbEnrichDialog {
     try {
       const outcome = await this.api.searchTmdb(query, this.data.year);
       this.status.set(outcome.status);
+      this.httpStatus.set(outcome.httpStatus);
       this.results.set(outcome.results);
     } finally {
       this.searching.set(false);
@@ -156,12 +161,16 @@ export class TmdbEnrichDialog {
   protected async pick(result: TmdbSearchResult): Promise<void> {
     this.applying.set(true);
     try {
-      const { status } = await this.api.enrichFromTmdb(this.data.mediaId, result.tmdbId);
+      const { status, httpStatus } = await this.api.enrichFromTmdb(
+        this.data.mediaId,
+        result.tmdbId,
+      );
       if (status === 'ok') {
         this.dialogRef.close(true);
         return;
       }
       this.status.set(status);
+      this.httpStatus.set(httpStatus);
     } finally {
       this.applying.set(false);
     }

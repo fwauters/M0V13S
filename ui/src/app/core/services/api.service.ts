@@ -13,6 +13,7 @@ import type {
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbLanguageConfig,
   TmdbSearchOutcome,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
@@ -85,8 +86,16 @@ export class ApiService {
   }
 
   /** Ré-enrichit une fiche depuis un film TMDB choisi (fiche + .nfo + images). */
-  async enrichFromTmdb(mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }> {
-    return window.api?.library.enrichFromTmdb(mediaId, tmdbId) ?? { status: 'unavailable' };
+  async enrichFromTmdb(
+    mediaId: number,
+    tmdbId: number,
+  ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }> {
+    return (
+      window.api?.library.enrichFromTmdb(mediaId, tmdbId) ?? {
+        status: 'error',
+        httpStatus: null,
+      }
+    );
   }
 
   /* ------------------------ scanner ------------------------- */
@@ -156,13 +165,40 @@ export class ApiService {
     return window.api?.tmdb.testKey(candidateKey) ?? 'offline';
   }
 
-  /** Recherche TMDB (titre + année, fr-FR). */
+  /** Recherche TMDB (titre + année, langue configurée). */
   async searchTmdb(query: string, year?: number | null): Promise<TmdbSearchOutcome> {
-    return window.api?.tmdb.searchMovies(query, year) ?? { status: 'unavailable', results: [] };
+    return (
+      window.api?.tmdb.searchMovies(query, year) ?? {
+        status: 'error',
+        httpStatus: null,
+        results: [],
+      }
+    );
   }
 
   /** Détails complets d'un film TMDB, mappés vers notre schéma. */
   async getTmdbDetails(tmdbId: number): Promise<TmdbDetailsOutcome> {
-    return window.api?.tmdb.getDetails(tmdbId) ?? { status: 'unavailable', details: null };
+    return (
+      window.api?.tmdb.getDetails(tmdbId) ?? {
+        status: 'error',
+        httpStatus: null,
+        details: null,
+      }
+    );
+  }
+
+  /** Préférences de langues TMDB (métadonnées + trailer). */
+  async getTmdbLanguageConfig(): Promise<TmdbLanguageConfig> {
+    return (
+      window.api?.tmdb.getLanguageConfig() ?? {
+        metadataLanguage: 'en-US',
+        trailerLanguage: 'original',
+      }
+    );
+  }
+
+  /** Enregistre les préférences de langues TMDB. */
+  async setTmdbLanguageConfig(config: TmdbLanguageConfig): Promise<void> {
+    await window.api?.tmdb.setLanguageConfig(config);
   }
 }

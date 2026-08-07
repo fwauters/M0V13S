@@ -1,19 +1,27 @@
 /**
- * TMDB — enrichissement des fiches (PLAN § 6.2) et gestion de la clé API.
+ * TMDB — enrichissement des fiches (PLAN § 6.2), gestion de la clé API et
+ * des préférences de langues.
  *
- * La clé est PERSONNELLE à chaque utilisateur de l'app (open source) :
- * saisie dans l'app (écran d'accueil), stockée dans `settings`
- * (`tmdb.apiKey`, côté data\ — jamais commitée), jamais renvoyée en clair
- * au renderer (statut masqué uniquement).
+ * Clé API : personnelle à chaque utilisateur (open source), saisie dans
+ * l'app (écran d'accueil), stockée dans `settings` (côté data\ — jamais
+ * commitée), jamais renvoyée en clair au renderer (statut masqué).
  *
- * Cette étape (2.3a) couvre la clé + son test de validité ; la recherche
- * et le mapping des fiches arrivent en 2.3b.
+ * Langues (décision utilisateur, retour de validation phase 2) :
+ * - métadonnées : langue CHOISIE par l'utilisateur (dropdown accueil),
+ *   avec repli sur la version originale/anglais si la traduction manque ;
+ * - trailer : VO du film par défaut, langue préférée configurable
+ *   (repli VO si indisponible).
+ *
+ * Erreurs : JAMAIS d'exception vers l'UI — chaque appel retourne un
+ * statut granulaire (+ code HTTP) que l'UI traduit en message clair.
  */
 import type {
   QualifyActor,
+  TmdbCallStatus,
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbLanguageConfig,
   TmdbMovieDetails,
   TmdbSearchOutcome,
   TmdbSearchResult,
@@ -26,8 +34,8 @@ const TMDB_API_BASE = 'https://api.themoviedb.org/3';
 /** Base des images TMDB (vignettes de la liste de choix — en ligne). */
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
 
-/** Langue des métadonnées (décision PLAN : fr-FR ; la VO vient d'original_title). */
-const TMDB_LANGUAGE = 'fr-FR';
+/** Langue de REPLI des métadonnées : l'anglais/VO (décision utilisateur). */
+const FALLBACK_LANGUAGE = 'en-US';
 
 /** Délai maximal d'un appel de test (l'app est offline-first : on tranche vite). */
 const TEST_TIMEOUT_MS = 8_000;
@@ -51,6 +59,10 @@ export function maskApiKey(key: string): string {
   }
   return `****${key.slice(-4)}`;
 }
+
+/* ------------------------------------------------------------------ */
+/* Mapping des réponses TMDB (fonctions PURES, testées sur fixtures)   */
+/* ------------------------------------------------------------------ */
 
 /** Année depuis une date TMDB (`YYYY-MM-DD`), null si absente/illisible. */
 function yearOf(releaseDate: unknown): number | null {
@@ -79,8 +91,8 @@ interface TmdbSearchJson {
 }
 
 /**
- * Transforme la réponse brute de /search/movie en liste de choix (PURE,
- * testée sur fixtures). Les entrées sans id ou sans titre sont ignorées.
+ * Transforme la réponse brute de /search/movie en liste de choix.
+ * Les entrées sans id ou sans titre sont ignorées.
  */
 export function parseTmdbSearch(json: TmdbSearchJson): TmdbSearchResult[] {
   return (json.results ?? [])
@@ -99,13 +111,45 @@ export function parseTmdbSearch(json: TmdbSearchJson): TmdbSearchResult[] {
     });
 }
 
+/** Un trailer YouTube candidat (extrait de videos.results). */
+interface TrailerCandidate {
+  key: string;
+  language: string | null;
+}
+
+/**
+ * Choisit le trailer selon la préférence utilisateur (PURE) :
+ * - `original` (défaut) → trailer dans la langue ORIGINALE du film ;
+ * - langue précise → cette langue si disponible, sinon repli VO ;
+ * - dernier repli : le premier trailer YouTube disponible.
+ */
+export function pickTrailer(
+  trailers: TrailerCandidate[],
+  originalLanguage: string | null,
+  preference: string,
+): string | null {
+  if (trailers.length === 0) {
+    return null;
+  }
+  const inOriginal = trailers.find((t) => t.language === originalLanguage) ?? null;
+  if (preference !== 'original') {
+    const preferred = trailers.find((t) => t.language === preference);
+    if (preferred !== undefined) {
+      return preferred.key;
+    }
+  }
+  return (inOriginal ?? trailers[0]!).key;
+}
+
 /** Forme minimale de la réponse /movie/{id} (+credits,videos) exploitée. */
 interface TmdbDetailsJson {
   id?: number;
   title?: string;
   original_title?: string;
+  original_language?: string;
   release_date?: string;
   overview?: string;
+  vote_average?: number;
   poster_path?: string | null;
   backdrop_path?: string | null;
   genres?: Array<{ name?: string }>;
@@ -120,14 +164,18 @@ interface TmdbDetailsJson {
 
 /**
  * Transforme la réponse brute de /movie/{id} en fiche mappée vers NOTRE
- * schéma (PURE, testée sur fixtures) :
- * - VO = original_title ; VF = title s'il diffère de la VO ;
+ * schéma :
+ * - VO = original_title ; titre localisé = title s'il diffère de la VO ;
  * - réalisateurs = crew job « Director » ; scénaristes = département
  *   « Writing » (Screenplay, Writer, Story…) sans doublon ;
  * - casting principal limité, avec personnages, dans l'ordre TMDB ;
- * - trailer YouTube : type « Trailer », français de préférence.
+ * - note TMDB (vote_average) arrondie à une décimale ;
+ * - trailer YouTube choisi selon la préférence (voir pickTrailer).
  */
-export function parseTmdbDetails(json: TmdbDetailsJson): TmdbMovieDetails | null {
+export function parseTmdbDetails(
+  json: TmdbDetailsJson,
+  trailerPreference = 'original',
+): TmdbMovieDetails | null {
   const titleVo = nonEmpty(json.original_title) ?? nonEmpty(json.title);
   if (typeof json.id !== 'number' || titleVo === null) {
     return null;
@@ -152,11 +200,9 @@ export function parseTmdbDetails(json: TmdbDetailsJson): TmdbMovieDetails | null
     .slice(0, MAX_ACTORS)
     .map((c) => ({ name: c.name as string, character: nonEmpty(c.character) }));
 
-  const youtubeTrailers = (json.videos?.results ?? []).filter(
-    (v) => v.site === 'YouTube' && v.type === 'Trailer' && nonEmpty(v.key) !== null,
-  );
-  const trailer =
-    youtubeTrailers.find((v) => v.iso_639_1 === 'fr') ?? youtubeTrailers[0] ?? null;
+  const trailers: TrailerCandidate[] = (json.videos?.results ?? [])
+    .filter((v) => v.site === 'YouTube' && v.type === 'Trailer' && nonEmpty(v.key) !== null)
+    .map((v) => ({ key: v.key as string, language: nonEmpty(v.iso_639_1) }));
 
   return {
     tmdbId: json.id,
@@ -170,11 +216,28 @@ export function parseTmdbDetails(json: TmdbDetailsJson): TmdbMovieDetails | null
     directors,
     writers,
     actors,
-    trailerYoutubeKey: trailer === null ? null : (trailer.key as string),
+    trailerYoutubeKey: pickTrailer(
+      trailers,
+      nonEmpty(json.original_language),
+      trailerPreference,
+    ),
+    tmdbRating:
+      typeof json.vote_average === 'number' && json.vote_average > 0
+        ? Math.round(json.vote_average * 10) / 10
+        : null,
     tmdbPosterPath: nonEmpty(json.poster_path),
     tmdbBackdropPath: nonEmpty(json.backdrop_path),
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Service                                                             */
+/* ------------------------------------------------------------------ */
+
+/** Résultat interne d'un appel TMDB : JSON ou statut d'échec classifié. */
+type TmdbCallResult<T> =
+  | { ok: true; json: T }
+  | { ok: false; status: Exclude<TmdbCallStatus, 'ok'>; httpStatus: number | null };
 
 export class TmdbService {
   constructor(
@@ -182,6 +245,8 @@ export class TmdbService {
     /** fetch injectable — les tests fournissent un double, jamais de réseau. */
     private readonly fetchFn: typeof fetch = fetch,
   ) {}
+
+  /* ----------------------- clé API ------------------------ */
 
   /** Clé stockée, ou null si absente/vide. */
   private storedKey(): string | null {
@@ -207,13 +272,13 @@ export class TmdbService {
    * Teste une clé contre l'API TMDB (endpoint /configuration, léger).
    * @param candidateKey clé à tester ; par défaut la clé stockée
    * @returns 'valid' | 'invalid' (clé absente ou refusée) | 'offline'
-   *          (réseau indisponible : impossible de trancher — la clé
-   *          saisie hors ligne sera testable plus tard)
+   *          (réseau indisponible : impossible de trancher)
    */
   async testKey(candidateKey?: string): Promise<TmdbKeyTestResult> {
-    const key = candidateKey?.trim() !== '' && candidateKey !== undefined
-      ? candidateKey.trim()
-      : this.storedKey();
+    const key =
+      candidateKey?.trim() !== '' && candidateKey !== undefined
+        ? candidateKey.trim()
+        : this.storedKey();
     if (key === null) {
       return 'invalid';
     }
@@ -230,69 +295,119 @@ export class TmdbService {
     }
   }
 
+  /* ----------------------- langues ------------------------ */
+
+  /** Préférences de langues (métadonnées + trailer), avec défauts sûrs. */
+  getLanguageConfig(): TmdbLanguageConfig {
+    // Défaut métadonnées : la langue de l'UI si connue, sinon l'anglais.
+    const uiLang = this.settings.get('ui.lang');
+    const defaultMetadata = uiLang === 'fr' ? 'fr-FR' : FALLBACK_LANGUAGE;
+    return {
+      metadataLanguage: this.settings.get('tmdb.language') ?? defaultMetadata,
+      trailerLanguage: this.settings.get('tmdb.trailerLanguage') ?? 'original',
+    };
+  }
+
+  /** Enregistre les préférences de langues (dropdowns de l'accueil). */
+  setLanguageConfig(config: TmdbLanguageConfig): void {
+    this.settings.set('tmdb.language', config.metadataLanguage);
+    this.settings.set('tmdb.trailerLanguage', config.trailerLanguage);
+  }
+
+  /* ------------------- appels enrichissement --------------- */
+
   /**
-   * Recherche de films (titre + année optionnelle, fr-FR).
-   * Ne lève jamais : le statut dit à l'UI quoi afficher
-   * (noKey / invalidKey / unavailable / ok).
+   * Exécute un appel TMDB et CLASSIFIE tout échec (jamais d'exception) :
+   * 401 clé refusée, 404 introuvable, 429 trop de requêtes, 5xx serveur,
+   * timeout, panne réseau, JSON illisible.
    */
-  async searchMovies(query: string, year?: number | null): Promise<TmdbSearchOutcome> {
-    const key = this.storedKey();
-    if (key === null) {
-      return { status: 'noKey', results: [] };
+  private async callTmdb<T>(url: string): Promise<TmdbCallResult<T>> {
+    let response: Response;
+    try {
+      response = await this.fetchFn(url, { signal: AbortSignal.timeout(CALL_TIMEOUT_MS) });
+    } catch (error) {
+      const isTimeout = error instanceof DOMException && error.name === 'TimeoutError';
+      return { ok: false, status: isTimeout ? 'timeout' : 'network', httpStatus: null };
     }
-    const url =
-      `${TMDB_API_BASE}/search/movie?api_key=${encodeURIComponent(key)}` +
-      `&language=${TMDB_LANGUAGE}&include_adult=false` +
-      `&query=${encodeURIComponent(query.trim())}` +
-      (year !== undefined && year !== null ? `&year=${year}` : '');
+
+    if (!response.ok) {
+      const httpStatus = response.status;
+      const status: Exclude<TmdbCallStatus, 'ok'> =
+        httpStatus === 401
+          ? 'invalidKey'
+          : httpStatus === 404
+            ? 'notFound'
+            : httpStatus === 429
+              ? 'rateLimited'
+              : httpStatus >= 500
+                ? 'serverError'
+                : 'error';
+      return { ok: false, status, httpStatus };
+    }
 
     try {
-      const response = await this.fetchFn(url, {
-        signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
-      });
-      if (response.status === 401) {
-        return { status: 'invalidKey', results: [] };
-      }
-      if (!response.ok) {
-        return { status: 'unavailable', results: [] };
-      }
-      const json = (await response.json()) as TmdbSearchJson;
-      return { status: 'ok', results: parseTmdbSearch(json) };
+      return { ok: true, json: (await response.json()) as T };
     } catch {
-      return { status: 'unavailable', results: [] };
+      return { ok: false, status: 'error', httpStatus: response.status };
     }
   }
 
   /**
+   * Recherche de films (titre + année optionnelle) dans la langue de
+   * métadonnées choisie par l'utilisateur.
+   */
+  async searchMovies(query: string, year?: number | null): Promise<TmdbSearchOutcome> {
+    const key = this.storedKey();
+    if (key === null) {
+      return { status: 'noKey', httpStatus: null, results: [] };
+    }
+    const { metadataLanguage } = this.getLanguageConfig();
+    const url =
+      `${TMDB_API_BASE}/search/movie?api_key=${encodeURIComponent(key)}` +
+      `&language=${metadataLanguage}&include_adult=false` +
+      `&query=${encodeURIComponent(query.trim())}` +
+      (year !== undefined && year !== null ? `&year=${year}` : '');
+
+    const call = await this.callTmdb<TmdbSearchJson>(url);
+    if (!call.ok) {
+      return { status: call.status, httpStatus: call.httpStatus, results: [] };
+    }
+    return { status: 'ok', httpStatus: null, results: parseTmdbSearch(call.json) };
+  }
+
+  /**
    * Détails complets d'un film (crédits + trailers en un seul appel via
-   * append_to_response), mappés vers notre schéma.
+   * append_to_response), dans la langue choisie — avec REPLI VO/anglais
+   * pour le synopsis si la traduction manque (décision utilisateur).
    */
   async getMovieDetails(tmdbId: number): Promise<TmdbDetailsOutcome> {
     const key = this.storedKey();
     if (key === null) {
-      return { status: 'noKey', details: null };
+      return { status: 'noKey', httpStatus: null, details: null };
     }
-    const url =
+    const { metadataLanguage, trailerLanguage } = this.getLanguageConfig();
+    const urlFor = (language: string): string =>
       `${TMDB_API_BASE}/movie/${tmdbId}?api_key=${encodeURIComponent(key)}` +
-      `&language=${TMDB_LANGUAGE}&append_to_response=credits,videos`;
+      `&language=${language}&append_to_response=credits,videos`;
 
-    try {
-      const response = await this.fetchFn(url, {
-        signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
-      });
-      if (response.status === 401) {
-        return { status: 'invalidKey', details: null };
-      }
-      if (!response.ok) {
-        return { status: 'unavailable', details: null };
-      }
-      const json = (await response.json()) as TmdbDetailsJson;
-      const details = parseTmdbDetails(json);
-      return details === null
-        ? { status: 'unavailable', details: null }
-        : { status: 'ok', details };
-    } catch {
-      return { status: 'unavailable', details: null };
+    const call = await this.callTmdb<TmdbDetailsJson>(urlFor(metadataLanguage));
+    if (!call.ok) {
+      return { status: call.status, httpStatus: call.httpStatus, details: null };
     }
+    const details = parseTmdbDetails(call.json, trailerLanguage);
+    if (details === null) {
+      return { status: 'error', httpStatus: null, details: null };
+    }
+
+    // Repli VO : synopsis absent dans la langue choisie → tentative en
+    // anglais (échec silencieux : le synopsis reste alors vide).
+    if (details.overview === null && metadataLanguage !== FALLBACK_LANGUAGE) {
+      const fallback = await this.callTmdb<TmdbDetailsJson>(urlFor(FALLBACK_LANGUAGE));
+      if (fallback.ok) {
+        details.overview = nonEmpty(fallback.json.overview);
+      }
+    }
+
+    return { status: 'ok', httpStatus: null, details };
   }
 }

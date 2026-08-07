@@ -22,6 +22,7 @@ import type {
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbLanguageConfig,
   TmdbSearchOutcome,
 } from './dto';
 
@@ -75,10 +76,13 @@ export const IPC = {
     setKey: 'tmdb:set-key',
     /** Teste la validité d'une clé contre l'API TMDB. */
     testKey: 'tmdb:test-key',
-    /** Recherche de films (titre + année, fr-FR). */
+    /** Recherche de films (titre + année, langue configurée). */
     searchMovies: 'tmdb:search-movies',
     /** Détails complets d'un film (crédits, trailer), mappés au schéma. */
     getDetails: 'tmdb:get-details',
+    /** Préférences de langues (métadonnées + trailer). */
+    getLanguageConfig: 'tmdb:get-language-config',
+    setLanguageConfig: 'tmdb:set-language-config',
   },
 } as const;
 
@@ -124,7 +128,10 @@ export interface WindowApi {
     getRoots(): Promise<string[]>;
     setRoots(roots: string[]): Promise<void>;
     /** Ré-enrichit une fiche depuis un tmdbId choisi (fiche + .nfo + images). */
-    enrichFromTmdb(mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }>;
+    enrichFromTmdb(
+      mediaId: number,
+      tmdbId: number,
+    ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }>;
   };
   scanner: {
     /** Scan des racines ; `full` repasse aussi les fichiers déjà indexés
@@ -147,5 +154,7 @@ export interface WindowApi {
     testKey(candidateKey?: string): Promise<TmdbKeyTestResult>;
     searchMovies(query: string, year?: number | null): Promise<TmdbSearchOutcome>;
     getDetails(tmdbId: number): Promise<TmdbDetailsOutcome>;
+    getLanguageConfig(): Promise<TmdbLanguageConfig>;
+    setLanguageConfig(config: TmdbLanguageConfig): Promise<void>;
   };
 }

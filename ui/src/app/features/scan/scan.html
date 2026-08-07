@@ -129,8 +129,14 @@
             {{ t('scan.fileOf', { index: currentIndex() + 1, total: filmFiles().length }) }}
           </h2>
 
-          <!-- Identité disque + infos techniques (ffprobe). -->
-          <div class="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+          <!-- Identité disque + infos techniques + aperçu d'affiche
+               (résultat TMDB appliqué, sinon sidecar existant via le
+               protocole local m0v13s-img). -->
+          <div class="flex items-start gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+            @if (pickedPosterUrl() ?? ((file.existing?.posterPath ?? null) | sidecarImg); as posterSrc) {
+              <img [src]="posterSrc" alt="" class="h-24 w-16 shrink-0 rounded object-cover" />
+            }
+            <div class="min-w-0">
             <p class="font-mono">{{ file.relPath }}</p>
             @if (file.existing !== null) {
               <p class="mt-1 w-fit rounded bg-sky-500/20 px-2 py-0.5 text-xs text-sky-700 dark:text-sky-300">
@@ -155,6 +161,7 @@
             } @else {
               <p class="mt-1 text-amber-600 dark:text-amber-400">{{ t('scan.noTech') }}</p>
             }
+            </div>
           </div>
 
           <!-- Recherche TMDB (en ligne) : l'utilisateur choisit le bon film
@@ -177,14 +184,9 @@
               <p class="text-sm opacity-70">{{ t('scan.tmdb.loadingDetails') }}</p>
             } @else {
               @switch (tmdbStatus()) {
+                @case ('idle') {}
                 @case ('noKey') {
                   <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.noKey') }}</p>
-                }
-                @case ('invalidKey') {
-                  <p class="text-sm text-red-600 dark:text-red-400">{{ t('scan.tmdb.invalidKey') }}</p>
-                }
-                @case ('unavailable') {
-                  <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.unavailable') }}</p>
                 }
                 @case ('ok') {
                   @if (appliedTmdb(); as applied) {
@@ -227,6 +229,14 @@
                     </div>
                   }
                 }
+                <!-- Toute erreur (401/404/429/5xx/timeout/réseau/inattendue) :
+                     message ROUGE avec code + explication — jamais bloquant,
+                     la fiche reste qualifiable à la main (retour validation). -->
+                @default {
+                  <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                    {{ t('scan.tmdb.errors.' + tmdbStatus(), { code: tmdbHttpStatus() }) }}
+                  </p>
+                }
               }
             }
           </section>
@@ -249,6 +259,10 @@
               <mat-label>{{ t('scan.form.rating') }}</mat-label>
               <input matInput type="number" min="0" max="10" [(ngModel)]="draft.personalRating" />
             </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.tmdbRating') }}</mat-label>
+              <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="draft.tmdbRating" />
+            </mat-form-field>
           </div>
 
           <mat-form-field class="w-full">
@@ -265,6 +279,13 @@
             <app-chips-input [label]="t('scan.form.genres')" [(values)]="draft.genres" />
           </div>
           <app-chips-input [label]="t('scan.form.tags')" [(values)]="draft.tags" />
+
+          <!-- Avis/notes libres — champ PERSONNEL : comme la note perso et
+               les tags, jamais écrasé par TMDB (demande utilisateur). -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.notes') }}</mat-label>
+            <textarea matInput rows="2" [(ngModel)]="draft.personalNotes"></textarea>
+          </mat-form-field>
 
           <div class="flex gap-3">
             <button matButton="filled" [disabled]="saving()" (click)="saveCurrent()">

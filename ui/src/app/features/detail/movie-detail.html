@@ -12,6 +12,11 @@
       <div class="flex flex-col gap-4">
         <!-- Titres : VF en vedette si présente, VO en sous-titre. -->
         <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="flex items-start gap-4">
+          <!-- Affiche sidecar (protocole local m0v13s-img). -->
+          @if (m.posterPath | sidecarImg; as posterSrc) {
+            <img [src]="posterSrc" alt="" class="w-32 shrink-0 rounded-lg object-cover" />
+          }
           <div>
           <h1 class="text-3xl font-medium">{{ m.titleVf ?? m.titleVo }}</h1>
           @if (m.titleVf !== null && m.titleVf !== m.titleVo) {
@@ -24,7 +29,11 @@
             @if (m.personalRating !== null) {
               · {{ t('detail.rating', { rating: m.personalRating }) }}
             }
+            @if (m.tmdbRating !== null) {
+              · {{ t('detail.tmdbRating', { rating: m.tmdbRating }) }}
+            }
           </p>
+          </div>
           </div>
 
           <!-- Ré-enrichissement TMDB de CETTE fiche (décision 2.6). -->
@@ -36,6 +45,14 @@
 
         @if (m.overview !== null) {
           <p class="max-w-3xl">{{ m.overview }}</p>
+        }
+
+        <!-- Avis/notes libres de l'utilisateur (champ personnel). -->
+        @if (m.personalNotes !== null) {
+          <div class="max-w-3xl rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+            <p class="mb-1 font-medium">{{ t('detail.notes') }}</p>
+            <p class="whitespace-pre-line opacity-80">{{ m.personalNotes }}</p>
+          </div>
         }
 
         <!-- Équipe et classement — listes précalculées dans le composant. -->

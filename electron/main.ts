@@ -4,8 +4,9 @@
  * des handlers IPC. Le renderer (Angular) ne touche jamais fs/DB/réseau :
  * tout passe par le contrat IPC (shared/ipc.ts) via le preload.
  */
-import { BrowserWindow, app } from 'electron';
+import { BrowserWindow, app, net, protocol } from 'electron';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
 import { registerLibraryIpc } from './ipc/library.ipc';
@@ -17,6 +18,8 @@ import { ConformityService } from './services/conformity.service';
 import { LibraryService } from './services/library.service';
 import { getDbPath, getMigrationsDir } from './services/paths.service';
 import { ScannerService } from './services/scanner.service';
+import { fromDriveRelative, toDriveRelative } from './services/paths.logic';
+import { getDriveRoot } from './services/paths.service';
 import { SettingsService } from './services/settings.service';
 import { TmdbService } from './services/tmdb.service';
 
@@ -63,7 +66,34 @@ function createWindow(): void {
   }
 }
 
+/**
+ * Protocole local `m0v13s-img://img/<relPath encodé>` : sert au renderer
+ * les IMAGES sidecar du disque (affiches, fanarts) — indispensable car le
+ * renderer n'a pas accès au fs, et `file://` est bloqué depuis la page de
+ * dev (http). Garde-fous : extensions d'images uniquement, chemins
+ * strictement RELATIFS au lecteur (aller-retour de validation, toute
+ * évasion lève → 404).
+ */
+function registerImageProtocol(): void {
+  protocol.handle('m0v13s-img', (request) => {
+    try {
+      const relPath = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '');
+      if (!/\.(jpe?g|png|webp)$/i.test(relPath)) {
+        return new Response(null, { status: 403 });
+      }
+      const driveRoot = getDriveRoot();
+      const absPath = fromDriveRelative(driveRoot, relPath);
+      toDriveRelative(driveRoot, absPath); // anti-traversée : lève si hors lecteur
+      return net.fetch(pathToFileURL(absPath).toString());
+    } catch {
+      return new Response(null, { status: 404 });
+    }
+  });
+}
+
 app.whenReady().then(() => {
+  registerImageProtocol();
+
   // L'échec d'ouverture de la DB ne doit pas empêcher l'app de démarrer :
   // le ping IPC remontera dbOk=false et l'UI pourra l'afficher.
   try {

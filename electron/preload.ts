@@ -10,6 +10,7 @@ import type {
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
+  TmdbLanguageConfig,
 } from '@shared/dto';
 import { IPC, SystemPingResult, UiSettingKey, WindowApi } from '@shared/ipc';
 
@@ -59,6 +60,9 @@ const api: WindowApi = {
     searchMovies: (query: string, year?: number | null) =>
       ipcRenderer.invoke(IPC.tmdb.searchMovies, query, year),
     getDetails: (tmdbId: number) => ipcRenderer.invoke(IPC.tmdb.getDetails, tmdbId),
+    getLanguageConfig: () => ipcRenderer.invoke(IPC.tmdb.getLanguageConfig),
+    setLanguageConfig: (config: TmdbLanguageConfig) =>
+      ipcRenderer.invoke(IPC.tmdb.setLanguageConfig, config),
   },
 };
 

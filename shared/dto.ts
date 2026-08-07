@@ -41,8 +41,13 @@ export interface ExistingFiche {
   year: number | null;
   overview: string | null;
   personalRating: number | null;
+  /** Avis/notes libres de l'utilisateur — jamais écrasés par TMDB. */
+  personalNotes: string | null;
   tmdbId: number | null;
+  tmdbRating: number | null;
   trailerYoutubeKey: string | null;
+  /** Affiche sidecar (chemin relatif) — aperçu dans l'assistant. */
+  posterPath: string | null;
   directors: string[];
   writers: string[];
   actors: QualifyActor[];
@@ -134,6 +139,11 @@ export interface QualifyMovieInput {
   year: number | null;
   overview: string | null;
   personalRating: number | null;
+  /** Avis/notes libres de l'utilisateur — comme la note perso et les
+   *  tags : jamais écrasés par TMDB, seulement par l'utilisateur. */
+  personalNotes: string | null;
+  /** Note moyenne TMDB (0-10) — informative, mise à jour par TMDB. */
+  tmdbRating: number | null;
   /** Identifiant TMDB (import `.nfo` ou enrichissement) — déduplique les
    *  fiches multi-fichiers. Null pour une saisie purement manuelle. */
   tmdbId: number | null;
@@ -167,8 +177,61 @@ export interface TmdbKeyStatus {
 /** Résultat du test de validité de la clé (bouton « Tester »). */
 export type TmdbKeyTestResult = 'valid' | 'invalid' | 'offline';
 
-/** Statut d'un appel TMDB (recherche/détails) — l'UI adapte son message. */
-export type TmdbCallStatus = 'ok' | 'noKey' | 'invalidKey' | 'unavailable';
+/**
+ * Statut d'un appel TMDB — granulaire pour des messages utilisateur
+ * compréhensibles (code HTTP + explication). Une erreur ne bloque JAMAIS
+ * l'app : la fiche reste toujours qualifiable manuellement.
+ */
+export type TmdbCallStatus =
+  | 'ok'
+  | 'noKey' /*        aucune clé configurée (pas un appel réseau) */
+  | 'invalidKey' /*   HTTP 401 : clé refusée */
+  | 'notFound' /*     HTTP 404 : film introuvable (fiche supprimée ?) */
+  | 'rateLimited' /*  HTTP 429 : trop de requêtes */
+  | 'serverError' /*  HTTP 5xx : TMDB en difficulté */
+  | 'timeout' /*      délai dépassé */
+  | 'network' /*      pas de connexion (hors ligne, DNS…) */
+  | 'error'; /*       inattendu (code HTTP inhabituel, JSON illisible…) */
+
+/** Langues de MÉTADONNÉES proposées (fiches TMDB) — libellés natifs. */
+export const TMDB_METADATA_LANGUAGES: ReadonlyArray<{ value: string; label: string }> = [
+  { value: 'fr-FR', label: 'Français' },
+  { value: 'en-US', label: 'English' },
+  { value: 'de-DE', label: 'Deutsch' },
+  { value: 'es-ES', label: 'Español' },
+  { value: 'it-IT', label: 'Italiano' },
+  { value: 'pt-BR', label: 'Português (BR)' },
+  { value: 'nl-NL', label: 'Nederlands' },
+  { value: 'ja-JP', label: '日本語' },
+  { value: 'ko-KR', label: '한국어' },
+  { value: 'zh-CN', label: '中文' },
+  { value: 'ru-RU', label: 'Русский' },
+];
+
+/** Langues de TRAILER proposées (codes iso_639_1 des vidéos TMDB).
+ *  La valeur spéciale `original` = langue originale du film (défaut). */
+export const TMDB_TRAILER_LANGUAGES: ReadonlyArray<{ value: string; label: string }> = [
+  { value: 'original', label: 'VO' },
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'pt', label: 'Português' },
+  { value: 'nl', label: 'Nederlands' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'zh', label: '中文' },
+  { value: 'ru', label: 'Русский' },
+];
+
+/** Préférences de langues TMDB (réglées sur l'accueil, section clé API). */
+export interface TmdbLanguageConfig {
+  /** Langue des fiches (ex. `fr-FR`) — fallback VO/anglais si absent. */
+  metadataLanguage: string;
+  /** Langue préférée du trailer (`original` = VO du film, défaut). */
+  trailerLanguage: string;
+}
 
 /** Un résultat de recherche TMDB (liste de choix de l'assistant). */
 export interface TmdbSearchResult {
@@ -186,6 +249,8 @@ export interface TmdbSearchResult {
 /** Résultat d'une recherche TMDB (statut + liste, vide hors `ok`). */
 export interface TmdbSearchOutcome {
   status: TmdbCallStatus;
+  /** Code HTTP quand pertinent (affiché dans le message d'erreur). */
+  httpStatus: number | null;
   results: TmdbSearchResult[];
 }
 
@@ -203,6 +268,8 @@ export interface TmdbMovieDetails {
   /** Casting principal (ordre TMDB), avec personnages. */
   actors: QualifyActor[];
   trailerYoutubeKey: string | null;
+  /** Note moyenne TMDB (0-10, une décimale) — distincte de la note perso. */
+  tmdbRating: number | null;
   /** Chemins d'images TMDB (téléchargées en sidecars à l'étape 2.5). */
   tmdbPosterPath: string | null;
   tmdbBackdropPath: string | null;
@@ -211,6 +278,8 @@ export interface TmdbMovieDetails {
 /** Détails TMDB (statut + fiche, null hors `ok`). */
 export interface TmdbDetailsOutcome {
   status: TmdbCallStatus;
+  /** Code HTTP quand pertinent (affiché dans le message d'erreur). */
+  httpStatus: number | null;
   details: TmdbMovieDetails | null;
 }
 
@@ -225,6 +294,8 @@ export interface MovieListItem {
   titleVf: string | null;
   year: number | null;
   durationSec: number | null;
+  /** Affiche sidecar (chemin relatif au lecteur), servie via m0v13s-img. */
+  posterPath: string | null;
   genres: string[];
 }
 
@@ -243,6 +314,11 @@ export interface MovieDetail {
   year: number | null;
   overview: string | null;
   personalRating: number | null;
+  personalNotes: string | null;
+  tmdbRating: number | null;
+  /** Images sidecar (chemins relatifs), servies via le protocole m0v13s-img. */
+  posterPath: string | null;
+  backdropPath: string | null;
   genres: string[];
   tags: string[];
   people: MoviePerson[];

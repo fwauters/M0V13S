@@ -4,9 +4,16 @@ import { MatButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
-import type { TmdbKeyStatus, TmdbKeyTestResult } from '@shared/dto';
+import {
+  TMDB_METADATA_LANGUAGES,
+  TMDB_TRAILER_LANGUAGES,
+  type TmdbKeyStatus,
+  type TmdbKeyTestResult,
+  type TmdbLanguageConfig,
+} from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
@@ -33,6 +40,8 @@ import { LibraryStore } from '../../core/library.store';
     MatFormField,
     MatLabel,
     MatInput,
+    MatSelect,
+    MatOption,
   ],
   templateUrl: './home.html',
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
@@ -53,9 +62,31 @@ export class Home {
   /** Résultat du dernier test (null tant qu'aucun). */
   protected readonly testResult = signal<TmdbKeyTestResult | null>(null);
 
+  /** Listes des langues proposées (dropdowns). */
+  protected readonly metadataLanguages = TMDB_METADATA_LANGUAGES;
+  protected readonly trailerLanguages = TMDB_TRAILER_LANGUAGES;
+
+  /** Préférences de langues courantes (null tant que non chargées). */
+  protected readonly languageConfig = signal<TmdbLanguageConfig | null>(null);
+
   constructor() {
     void this.store.ensureConformity();
     void this.refreshTmdbStatus();
+    void this.api.getTmdbLanguageConfig().then((config) => this.languageConfig.set(config));
+  }
+
+  /** Change la langue des fiches (persistée immédiatement). */
+  protected onMetadataLanguageChange(metadataLanguage: string): void {
+    const config = { ...(this.languageConfig() ?? { trailerLanguage: 'original' }), metadataLanguage };
+    this.languageConfig.set(config as TmdbLanguageConfig);
+    void this.api.setTmdbLanguageConfig(config as TmdbLanguageConfig);
+  }
+
+  /** Change la langue préférée du trailer (persistée immédiatement). */
+  protected onTrailerLanguageChange(trailerLanguage: string): void {
+    const config = { ...(this.languageConfig() ?? { metadataLanguage: 'en-US' }), trailerLanguage };
+    this.languageConfig.set(config as TmdbLanguageConfig);
+    void this.api.setTmdbLanguageConfig(config as TmdbLanguageConfig);
   }
 
   /** Ouvre le champ de saisie (le brouillon repart toujours vide). */

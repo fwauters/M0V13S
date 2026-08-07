@@ -47,6 +47,8 @@ function makeInput(overrides: Partial<QualifyMovieInput> = {}): QualifyMovieInpu
     year: 2012,
     overview: 'Des scientifiques partent aux origines de l’humanité.',
     personalRating: 8,
+    personalNotes: 'Mon film de chevet.',
+    tmdbRating: null,
     tmdbId: null,
     trailerYoutubeKey: null,
     tmdbPosterPath: null,
@@ -70,6 +72,8 @@ const ALIEN_NFO: MovieNfo = {
   year: 1979,
   overview: 'Un vaisseau reçoit un signal inconnu.',
   personalRating: null,
+  personalNotes: null,
+  tmdbRating: 8.1,
   tmdbId: 348,
   trailerYoutubeKey: 'jQ5lPt9edzQ',
   directors: ['Ridley Scott'],
@@ -305,6 +309,7 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
       writers: ['Jon Spaihts', 'Damon Lindelof'],
       actors: [{ name: 'Noomi Rapace', character: 'Elizabeth Shaw' }],
       trailerYoutubeKey: 'trailerKey',
+      tmdbRating: 7.9,
       tmdbPosterPath: null, // pas de téléchargement dans ce test (hors ligne)
       tmdbBackdropPath: null,
     });
@@ -315,7 +320,9 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
     expect(m[0]!.titleVf).toBe('Prometheus (VF officielle)');
     expect(m[0]!.tmdbId).toBe(70981);
     expect(m[0]!.trailerYoutubeKey).toBe('trailerKey');
+    expect(m[0]!.tmdbRating).toBe(7.9); // note TMDB enregistrée
     expect(m[0]!.personalRating).toBe(8); // note perso CONSERVÉE
+    expect(m[0]!.personalNotes).toBe('Mon film de chevet.'); // avis CONSERVÉ
     // Genres remplacés par TMDB, tags personnels conservés.
     expect(db.select().from(mediaGenres).all()).toHaveLength(2);
     expect(db.select().from(mediaTags).all()).toHaveLength(1);
@@ -329,7 +336,8 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
       await scanner.enrichMedia(999, {
         tmdbId: 1, titleVo: 'X', titleVf: null, year: null, overview: null,
         genres: [], directors: [], writers: [], actors: [],
-        trailerYoutubeKey: null, tmdbPosterPath: null, tmdbBackdropPath: null,
+        trailerYoutubeKey: null, tmdbRating: null,
+        tmdbPosterPath: null, tmdbBackdropPath: null,
       }),
     ).toBe(false);
   });

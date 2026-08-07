@@ -36,6 +36,11 @@ export interface MovieNfo {
   overview: string | null;
   /** Note personnelle 0-10 — <userrating>. */
   personalRating: number | null;
+  /** Avis/notes libres de l'utilisateur — <usernote> (balise propre à
+   *  M0V13S, ignorée par Kodi/Jellyfin, préservée par notre parseur). */
+  personalNotes: string | null;
+  /** Note moyenne TMDB (0-10, une décimale) — <rating>. */
+  tmdbRating: number | null;
   /** Identifiant TMDB — <uniqueid type="tmdb">. */
   tmdbId: number | null;
   /** Clé YouTube du trailer — <trailer> (formats Kodi et URL acceptés). */
@@ -89,6 +94,12 @@ export function buildMovieNfoXml(nfo: MovieNfo): string {
   }
   if (nfo.personalRating !== null) {
     movie['userrating'] = nfo.personalRating;
+  }
+  if (nfo.tmdbRating !== null) {
+    movie['rating'] = nfo.tmdbRating;
+  }
+  if (nfo.personalNotes !== null && nfo.personalNotes !== '') {
+    movie['usernote'] = nfo.personalNotes;
   }
   if (nfo.tmdbId !== null) {
     movie['uniqueid'] = { '@_type': 'tmdb', '@_default': 'true', '#text': nfo.tmdbId };
@@ -165,6 +176,16 @@ function intOf(node: unknown): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+/** Nombre décimal depuis un nœud texte, ou null si illisible. */
+function floatOf(node: unknown): number | null {
+  const text = textOf(node);
+  if (text === null) {
+    return null;
+  }
+  const value = Number.parseFloat(text);
+  return Number.isFinite(value) ? value : null;
+}
+
 /**
  * Extrait la clé YouTube d'une balise <trailer>, quel que soit le format
  * rencontré dans la nature : plugin Kodi (`videoid=` / `video_id=`),
@@ -224,6 +245,10 @@ export function parseMovieNfoXml(xml: string): MovieNfo | null {
     year: intOf(m['year']),
     overview: textOf(m['plot']),
     personalRating: intOf(m['userrating']),
+    personalNotes: textOf(m['usernote']),
+    // <rating> simple ; le bloc <ratings> imbriqué (Kodi v17+) donne null
+    // — tolérance assumée, la note TMDB sera re-remplie à l'enrichissement.
+    tmdbRating: floatOf(m['rating']),
     tmdbId: tmdbNode === undefined ? null : intOf(tmdbNode),
     trailerYoutubeKey: youtubeKeyOf(m['trailer']),
     directors: asArray(m['director'])

@@ -24,6 +24,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -71,6 +72,11 @@ export const media = sqliteTable(
     trailerYoutubeKey: text('trailer_youtube_key'),
     /** Note personnelle 0-10 (indépendante de TMDB). */
     personalRating: integer('personal_rating'),
+    /** Avis/notes libres de l'utilisateur — champ PERSONNEL : jamais
+     *  écrasé par TMDB, seulement par l'utilisateur (comme les tags). */
+    personalNotes: text('personal_notes'),
+    /** Note moyenne TMDB (0-10, une décimale) — informative. */
+    tmdbRating: real('tmdb_rating'),
     createdAt: integer('created_at')
       .notNull()
       .$defaultFn(() => Date.now()),

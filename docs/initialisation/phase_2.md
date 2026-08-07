@@ -129,6 +129,37 @@ redescend jamais au renderer (statut masqué uniquement).
   DB créée/migrée à côté de l'exe (rituel après montée d'Electron).
 - Docs à jour, PR #3 ouverte.
 
+## Corrections post-validation (retour utilisateur du 2026-08-07)
+
+Quatre modifications demandées après le premier test utilisateur :
+
+1. **Langues configurables** (plus de français codé en dur) : deux
+   dropdowns dans la carte TMDB de l'accueil — langue des FICHES (repli
+   automatique VO/anglais si la traduction manque, y c. re-fetch du
+   synopsis) et langue du TRAILER (« VO du film » par défaut, langue
+   préférée avec repli VO sinon). Défauts : langue de l'UI pour les
+   fiches, VO pour le trailer.
+2. **Note TMDB + avis perso** : colonnes `tmdb_rating` et
+   `personal_notes` (migration 0002), champ « Note TMDB » prérempli par
+   l'enrichissement et zone « Mon avis / informations complémentaires »
+   sous les tags. L'avis est un champ PERSONNEL : comme la note perso et
+   les tags, jamais écrasé par TMDB. Exporté dans les `.nfo`
+   (<rating>, <usernote>), affiché sur la fiche.
+3. **Affiches visibles partout** : nouveau protocole local
+   `m0v13s-img://` (main process, garde-fous : images uniquement, chemins
+   relatifs au lecteur validés) + pipe pur `sidecarImg`. Affiche dans
+   l'assistant (aperçu TMDB choisi ou sidecar existant), cartes de la
+   bibliothèque (ratio 2/3, pochette de repli) et fiche détail.
+4. **Catalogue d'erreurs TMDB** : statuts granulaires — 401 clé refusée,
+   404 introuvable, 429 trop de requêtes, 5xx serveur (code affiché),
+   timeout, hors ligne, inattendu — chacun avec un message ROUGE
+   compréhensible (code + explication, fr/en) dans l'assistant et le
+   dialogue de fiche. Jamais bloquant : la fiche reste qualifiable à la
+   main. « Aucun résultat » reste neutre, « pas de clé » reste ambre.
+
+Tests : 93 backend (langues, replis, classification des erreurs,
+préservation de l'avis perso) + 8 UI.
+
 ## Validation utilisateur attendue (avant merge)
 
 1. `git pull` sur `phase-2`, `nvm use 22.23.2`, `pnpm dev`.

@@ -10,6 +10,7 @@ import type { MovieDetail as MovieDetailDto } from '@shared/dto';
 import { ApiService } from '../../core/services/api.service';
 import { JoinPipe } from '../../core/pipes/join.pipe';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
+import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 import { TmdbEnrichDialog, TmdbEnrichDialogData } from './tmdb-enrich-dialog';
 
 /**
@@ -19,7 +20,7 @@ import { TmdbEnrichDialog, TmdbEnrichDialogData } from './tmdb-enrich-dialog';
  */
 @Component({
   selector: 'app-movie-detail',
-  imports: [TranslocoDirective, RouterLink, MatButton, MatIcon, MinutesPipe, JoinPipe],
+  imports: [TranslocoDirective, RouterLink, MatButton, MatIcon, MinutesPipe, JoinPipe, SidecarImgPipe],
   templateUrl: './movie-detail.html',
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
   host: { class: 'flex grow flex-col' },

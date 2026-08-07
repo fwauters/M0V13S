@@ -10,6 +10,7 @@ import type {
   TmdbDetailsOutcome,
   TmdbKeyStatus,
   TmdbKeyTestResult,
+  TmdbLanguageConfig,
   TmdbSearchOutcome,
 } from '@shared/dto';
 import type { TmdbService } from '../services/tmdb.service';
@@ -42,7 +43,7 @@ export function registerTmdbIpc(service: TmdbService | null): void {
     IPC.tmdb.searchMovies,
     async (_event, query: string, year?: number | null): Promise<TmdbSearchOutcome> => {
       if (!service) {
-        return { status: 'unavailable', results: [] };
+        return { status: 'error', httpStatus: null, results: [] };
       }
       return service.searchMovies(String(query), typeof year === 'number' ? year : null);
     },
@@ -52,9 +53,22 @@ export function registerTmdbIpc(service: TmdbService | null): void {
     IPC.tmdb.getDetails,
     async (_event, tmdbId: number): Promise<TmdbDetailsOutcome> => {
       if (!service) {
-        return { status: 'unavailable', details: null };
+        return { status: 'error', httpStatus: null, details: null };
       }
       return service.getMovieDetails(Number(tmdbId));
     },
   );
+
+  ipcMain.handle(IPC.tmdb.getLanguageConfig, (): TmdbLanguageConfig => {
+    return (
+      service?.getLanguageConfig() ?? { metadataLanguage: 'en-US', trailerLanguage: 'original' }
+    );
+  });
+
+  ipcMain.handle(IPC.tmdb.setLanguageConfig, (_event, config: TmdbLanguageConfig): void => {
+    service?.setLanguageConfig({
+      metadataLanguage: String(config.metadataLanguage),
+      trailerLanguage: String(config.trailerLanguage),
+    });
+  });
 }

@@ -93,6 +93,38 @@
           </div>
         }
 
+        <!-- Langues (décision utilisateur) : métadonnées des fiches (repli
+             VO/anglais si traduction absente) et langue préférée du trailer
+             (VO du film par défaut, repli VO si indisponible). -->
+        @if (languageConfig(); as config) {
+          <div class="grid gap-3 sm:grid-cols-2">
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>{{ t('home.tmdb.metadataLanguage') }}</mat-label>
+              <mat-select
+                [value]="config.metadataLanguage"
+                (selectionChange)="onMetadataLanguageChange($event.value)"
+              >
+                @for (lang of metadataLanguages; track lang.value) {
+                  <mat-option [value]="lang.value">{{ lang.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>{{ t('home.tmdb.trailerLanguage') }}</mat-label>
+              <mat-select
+                [value]="config.trailerLanguage"
+                (selectionChange)="onTrailerLanguageChange($event.value)"
+              >
+                @for (lang of trailerLanguages; track lang.value) {
+                  <mat-option [value]="lang.value">
+                    {{ lang.value === 'original' ? t('home.tmdb.trailerOriginal') : lang.label }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
+
         @if (testing()) {
           <p class="text-sm opacity-70">{{ t('home.tmdb.testing') }}</p>
         } @else {

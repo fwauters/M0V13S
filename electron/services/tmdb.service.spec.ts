@@ -122,8 +122,10 @@ const DETAILS_JSON = {
   id: 348,
   title: 'Alien, le huitième passager',
   original_title: 'Alien',
+  original_language: 'en',
   release_date: '1979-05-25',
   overview: 'Le vaisseau commercial Nostromo…',
+  vote_average: 8.126,
   poster_path: '/abc.jpg',
   backdrop_path: '/fond.jpg',
   genres: [{ name: 'Horreur' }, { name: 'Science-Fiction' }],
@@ -167,7 +169,7 @@ describe('parseTmdbSearch', () => {
 });
 
 describe('parseTmdbDetails', () => {
-  it('mappe la fiche complète vers notre schéma', () => {
+  it('mappe la fiche complète vers notre schéma (trailer VO par défaut)', () => {
     const details = parseTmdbDetails(DETAILS_JSON);
     expect(details).toEqual({
       tmdbId: 348,
@@ -182,10 +184,18 @@ describe('parseTmdbDetails', () => {
         { name: 'Sigourney Weaver', character: 'Ripley' }, // ordre TMDB
         { name: 'Tom Skerritt', character: 'Dallas' },
       ],
-      trailerYoutubeKey: 'trailerFR', // trailer YouTube FR prioritaire
+      trailerYoutubeKey: 'trailerEN', // VO du film (en) — défaut
+      tmdbRating: 8.1, // vote_average arrondi à une décimale
       tmdbPosterPath: '/abc.jpg',
       tmdbBackdropPath: '/fond.jpg',
     });
+  });
+
+  it('respecte la langue de trailer préférée, avec repli VO', () => {
+    // Préférence disponible → servie.
+    expect(parseTmdbDetails(DETAILS_JSON, 'fr')?.trailerYoutubeKey).toBe('trailerFR');
+    // Préférence indisponible → repli sur la VO du film.
+    expect(parseTmdbDetails(DETAILS_JSON, 'de')?.trailerYoutubeKey).toBe('trailerEN');
   });
 
   it('titre VF null quand identique à la VO ; null sans id/titre', () => {
@@ -196,16 +206,46 @@ describe('parseTmdbDetails', () => {
   });
 });
 
-describe('TmdbService.searchMovies / getMovieDetails — statuts', () => {
-  /** fetch qui répond 200 avec un corps JSON donné. */
-  function fetchJson(body: unknown): typeof fetch {
-    return async () =>
-      new Response(JSON.stringify(body), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-  }
+/** fetch qui répond 200 avec un corps JSON donné. */
+function fetchJson(body: unknown): typeof fetch {
+  return async () =>
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+}
 
+describe('TmdbService — langues configurables', () => {
+  it('recherche dans la langue choisie et replie le synopsis sur l anglais', async () => {
+    const calls: string[] = [];
+    const fetchCapture: typeof fetch = async (url) => {
+      calls.push(String(url));
+      // 1er appel (de-DE) : synopsis manquant ; 2e (en-US) : présent.
+      const body = calls.length === 1 ? { ...DETAILS_JSON, overview: '' } : DETAILS_JSON;
+      return new Response(JSON.stringify(body), { status: 200 });
+    };
+    const service = new TmdbService(settings, fetchCapture);
+    service.setKey('cle');
+    service.setLanguageConfig({ metadataLanguage: 'de-DE', trailerLanguage: 'original' });
+
+    const outcome = await service.getMovieDetails(348);
+
+    expect(calls[0]).toContain('language=de-DE');
+    expect(calls[1]).toContain('language=en-US'); // repli VO
+    expect(outcome.details?.overview).toBe('Le vaisseau commercial Nostromo…');
+  });
+
+  it('défauts : langue de l UI pour les fiches, VO pour le trailer', () => {
+    const service = new TmdbService(settings, fetchOffline);
+    settings.set('ui.lang', 'fr');
+    expect(service.getLanguageConfig()).toEqual({
+      metadataLanguage: 'fr-FR',
+      trailerLanguage: 'original',
+    });
+  });
+});
+
+describe('TmdbService — statuts et classification des erreurs', () => {
   it('noKey sans clé configurée (aucun appel réseau)', async () => {
     const service = new TmdbService(settings, fetchOffline);
     expect((await service.searchMovies('Alien')).status).toBe('noKey');
@@ -220,13 +260,33 @@ describe('TmdbService.searchMovies / getMovieDetails — statuts', () => {
     expect(outcome.results[0]!.tmdbId).toBe(348);
   });
 
-  it('invalidKey sur 401, unavailable sur panne réseau', async () => {
-    const bad = new TmdbService(settings, fetchRespondingWith(401));
-    bad.setKey('mauvaise');
-    expect((await bad.searchMovies('Alien')).status).toBe('invalidKey');
+  it('classifie 401/404/429/5xx avec le code HTTP', async () => {
+    const cases: Array<[number, string]> = [
+      [401, 'invalidKey'],
+      [404, 'notFound'],
+      [429, 'rateLimited'],
+      [503, 'serverError'],
+      [418, 'error'], // code inhabituel → fallback générique
+    ];
+    for (const [httpStatus, expected] of cases) {
+      const service = new TmdbService(settings, fetchRespondingWith(httpStatus));
+      service.setKey('cle');
+      const outcome = await service.getMovieDetails(348);
+      expect(outcome.status).toBe(expected);
+      expect(outcome.httpStatus).toBe(httpStatus);
+    }
+  });
 
-    const off = new TmdbService(settings, fetchOffline);
-    off.setKey('cle');
-    expect((await off.getMovieDetails(348)).status).toBe('unavailable');
+  it('distingue timeout et panne réseau', async () => {
+    const timeoutFetch: typeof fetch = async () => {
+      throw new DOMException('délai dépassé', 'TimeoutError');
+    };
+    const svcTimeout = new TmdbService(settings, timeoutFetch);
+    svcTimeout.setKey('cle');
+    expect((await svcTimeout.searchMovies('Alien')).status).toBe('timeout');
+
+    const svcOffline = new TmdbService(settings, fetchOffline);
+    svcOffline.setKey('cle');
+    expect((await svcOffline.getMovieDetails(348)).status).toBe('network');
   });
 });

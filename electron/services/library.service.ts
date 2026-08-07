@@ -32,6 +32,7 @@ export class LibraryService {
         titleVo: media.titleVo,
         titleVf: media.titleVf,
         year: media.year,
+        posterPath: media.posterPath,
         durationSec: videoFiles.durationSec,
       })
       .from(media)
@@ -53,6 +54,7 @@ export class LibraryService {
           titleVo: row.titleVo,
           titleVf: row.titleVf,
           year: row.year,
+          posterPath: row.posterPath,
           durationSec: row.durationSec,
           genres: [],
         });
@@ -130,6 +132,10 @@ export class LibraryService {
       year: m.year,
       overview: m.overview,
       personalRating: m.personalRating,
+      personalNotes: m.personalNotes,
+      tmdbRating: m.tmdbRating,
+      posterPath: m.posterPath,
+      backdropPath: m.backdropPath,
       genres: genreRows.map((g) => g.name),
       tags: tagRows.map((t) => t.name),
       people: peopleRows.map(

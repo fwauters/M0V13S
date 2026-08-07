@@ -49,19 +49,26 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
 
   ipcMain.handle(
     IPC.library.enrichFromTmdb,
-    async (_e, mediaId: number, tmdbId: number): Promise<{ status: TmdbCallStatus }> => {
+    async (
+      _e,
+      mediaId: number,
+      tmdbId: number,
+    ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }> => {
       if (!services) {
-        return { status: 'unavailable' };
+        return { status: 'error', httpStatus: null };
       }
-      // 1. Détails TMDB (crédits, trailer, images) — statuts remontés tels
-      //    quels à l'UI (noKey / invalidKey / unavailable).
+      // 1. Détails TMDB (crédits, trailer, images) — statuts granulaires
+      //    remontés tels quels à l'UI (messages avec code HTTP).
       const outcome = await services.tmdb.getMovieDetails(Number(tmdbId));
       if (outcome.status !== 'ok' || outcome.details === null) {
-        return { status: outcome.status === 'ok' ? 'unavailable' : outcome.status };
+        return {
+          status: outcome.status === 'ok' ? 'error' : outcome.status,
+          httpStatus: outcome.httpStatus,
+        };
       }
-      // 2. Mise à jour de la fiche (tags et note perso conservés) + .nfo + images.
+      // 2. Mise à jour de la fiche (tags/note/avis perso conservés) + .nfo + images.
       const enriched = await services.scanner.enrichMedia(Number(mediaId), outcome.details);
-      return { status: enriched ? 'ok' : 'unavailable' };
+      return { status: enriched ? 'ok' : 'error', httpStatus: null };
     },
   );
 
