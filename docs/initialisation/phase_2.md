@@ -179,9 +179,17 @@ préservation de l'avis perso) + 8 UI.
    regroupement), en préservant tmdbId, trailer et personnages d'acteurs
    (le formulaire ne porte que des noms).
 
-Tests : 103 backend (+6 : regroupement avec sidecars, non-déplacement des
+3. **Titres localisés** (fin du « VF » codé en dur) : le champ devient
+   « Titre ({{langue}}) », libellé dynamique suivant la langue de fiches
+   choisie sur l'accueil (assistant + édition manuelle). Le titre VO
+   reste toujours le VRAI titre original quel que soit l'alphabet —
+   aller-retour `.nfo` testé avec titres japonais/cyrillique (UTF-8 de
+   bout en bout). Le nom interne `titleVf` est conservé (historique),
+   les commentaires du code sont réalignés.
+
+Tests : 104 backend (+7 : regroupement avec sidecars, non-déplacement des
 fichiers rangés, import isolé regroupé, drapeau loose, édition manuelle
-avec préservations) + 8 UI.
+avec préservations, Unicode) + 8 UI.
 
 ## Validation utilisateur attendue (avant merge)
 
