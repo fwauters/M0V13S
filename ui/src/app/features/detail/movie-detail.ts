@@ -8,7 +8,11 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
-import type { ManualEditInput, MovieDetail as MovieDetailDto } from '@shared/dto';
+import {
+  tmdbLanguageLabel,
+  type ManualEditInput,
+  type MovieDetail as MovieDetailDto,
+} from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { JoinPipe } from '../../core/pipes/join.pipe';
@@ -91,8 +95,14 @@ export class MovieDetail {
     directors: [], writers: [], actors: [], genres: [], tags: [],
   };
 
+  /** Libellé de la langue de fiches configurée (label du champ « Titre (…) »). */
+  protected readonly metadataLangLabel = signal('');
+
   constructor() {
     void this.load();
+    void this.api
+      .getTmdbLanguageConfig()
+      .then((config) => this.metadataLangLabel.set(tmdbLanguageLabel(config.metadataLanguage)));
   }
 
   /** Ouvre le formulaire d'édition, prérempli avec la fiche courante. */

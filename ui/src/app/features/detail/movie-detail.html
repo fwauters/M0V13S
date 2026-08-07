@@ -62,7 +62,7 @@
                 <input matInput required [(ngModel)]="editDraft.titleVo" />
               </mat-form-field>
               <mat-form-field>
-                <mat-label>{{ t('scan.form.titleVf') }}</mat-label>
+                <mat-label>{{ t('scan.form.titleLocalized', { lang: metadataLangLabel() }) }}</mat-label>
                 <input matInput [(ngModel)]="editDraft.titleVf" />
               </mat-form-field>
               <mat-form-field>

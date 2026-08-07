@@ -112,7 +112,7 @@
     "chipsHint": "Press Enter or comma to add an item to the lists.",
     "form": {
       "titleVo": "Original title",
-      "titleVf": "French title",
+      "titleLocalized": "Title ({{lang}})",
       "year": "Year",
       "rating": "Personal rating (0-10)",
       "tmdbRating": "TMDB rating (0-10)",

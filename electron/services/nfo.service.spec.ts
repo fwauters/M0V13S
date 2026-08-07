@@ -76,6 +76,28 @@ describe('aller-retour build -> parse', () => {
   });
 });
 
+describe('Unicode — titres non latins (japonais, cyrillique…)', () => {
+  it('fait l aller-retour sans perte, quel que soit l alphabet', () => {
+    const unicode: MovieNfo = {
+      titleVo: '千と千尋の神隠し', // vrai titre original japonais
+      titleVf: 'Le Voyage de Chihiro',
+      year: 2001,
+      overview: 'Хроника одного путешествия — приключение Тихиро.',
+      personalRating: null,
+      personalNotes: null,
+      tmdbRating: null,
+      tmdbId: 129,
+      trailerYoutubeKey: null,
+      directors: ['宮崎駿'],
+      writers: [],
+      actors: [{ name: 'Руми Хиираги', character: '千尋' }],
+      genres: ['アニメ'],
+      tags: [],
+    };
+    expect(parseMovieNfoXml(buildMovieNfoXml(unicode))).toEqual(unicode);
+  });
+});
+
 describe('tolérance aux .nfo d autres outils', () => {
   it('lit un nfo « façon Kodi » avec balises inconnues et genre unique', () => {
     const kodiXml = `<?xml version="1.0" encoding="UTF-8"?>

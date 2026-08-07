@@ -252,8 +252,11 @@
               <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
               <input matInput required [(ngModel)]="draft.titleVo" />
             </mat-form-field>
+            <!-- Titre LOCALISÉ : suit la langue de fiches choisie sur
+                 l'accueil (le champ VO garde toujours le vrai titre
+                 original, quel que soit l'alphabet). -->
             <mat-form-field>
-              <mat-label>{{ t('scan.form.titleVf') }}</mat-label>
+              <mat-label>{{ t('scan.form.titleLocalized', { lang: metadataLangLabel() }) }}</mat-label>
               <input matInput [(ngModel)]="draft.titleVf" />
             </mat-form-field>
             <mat-form-field>

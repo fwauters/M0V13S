@@ -9,16 +9,17 @@ import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
-import type {
-  QualifyMovieInput,
-  ScanMissingFile,
-  ScanNewFile,
-  ScanProgress,
-  ScanRelinkCandidate,
-  ScanResult,
-  TmdbCallStatus,
-  TmdbMovieDetails,
-  TmdbSearchResult,
+import {
+  tmdbLanguageLabel,
+  type QualifyMovieInput,
+  type ScanMissingFile,
+  type ScanNewFile,
+  type ScanProgress,
+  type ScanRelinkCandidate,
+  type ScanResult,
+  type TmdbCallStatus,
+  type TmdbMovieDetails,
+  type TmdbSearchResult,
 } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
@@ -207,11 +208,17 @@ export class Scan implements OnDestroy {
     }
   }
 
+  /** Libellé de la langue de fiches configurée (label du champ « Titre (…) »). */
+  protected readonly metadataLangLabel = signal('');
+
   /** Désinscription de l'événement de progression (fuite sinon). */
   private readonly unsubscribeProgress: () => void;
 
   constructor() {
     void this.api.getLibraryRoots().then((roots) => this.roots.set(roots));
+    void this.api
+      .getTmdbLanguageConfig()
+      .then((config) => this.metadataLangLabel.set(tmdbLanguageLabel(config.metadataLanguage)));
     this.unsubscribeProgress = this.api.onScanProgress((p) => this.progress.set(p));
   }
 

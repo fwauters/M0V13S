@@ -112,7 +112,7 @@
     "chipsHint": "Entrée ou virgule pour ajouter un élément dans les listes.",
     "form": {
       "titleVo": "Titre original (VO)",
-      "titleVf": "Titre français (VF)",
+      "titleLocalized": "Titre ({{lang}})",
       "year": "Année",
       "rating": "Note personnelle (0-10)",
       "tmdbRating": "Note TMDB (0-10)",

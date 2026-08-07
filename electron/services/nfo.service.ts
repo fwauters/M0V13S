@@ -27,9 +27,11 @@ export interface NfoActor {
 
 /** La fiche film telle qu'elle voyage dans un `.nfo`. */
 export interface MovieNfo {
-  /** Titre VO — <originaltitle> (seul champ obligatoire). */
+  /** VRAI titre original — <originaltitle> (seul champ obligatoire),
+   *  quel que soit l'alphabet (japonais, cyrillique… UTF-8 partout). */
   titleVo: string;
-  /** Titre VF — <title> (affiché par Kodi), ou null. */
+  /** Titre LOCALISÉ (langue de fiches configurée) — <title> affiché par
+   *  Kodi, ou null (nom historique « VF » conservé dans le code). */
   titleVf: string | null;
   year: number | null;
   /** Synopsis — <plot>. */

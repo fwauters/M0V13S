@@ -136,7 +136,9 @@ export interface QualifyMovieInput {
   mtimeMs: number;
   tech: TechInfo | null;
   partNumber: number | null;
-  /** Champs de la fiche. */
+  /** Champs de la fiche. `titleVo` = vrai titre original (tout alphabet) ;
+   *  `titleVf` = titre LOCALISÉ dans la langue de fiches configurée
+   *  (nom historique « VF » conservé dans le code). */
   titleVo: string;
   titleVf: string | null;
   year: number | null;
@@ -236,6 +238,11 @@ export interface TmdbLanguageConfig {
   trailerLanguage: string;
 }
 
+/** Libellé humain d'une langue de métadonnées (pour les labels d'UI). */
+export function tmdbLanguageLabel(value: string): string {
+  return TMDB_METADATA_LANGUAGES.find((l) => l.value === value)?.label ?? value;
+}
+
 /** Un résultat de recherche TMDB (liste de choix de l'assistant). */
 export interface TmdbSearchResult {
   tmdbId: number;
@@ -260,8 +267,11 @@ export interface TmdbSearchOutcome {
 /** Détails complets d'un film TMDB, mappés vers NOTRE schéma. */
 export interface TmdbMovieDetails {
   tmdbId: number;
+  /** VRAI titre original (original_title TMDB), quel que soit l'alphabet
+   *  (japonais, cyrillique…) — jamais traduit. */
   titleVo: string;
-  /** Titre fr si différent de la VO, sinon null. */
+  /** Titre LOCALISÉ dans la langue de fiches configurée, si différent de
+   *  la VO (nom historique « VF » conservé dans le code). */
   titleVf: string | null;
   year: number | null;
   overview: string | null;
