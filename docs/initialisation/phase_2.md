@@ -160,6 +160,29 @@ Quatre modifications demandées après le premier test utilisateur :
 Tests : 93 backend (langues, replis, classification des erreurs,
 préservation de l'avis perso) + 8 UI.
 
+## Ajouts finaux (demandes utilisateur du 2026-08-07)
+
+1. **Regroupement en dossier à l'enregistrement** : un fichier « hors
+   dossier » (posé directement dans une racine) est déplacé dans son
+   dossier `Titre VO (Année)` — avec TOUS ses sidecars (`.nfo`, images,
+   fichiers futurs) — au moment où la fiche s'enregistre, quel que soit
+   le chemin : assistant de scan, import silencieux `.nfo`, « Compléter
+   via TMDB », édition manuelle (tous passent par `qualify()`). Le scan
+   signale les fichiers isolés (badge violet « sera rangé dans son
+   dossier »). La base suit le déplacement (chemin relatif mis à jour) ;
+   collision ou erreur fs → le fichier reste en place, jamais bloquant.
+   Noms de dossiers assainis pour Windows (caractères interdits).
+2. **Édition manuelle sur la fiche** : bouton « Modifier manuellement »
+   sous « Compléter via TMDB » — la fiche devient un formulaire (mêmes
+   champs et chips que l'assistant), préremplie ; l'enregistrement passe
+   par la même voie que la qualification (fiche + `.nfo` + images +
+   regroupement), en préservant tmdbId, trailer et personnages d'acteurs
+   (le formulaire ne porte que des noms).
+
+Tests : 103 backend (+6 : regroupement avec sidecars, non-déplacement des
+fichiers rangés, import isolé regroupé, drapeau loose, édition manuelle
+avec préservations) + 8 UI.
+
 ## Validation utilisateur attendue (avant merge)
 
 1. `git pull` sur `phase-2`, `nvm use 22.23.2`, `pnpm dev`.

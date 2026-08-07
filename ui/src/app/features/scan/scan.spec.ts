@@ -21,6 +21,7 @@ const SCAN_RESULT: ScanResult = {
       tech: null,
       guess: { title: 'Alpha', year: 2001, partNumber: null, looksLikeEpisode: false },
       existing: null,
+      loose: false,
     },
     {
       relPath: 'Films/Beta.mkv',
@@ -29,6 +30,7 @@ const SCAN_RESULT: ScanResult = {
       tech: null,
       guess: { title: 'Beta', year: null, partNumber: null, looksLikeEpisode: false },
       existing: null,
+      loose: false,
     },
   ],
   missingFiles: [],

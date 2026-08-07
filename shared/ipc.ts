@@ -12,6 +12,7 @@ import type {
   AdminTableData,
   AdminTableName,
   ConformitySummary,
+  ManualEditInput,
   MovieDetail,
   MovieListItem,
   QualifyMovieInput,
@@ -50,6 +51,8 @@ export const IPC = {
     setRoots: 'library:set-roots',
     /** Ré-enrichit une fiche existante depuis un film TMDB choisi. */
     enrichFromTmdb: 'library:enrich-from-tmdb',
+    /** Édition manuelle d'une fiche (formulaire de la page fiche). */
+    updateMovie: 'library:update-movie',
   },
   scanner: {
     /** Scan complet (mode Scanner) : nouveaux / manquants / renommés. */
@@ -132,6 +135,8 @@ export interface WindowApi {
       mediaId: number,
       tmdbId: number,
     ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }>;
+    /** Édition manuelle : met à jour la fiche + .nfo + regroupement. */
+    updateMovie(mediaId: number, form: ManualEditInput): Promise<boolean>;
   };
   scanner: {
     /** Scan des racines ; `full` repasse aussi les fichiers déjà indexés

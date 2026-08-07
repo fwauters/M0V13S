@@ -3,6 +3,7 @@ import type {
   AdminTableData,
   AdminTableName,
   ConformitySummary,
+  ManualEditInput,
   MovieDetail,
   MovieListItem,
   QualifyMovieInput,
@@ -83,6 +84,11 @@ export class ApiService {
   /** Remplace les racines de bibliothèque. */
   async setLibraryRoots(roots: string[]): Promise<void> {
     await window.api?.library.setRoots(roots);
+  }
+
+  /** Édition manuelle d'une fiche (met à jour fiche + .nfo + regroupement). */
+  async updateMovie(mediaId: number, form: ManualEditInput): Promise<boolean> {
+    return window.api?.library.updateMovie(mediaId, form) ?? false;
   }
 
   /** Ré-enrichit une fiche depuis un film TMDB choisi (fiche + .nfo + images). */

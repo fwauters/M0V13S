@@ -7,6 +7,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 
 import type {
   AdminTableName,
+  ManualEditInput,
   QualifyMovieInput,
   ScanRelinkCandidate,
   TmdbCallStatus,
@@ -69,6 +70,19 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
       // 2. Mise à jour de la fiche (tags/note/avis perso conservés) + .nfo + images.
       const enriched = await services.scanner.enrichMedia(Number(mediaId), outcome.details);
       return { status: enriched ? 'ok' : 'error', httpStatus: null };
+    },
+  );
+
+  ipcMain.handle(
+    IPC.library.updateMovie,
+    async (_e, mediaId: number, form: ManualEditInput): Promise<boolean> => {
+      if (!services) {
+        return false;
+      }
+      // Même voie que la qualification : upsert + regroupement en dossier
+      // + réécriture du .nfo + images (le formulaire ne porte que des noms,
+      // les personnages/tmdbId/trailer sont préservés côté service).
+      return services.scanner.updateMovieManual(Number(mediaId), form);
     },
   );
 

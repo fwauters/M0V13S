@@ -14,10 +14,13 @@
  * Le scan est asynchrone, remonte sa progression et est annulable
  * (exigence CLAUDE.md : ne jamais bloquer l'UI).
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import { and, asc, eq } from 'drizzle-orm';
 
 import type {
   ExistingFiche,
+  ManualEditInput,
   QualifyActor,
   QualifyMovieInput,
   ScanImportedFile,
@@ -41,8 +44,15 @@ import {
 import { diffLibrary } from './conformity.logic';
 import { probeFile } from './ffprobe.service';
 import { parseFilename } from './filename.service';
-import { MovieImages, ensureMovieImages, findExistingImages } from './images.service';
-import { MovieNfo, readMovieNfoFor, writeMovieNfo } from './nfo.service';
+import { isLooseFile, movieFolderName } from './grouping.logic';
+import {
+  MovieImages,
+  ensureMovieImages,
+  fanartPathForVideo,
+  findExistingImages,
+  posterPathForVideo,
+} from './images.service';
+import { MovieNfo, nfoPathForVideo, readMovieNfoFor, writeMovieNfo } from './nfo.service';
 import { fromDriveRelative, toDriveRelative } from './paths.logic';
 import { getDriveRoot } from './paths.service';
 import type { SettingsService } from './settings.service';
@@ -89,7 +99,8 @@ export class ScannerService {
     this.cancelRequested = false;
     const full = options.full === true;
     const driveRoot = this.driveRoot();
-    const found = walkLibraryRoots(driveRoot, this.settings.getLibraryRoots());
+    const roots = this.settings.getLibraryRoots();
+    const found = walkLibraryRoots(driveRoot, roots);
     const foundByRelPath = new Map(found.map((f) => [f.relPath, f]));
 
     const knownRows = this.db
@@ -142,6 +153,8 @@ export class ScannerService {
         tech,
         guess: parseFilename(file.relPath),
         existing: knownMediaId === null ? null : this.loadExistingFiche(knownMediaId),
+        // « Hors dossier » : sera regroupé dans son dossier à l'enregistrement.
+        loose: isLooseFile(file.relPath, roots),
       });
       done += 1;
     }
@@ -213,14 +226,21 @@ export class ScannerService {
       }
       try {
         const mediaId = this.createOrAttachMovie(this.nfoToQualifyInput(file, nfo));
+        // Un fichier importé « hors dossier » est regroupé aussi (l'import
+        // EST un enregistrement de fiche) — ses sidecars le suivent.
+        let importedRelPath = file.relPath;
+        if (isLooseFile(importedRelPath, roots)) {
+          importedRelPath =
+            this.groupLooseFile(importedRelPath, nfo.titleVo, nfo.year) ?? importedRelPath;
+        }
         // Les images sidecar arrivées avec le dossier partagé sont
         // rattachées à la fiche — détection fs uniquement, hors ligne.
         this.applyImagePaths(
           mediaId,
-          findExistingImages(fromDriveRelative(driveRoot, file.relPath)),
+          findExistingImages(fromDriveRelative(driveRoot, importedRelPath)),
         );
         importedFromNfo.push({
-          relPath: file.relPath,
+          relPath: importedRelPath,
           title: nfo.titleVf ?? nfo.titleVo,
         });
       } catch (error) {
@@ -247,7 +267,15 @@ export class ScannerService {
    */
   async qualify(input: QualifyMovieInput): Promise<number> {
     const mediaId = this.createOrAttachMovie(input);
-    const videoAbsPath = fromDriveRelative(this.driveRoot(), input.relPath);
+
+    // Regroupement en dossier (décision utilisateur) : un fichier « hors
+    // dossier » est déplacé dans `Titre VO (Année)` AVANT l'écriture du
+    // .nfo et des images — les sidecars suivent toujours le film.
+    let relPath = input.relPath;
+    if (isLooseFile(relPath, this.settings.getLibraryRoots())) {
+      relPath = this.groupLooseFile(relPath, input.titleVo, input.year) ?? relPath;
+    }
+    const videoAbsPath = fromDriveRelative(this.driveRoot(), relPath);
 
     // L'échec d'écriture du .nfo (dossier en lecture seule…) ne doit pas
     // annuler la qualification : la fiche est en base, le sidecar sera
@@ -255,7 +283,7 @@ export class ScannerService {
     try {
       await writeMovieNfo(videoAbsPath, this.qualifyInputToNfo(input));
     } catch (error) {
-      console.warn(`Écriture du .nfo impossible pour ${input.relPath} :`, error);
+      console.warn(`Écriture du .nfo impossible pour ${relPath} :`, error);
     }
 
     // Images sidecar : téléchargement TMDB si la fiche appliquée en
@@ -270,6 +298,103 @@ export class ScannerService {
     this.applyImagePaths(mediaId, images);
 
     return mediaId;
+  }
+
+  /**
+   * Déplace un fichier « hors dossier » (et ses sidecars présents) dans
+   * son dossier `Titre VO (Année)`, et met à jour son chemin en base.
+   * @returns le nouveau relPath, ou null si le déplacement est impossible
+   *          (collision, erreur fs) — le fichier reste alors en place,
+   *          jamais bloquant.
+   */
+  private groupLooseFile(relPath: string, titleVo: string, year: number | null): string | null {
+    try {
+      const driveRoot = this.driveRoot();
+      const oldAbs = fromDriveRelative(driveRoot, relPath);
+      const targetDirAbs = path.join(path.dirname(oldAbs), movieFolderName(titleVo, year));
+      const newAbs = path.join(targetDirAbs, path.basename(oldAbs));
+      if (fs.existsSync(newAbs)) {
+        return null; // collision : on ne touche à rien
+      }
+      fs.mkdirSync(targetDirAbs, { recursive: true });
+      fs.renameSync(oldAbs, newAbs);
+      // Sidecars déjà présents à l'ancien emplacement : ils suivent le film.
+      const sidecars = [
+        nfoPathForVideo(oldAbs),
+        posterPathForVideo(oldAbs),
+        fanartPathForVideo(oldAbs),
+      ];
+      for (const sidecar of sidecars) {
+        if (fs.existsSync(sidecar)) {
+          fs.renameSync(sidecar, path.join(targetDirAbs, path.basename(sidecar)));
+        }
+      }
+      const newRelPath = toDriveRelative(driveRoot, newAbs);
+      this.db
+        .update(videoFiles)
+        .set({ relPath: newRelPath })
+        .where(eq(videoFiles.relPath, relPath))
+        .run();
+      return newRelPath;
+    } catch (error) {
+      console.warn(`Regroupement en dossier impossible pour ${relPath} :`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Met à jour une fiche depuis le formulaire d'ÉDITION MANUELLE de la
+   * page fiche (décision utilisateur, phase 2). Passe par la même voie
+   * que la qualification : upsert + regroupement + `.nfo` + images.
+   * L'identifiant TMDB, le trailer et les personnages connus des acteurs
+   * sont préservés (le formulaire ne porte que des noms).
+   * @returns faux si la fiche n'a pas de fichier rattaché
+   */
+  async updateMovieManual(mediaId: number, form: ManualEditInput): Promise<boolean> {
+    const file = this.db
+      .select()
+      .from(videoFiles)
+      .where(eq(videoFiles.mediaId, mediaId))
+      .orderBy(asc(videoFiles.partNumber))
+      .get();
+    const existing = this.loadExistingFiche(mediaId);
+    if (file === undefined || existing === null) {
+      return false;
+    }
+
+    await this.qualify({
+      relPath: file.relPath,
+      sizeBytes: file.sizeBytes,
+      mtimeMs: file.mtimeMs,
+      tech: {
+        durationSec: file.durationSec,
+        videoCodec: file.videoCodec,
+        audioCodec: file.audioCodec,
+        width: file.width,
+        height: file.height,
+      },
+      partNumber: file.partNumber,
+      titleVo: form.titleVo,
+      titleVf: form.titleVf,
+      year: form.year,
+      overview: form.overview,
+      personalRating: form.personalRating,
+      personalNotes: form.personalNotes,
+      tmdbRating: form.tmdbRating,
+      tmdbId: existing.tmdbId,
+      trailerYoutubeKey: existing.trailerYoutubeKey,
+      tmdbPosterPath: null,
+      tmdbBackdropPath: null,
+      directors: form.directors,
+      writers: form.writers,
+      actors: form.actors.map((name) => ({
+        name,
+        character: existing.actors.find((a) => a.name === name)?.character ?? null,
+      })),
+      genres: form.genres,
+      tags: form.tags,
+    });
+    return true;
   }
 
   /**

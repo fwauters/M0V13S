@@ -36,12 +36,77 @@
           </div>
           </div>
 
-          <!-- Ré-enrichissement TMDB de CETTE fiche (décision 2.6). -->
-          <button matButton (click)="openEnrichDialog()">
-            <mat-icon>cloud_download</mat-icon>
-            {{ t('detail.enrichButton') }}
-          </button>
+          <!-- Actions sur la fiche : enrichissement TMDB + édition manuelle. -->
+          @if (!editing()) {
+            <div class="flex flex-col gap-2">
+              <button matButton (click)="openEnrichDialog()">
+                <mat-icon>cloud_download</mat-icon>
+                {{ t('detail.enrichButton') }}
+              </button>
+              <button matButton (click)="startEdit()">
+                <mat-icon>edit</mat-icon>
+                {{ t('detail.editButton') }}
+              </button>
+            </div>
+          }
         </div>
+
+        <!-- ÉDITION MANUELLE (décision phase 2) : la fiche devient un
+             formulaire, mêmes champs que l'assistant de scan. Le bloc est
+             créé/détruit avec editing() : widgets toujours frais. -->
+        @if (editing()) {
+          <div class="flex max-w-3xl flex-col gap-3">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <mat-form-field>
+                <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
+                <input matInput required [(ngModel)]="editDraft.titleVo" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ t('scan.form.titleVf') }}</mat-label>
+                <input matInput [(ngModel)]="editDraft.titleVf" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ t('scan.form.year') }}</mat-label>
+                <input matInput type="number" [(ngModel)]="editDraft.year" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ t('scan.form.rating') }}</mat-label>
+                <input matInput type="number" min="0" max="10" [(ngModel)]="editDraft.personalRating" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>{{ t('scan.form.tmdbRating') }}</mat-label>
+                <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="editDraft.tmdbRating" />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field class="w-full">
+              <mat-label>{{ t('scan.form.overview') }}</mat-label>
+              <textarea matInput rows="3" [(ngModel)]="editDraft.overview"></textarea>
+            </mat-form-field>
+
+            <div class="grid gap-1 sm:grid-cols-2">
+              <app-chips-input [label]="t('scan.form.directors')" [(values)]="editDraft.directors" />
+              <app-chips-input [label]="t('scan.form.writers')" [(values)]="editDraft.writers" />
+              <app-chips-input [label]="t('scan.form.actors')" [(values)]="editDraft.actors" />
+              <app-chips-input [label]="t('scan.form.genres')" [(values)]="editDraft.genres" />
+            </div>
+            <app-chips-input [label]="t('scan.form.tags')" [(values)]="editDraft.tags" />
+
+            <mat-form-field class="w-full">
+              <mat-label>{{ t('scan.form.notes') }}</mat-label>
+              <textarea matInput rows="2" [(ngModel)]="editDraft.personalNotes"></textarea>
+            </mat-form-field>
+
+            <div class="flex gap-3">
+              <button matButton="filled" [disabled]="savingEdit()" (click)="saveEdit()">
+                {{ t('common.save') }}
+              </button>
+              <button matButton [disabled]="savingEdit()" (click)="cancelEdit()">
+                {{ t('common.cancel') }}
+              </button>
+            </div>
+          </div>
+        } @else {
 
         @if (m.overview !== null) {
           <p class="max-w-3xl">{{ m.overview }}</p>
@@ -119,6 +184,7 @@
             </div>
           }
         </div>
+        }
       </div>
     } @else {
       <p class="opacity-70">{{ t('detail.notFound') }}</p>

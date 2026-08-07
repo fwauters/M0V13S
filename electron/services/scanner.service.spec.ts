@@ -343,6 +343,110 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
   });
 });
 
+describe('ScannerService — regroupement en dossier (décision phase 2)', () => {
+  beforeEach(() => {
+    settings.setLibraryRoots(['Films']);
+  });
+
+  it('déplace un fichier hors dossier dans « Titre (Année) » avec ses sidecars', async () => {
+    makeVideoFile('Films/alien.mkv', null);
+    // Sidecar déjà présent à côté du fichier isolé : il doit suivre.
+    fs.writeFileSync(path.join(tmpDir, 'Films', 'alien-poster.jpg'), 'affiche');
+
+    const mediaId = await scanner.qualify(
+      makeInput({ relPath: 'Films/alien.mkv', titleVo: 'Alien', year: 1979 }),
+    );
+
+    const newDir = path.join(tmpDir, 'Films', 'Alien (1979)');
+    expect(fs.existsSync(path.join(newDir, 'alien.mkv'))).toBe(true);
+    expect(fs.existsSync(path.join(newDir, 'alien-poster.jpg'))).toBe(true);
+    expect(fs.existsSync(path.join(newDir, 'alien.nfo'))).toBe(true); // écrit au NOUVEL emplacement
+    expect(fs.existsSync(path.join(tmpDir, 'Films', 'alien.mkv'))).toBe(false);
+
+    // La base suit le déplacement (chemin relatif + image rattachée).
+    expect(db.select().from(videoFiles).all()[0]!.relPath).toBe('Films/Alien (1979)/alien.mkv');
+    const m = db.select().from(media).where(eq(media.id, mediaId)).get();
+    expect(m?.posterPath).toBe('Films/Alien (1979)/alien-poster.jpg');
+  });
+
+  it('ne déplace pas un fichier déjà rangé dans un dossier', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    await scanner.qualify(makeInput());
+
+    expect(
+      fs.existsSync(path.join(tmpDir, 'Films', 'Prometheus (2012)', 'prometheus.mkv')),
+    ).toBe(true);
+    expect(db.select().from(videoFiles).all()[0]!.relPath).toBe(
+      'Films/Prometheus (2012)/prometheus.mkv',
+    );
+  });
+
+  it('import silencieux d un fichier isolé avec .nfo : regroupé aussi', async () => {
+    makeVideoFile('Films/alien.mkv', ALIEN_NFO);
+
+    const result = await scanner.scan();
+
+    expect(result.importedFromNfo[0]!.relPath).toBe('Films/Alien (1979)/alien.mkv');
+    expect(fs.existsSync(path.join(tmpDir, 'Films', 'Alien (1979)', 'alien.mkv'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, 'Films', 'Alien (1979)', 'alien.nfo'))).toBe(true);
+  });
+
+  it('signale les fichiers hors dossier au scan (drapeau loose)', async () => {
+    makeVideoFile('Films/isole.mkv', null);
+    makeVideoFile('Films/Range (2020)/range.mkv', null);
+
+    const result = await scanner.scan();
+
+    const byPath = new Map(result.newFiles.map((f) => [f.relPath, f.loose]));
+    expect(byPath.get('Films/isole.mkv')).toBe(true);
+    expect(byPath.get('Films/Range (2020)/range.mkv')).toBe(false);
+  });
+});
+
+describe('ScannerService.updateMovieManual (édition manuelle)', () => {
+  it('met à jour la fiche en préservant tmdbId, trailer et personnages', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(
+      makeInput({ tmdbId: 70981, trailerYoutubeKey: 'trail' }),
+    );
+
+    const ok = await scanner.updateMovieManual(mediaId, {
+      titleVo: 'Prometheus',
+      titleVf: 'Titre corrigé',
+      year: 2012,
+      overview: 'Nouveau synopsis',
+      personalRating: 9,
+      personalNotes: 'Avis modifié',
+      tmdbRating: 7.5,
+      directors: ['Ridley Scott'],
+      writers: [],
+      actors: ['Noomi Rapace'],
+      genres: ['Science-Fiction'],
+      tags: ['culte'],
+    });
+
+    expect(ok).toBe(true);
+    const m = db.select().from(media).all()[0]!;
+    expect(m.titleVf).toBe('Titre corrigé');
+    expect(m.personalNotes).toBe('Avis modifié');
+    expect(m.tmdbId).toBe(70981); // préservé (le formulaire ne le porte pas)
+    expect(m.trailerYoutubeKey).toBe('trail'); // préservé
+    // Personnage retrouvé par nom (le formulaire ne porte que des noms).
+    const characters = db.select().from(mediaPeople).all().map((p) => p.character);
+    expect(characters).toContain('Elizabeth Shaw');
+  });
+
+  it('retourne faux pour une fiche inconnue', async () => {
+    expect(
+      await scanner.updateMovieManual(999, {
+        titleVo: 'X', titleVf: null, year: null, overview: null,
+        personalRating: null, personalNotes: null, tmdbRating: null,
+        directors: [], writers: [], actors: [], genres: [], tags: [],
+      }),
+    ).toBe(false);
+  });
+});
+
 describe('ScannerService.relink / deleteMedia', () => {
   it('relink met à jour le chemin et repasse le fichier en ok', async () => {
     const mediaId = await scanner.qualify(makeInput());

@@ -7,6 +7,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type {
   AdminTableName,
+  ManualEditInput,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
@@ -33,6 +34,8 @@ const api: WindowApi = {
     setRoots: (roots: string[]) => ipcRenderer.invoke(IPC.library.setRoots, roots),
     enrichFromTmdb: (mediaId: number, tmdbId: number) =>
       ipcRenderer.invoke(IPC.library.enrichFromTmdb, mediaId, tmdbId),
+    updateMovie: (mediaId: number, form: ManualEditInput) =>
+      ipcRenderer.invoke(IPC.library.updateMovie, mediaId, form),
   },
   scanner: {
     scan: (full?: boolean) => ipcRenderer.invoke(IPC.scanner.scan, full === true),

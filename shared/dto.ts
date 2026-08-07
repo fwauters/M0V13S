@@ -72,6 +72,9 @@ export interface ScanNewFile {
   /** Fiche existante si le fichier est déjà indexé (scan complet forcé),
    *  null pour un fichier réellement nouveau. */
   existing: ExistingFiche | null;
+  /** Vrai si le fichier est « hors dossier » (posé directement dans une
+   *  racine) : il sera regroupé dans son dossier à l'enregistrement. */
+  loose: boolean;
 }
 
 /** Un fichier indexé devenu introuvable (suppression sur confirmation). */
@@ -281,6 +284,26 @@ export interface TmdbDetailsOutcome {
   /** Code HTTP quand pertinent (affiché dans le message d'erreur). */
   httpStatus: number | null;
   details: TmdbMovieDetails | null;
+}
+
+/**
+ * Formulaire d'ÉDITION MANUELLE d'une fiche (page fiche, bouton
+ * « Modifier manuellement »). Les acteurs sont des noms : les personnages
+ * connus, le tmdbId et le trailer sont préservés côté main.
+ */
+export interface ManualEditInput {
+  titleVo: string;
+  titleVf: string | null;
+  year: number | null;
+  overview: string | null;
+  personalRating: number | null;
+  personalNotes: string | null;
+  tmdbRating: number | null;
+  directors: string[];
+  writers: string[];
+  actors: string[];
+  genres: string[];
+  tags: string[];
 }
 
 /* ------------------------------------------------------------------ */
