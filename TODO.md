@@ -98,9 +98,9 @@
 - [x] **3.4** Filtres et tris combinables (BrowseStore signaux, en mémoire) :
   recherche sans accents, genre, tag, acteur, réalisateur, année, tranche de
   durée, vu/pas vu ; tri titre/année/ajout inversable ; état persistant.
-- [x] **3.5** Wordmark « M0V13S » : trois polices bundlées comparées
-  visuellement — **Space Mono appliquée par défaut, confirmation du choix
-  utilisateur en cours** (changement = 3 lignes, retirer les 2 non retenues).
+- [x] **3.5** Wordmark « M0V13S » : trois polices comparées visuellement —
+  **Space Mono choisie par l'utilisateur** (bundlée via @fontsource, token
+  `--font-wordmark`), les deux autres retirées.
 - [x] **3.6** Fin de phase : deps à jour (Angular 22.1.1, ag-grid 36.1,
   postcss, jsdom 30 — audit 0 vuln, TS 7 toujours exclu), portabilité
   revalidée (exe packagé lancé), docs, rapport, PR #4 — validation

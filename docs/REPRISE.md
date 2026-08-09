@@ -21,11 +21,9 @@
 
 1. Valider la phase 3 (procédure détaillée : phase_3.md § Validation) —
    l'essentiel : rangées + miniatures, filtres combinés persistants,
-   fiche hero + trailer, thèmes/langues.
-2. **Choisir la police du wordmark** (comparaison visuelle fournie ;
-   Space Mono appliquée par défaut). Après le choix : retirer les 2
-   dépendances @fontsource non retenues + MAJ CLAUDE.md (ligne Polices).
-3. Puis **merger la PR #4**.
+   fiche hero + trailer, thèmes/langues. (La police du wordmark est déjà
+   choisie et actée : **Space Mono**.)
+2. Puis **merger la PR #4**.
 
 ## Méthode de travail établie (récap opérationnel)
 

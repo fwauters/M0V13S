@@ -30,7 +30,7 @@ Projet **open source (MIT)**, publié sur GitHub.
 | Frontend | Angular 22 — signals, standalone, zoneless si stable |
 | UI kit | Hybride : Angular Material (formulaires, dialogues, chips, autocomplete — admin/scan) + Tailwind custom (UI cinéma : browse, fiches, carrousels) |
 | Thèmes | Light + dark, commutables à chaud, un seul signal pilote Material (tokens M3) et Tailwind (`class="dark"`) |
-| Polices | Roboto (base, bundlée). Wordmark « M0V13S » : police à chiffres différenciés des lettres (zéro barré/pointé, 1 distinct du I) — shortlist JetBrains Mono / Fira Code / Space Mono, choix visuel avec l'utilisateur en phase 3 |
+| Polices | Roboto (base, bundlée). Wordmark « M0V13S » : **Space Mono 700** (choix utilisateur phase 3 — zéro barré, 1 distinct du I), bundlée via @fontsource, token Tailwind `--font-wordmark` |
 | i18n | @jsverse/transloco, fr + en, extensible, changement à chaud |
 | Vue données admin | ag-grid Community : tables de la DB en mode admin (tri, filtre, virtualisation) |
 | Backend | Main process Electron en TS pur (PAS de NestJS), IPC typé via contextBridge |

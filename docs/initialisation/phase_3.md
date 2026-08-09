@@ -91,19 +91,17 @@ assumée : le trailer YouTube).
   les rangées. **L'état persiste entre navigations** (store racine) : on
   retrouve ses filtres en revenant d'une fiche.
 
-### 3.5 — Wordmark « M0V13S » — FAIT (choix utilisateur en cours)
+### 3.5 — Wordmark « M0V13S » — FAIT (choix utilisateur : Space Mono)
 
 - Les trois candidates (JetBrains Mono / Fira Code / Space Mono, licence
   OFL) installées via `@fontsource` — même mécanique bundlée hors-ligne
   que Roboto.
 - Comparaison visuelle fournie à l'utilisateur (les deux thèmes, glyphes
   discriminants 0O / 1Il / 3B / 5S).
-- **Space Mono 700 appliquée par défaut** (recommandation : zéro barré
-  très visible, dessin le plus « identité ») via le token
-  `--font-wordmark` + entrée styles d'`angular.json` → classe
-  `font-wordmark` sur le wordmark du header.
-- Après le choix : retirer les deux dépendances non retenues (3 lignes à
-  changer si une autre police est préférée).
+- **Space Mono 700 choisie par l'utilisateur** (zéro barré très visible,
+  dessin le plus « identité ») via le token `--font-wordmark` + entrée
+  styles d'`angular.json` → classe `font-wordmark` sur le wordmark du
+  header. Les deux dépendances non retenues ont été retirées.
 
 ### 3.6 — Fin de phase (ce commit)
 
