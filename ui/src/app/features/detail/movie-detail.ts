@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -24,6 +24,7 @@ import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 import { ChipsInput } from '../scan/chips-input';
 import { TmdbEnrichDialog, TmdbEnrichDialogData } from './tmdb-enrich-dialog';
 import { TrailerDialog, TrailerDialogData } from './trailer-dialog';
+import { parseYoutubeKey } from '../../core/youtube';
 
 /** Brouillon du formulaire d'édition manuelle (mêmes champs que l'assistant). */
 interface EditDraft {
@@ -34,6 +35,12 @@ interface EditDraft {
   personalRating: number | null;
   personalNotes: string;
   tmdbRating: number | null;
+  /** Saisie libre : URL YouTube ou clé brute (parsée à l'enregistrement). */
+  trailer: string;
+  /** Langues audio / sous-titres (codes : fr, en, jpn…) du fichier —
+   *  éditables quand les pistes ne sont pas taguées. */
+  audioLangs: string[];
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: string[];
@@ -73,6 +80,7 @@ function initialsOf(name: string): string {
     MatButton,
     MatIcon,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
     MinutesPipe,
@@ -160,7 +168,8 @@ export class MovieDetail {
   /** Brouillon du formulaire (rempli à l'ouverture du mode édition). */
   protected editDraft: EditDraft = {
     titleVo: '', titleVf: '', year: null, overview: '', personalRating: null,
-    personalNotes: '', tmdbRating: null,
+    personalNotes: '', tmdbRating: null, trailer: '',
+    audioLangs: [], subtitleLangs: [],
     directors: [], writers: [], actors: [], genres: [], tags: [],
   };
 
@@ -188,6 +197,12 @@ export class MovieDetail {
       personalRating: m.personalRating,
       personalNotes: m.personalNotes ?? '',
       tmdbRating: m.tmdbRating,
+      // Clé actuelle telle quelle (une URL collée sera parsée à l'enregistrement).
+      trailer: m.trailerYoutubeKey ?? '',
+      // Langues du PREMIER fichier (celui que l'enregistrement met à
+      // jour côté main) — préremplies avec la détection ffprobe.
+      audioLangs: [...(m.files[0]?.tech.audioLangs ?? [])],
+      subtitleLangs: [...(m.files[0]?.tech.subtitleLangs ?? [])],
       // Copies : le brouillon est modifiable sans toucher aux computed.
       directors: [...this.directors()],
       writers: [...this.writers()],
@@ -220,6 +235,13 @@ export class MovieDetail {
         personalNotes:
           this.editDraft.personalNotes.trim() === '' ? null : this.editDraft.personalNotes.trim(),
         tmdbRating: this.editDraft.tmdbRating,
+        // URL ou clé brute → clé YouTube (null si vide/inexploitable).
+        trailerYoutubeKey: parseYoutubeKey(this.editDraft.trailer),
+        // Codes langue normalisés en minuscules (fr, en, jpn…).
+        audioLangs: this.editDraft.audioLangs.map((l) => l.trim().toLowerCase()).filter(Boolean),
+        subtitleLangs: this.editDraft.subtitleLangs
+          .map((l) => l.trim().toLowerCase())
+          .filter(Boolean),
         directors: this.editDraft.directors,
         writers: this.editDraft.writers,
         actors: this.editDraft.actors,

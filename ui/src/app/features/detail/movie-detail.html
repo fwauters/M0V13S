@@ -171,6 +171,23 @@
             <textarea matInput rows="3" [(ngModel)]="editDraft.overview"></textarea>
           </mat-form-field>
 
+          <!-- Trailer manuel (TMDB n'en trouve pas toujours) : URL ou clé. -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.trailer') }}</mat-label>
+            <input matInput [(ngModel)]="editDraft.trailer" />
+            <mat-hint>{{ t('scan.form.trailerHint') }}</mat-hint>
+          </mat-form-field>
+
+          <!-- Langues des pistes du fichier : éditables quand elles ne sont
+               pas taguées dans le conteneur (préremplies par ffprobe). -->
+          <div class="grid gap-1 sm:grid-cols-2">
+            <app-chips-input [label]="t('scan.form.audioLangs')" [(values)]="editDraft.audioLangs" />
+            <app-chips-input
+              [label]="t('scan.form.subtitleLangs')"
+              [(values)]="editDraft.subtitleLangs"
+            />
+          </div>
+
           <div class="grid gap-1 sm:grid-cols-2">
             <app-chips-input [label]="t('scan.form.directors')" [(values)]="editDraft.directors" />
             <app-chips-input [label]="t('scan.form.writers')" [(values)]="editDraft.writers" />

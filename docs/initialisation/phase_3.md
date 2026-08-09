@@ -166,7 +166,27 @@ Premier retour : « pas mal du tout », avec trois ajustements.
      quel). Décision : ces données techniques ne vont PAS dans les
      `.nfo` (re-dérivables du fichier lui-même, qui voyage avec le
      dossier).
-3. **Identité couleur propre** (le rouge faisait trop « Netflix ») :
+3. **Material harmonisé en thème sombre** (retour utilisateur sur
+   captures : boutons/champs restés cyan sur le sombre) : un second
+   `mat.theme` en `theme-type: dark` (primaire orange/ambre, tertiaire
+   cyan) est émis SCOPÉ sur `html.dark` — la classe étant toujours
+   synchronisée avec le thème effectif par le ThemeService, le scope
+   couvre choix explicite ET préférence système. Le thème de base
+   (cyan) fait foi pour le clair.
+4. **Trailer ET langues éditables manuellement** (demandes utilisateur :
+   TMDB n'a pas toujours de trailer, les pistes ne sont pas toujours
+   taguées) — dans l'édition manuelle de la fiche :
+   - champ « Trailer YouTube » : URL (watch, youtu.be, embed, format
+     Kodi) ou clé brute, parsée côté UI (`parseYoutubeKey`, mêmes
+     formats que le parseur `.nfo`) ; vide = retirer le trailer ;
+   - chips « Langues audio » / « Langues des sous-titres » (codes : fr,
+     en, jpn… normalisés en minuscules), préremplies avec la détection
+     ffprobe et appliquées au premier fichier de la fiche (celui que
+     l'édition recharge — les multi-parties gardent leurs pistes
+     propres détectées au scan).
+   `ManualEditInput` porte désormais `trailerYoutubeKey`, `audioLangs`
+   et `subtitleLangs`.
+5. **Identité couleur propre** (le rouge faisait trop « Netflix ») :
    quatre pistes proposées sur maquettes bi-thèmes ; **choix utilisateur :
    identité BI-THÈME — sarcelle « écran » en thème clair, ambre
    « projecteur » en thème sombre**, portée par `light-dark()` dans les

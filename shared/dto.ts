@@ -315,6 +315,17 @@ export interface ManualEditInput {
   personalRating: number | null;
   personalNotes: string | null;
   tmdbRating: number | null;
+  /** Clé YouTube du trailer, ÉDITABLE manuellement (TMDB n'en trouve pas
+   *  toujours) — déjà parsée côté UI depuis une URL ou une clé brute.
+   *  Null = pas de trailer (efface un trailer existant). */
+  trailerYoutubeKey: string | null;
+  /** Langues audio saisies/corrigées à la main (codes langue en
+   *  minuscules : fr, en, jpn…) quand les pistes ne sont pas taguées.
+   *  Appliquées au PREMIER fichier de la fiche (celui que l'édition
+   *  manuelle recharge) — préremplies avec les valeurs détectées. */
+  audioLangs: string[];
+  /** Langues de sous-titres, même convention. */
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: string[];

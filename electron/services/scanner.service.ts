@@ -372,8 +372,10 @@ export class ScannerService {
         audioCodec: file.audioCodec,
         width: file.width,
         height: file.height,
-        audioLangs: file.audioLangs ?? [],
-        subtitleLangs: file.subtitleLangs ?? [],
+        // Éditables depuis le formulaire (pistes non taguées) —
+        // préremplies côté UI avec les valeurs détectées de CE fichier.
+        audioLangs: form.audioLangs,
+        subtitleLangs: form.subtitleLangs,
       },
       partNumber: file.partNumber,
       titleVo: form.titleVo,
@@ -384,7 +386,8 @@ export class ScannerService {
       personalNotes: form.personalNotes,
       tmdbRating: form.tmdbRating,
       tmdbId: existing.tmdbId,
-      trailerYoutubeKey: existing.trailerYoutubeKey,
+      // Éditable depuis le formulaire (TMDB n'a pas toujours de trailer).
+      trailerYoutubeKey: form.trailerYoutubeKey,
       tmdbPosterPath: null,
       tmdbBackdropPath: null,
       directors: form.directors,

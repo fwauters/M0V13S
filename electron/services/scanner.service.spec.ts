@@ -412,7 +412,7 @@ describe('ScannerService — regroupement en dossier (décision phase 2)', () =>
 });
 
 describe('ScannerService.updateMovieManual (édition manuelle)', () => {
-  it('met à jour la fiche en préservant tmdbId, trailer et personnages', async () => {
+  it('met à jour la fiche (trailer ÉDITABLE) en préservant tmdbId et personnages', async () => {
     makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
     const mediaId = await scanner.qualify(
       makeInput({ tmdbId: 70981, trailerYoutubeKey: 'trail' }),
@@ -426,6 +426,11 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
       personalRating: 9,
       personalNotes: 'Avis modifié',
       tmdbRating: 7.5,
+      // Trailer saisi à la main (TMDB n'en trouve pas toujours).
+      trailerYoutubeKey: 'cleManuelle',
+      // Langues saisies à la main (pistes non taguées dans le conteneur).
+      audioLangs: ['fr', 'en'],
+      subtitleLangs: ['fr'],
       directors: ['Ridley Scott'],
       writers: [],
       actors: ['Noomi Rapace'],
@@ -438,7 +443,11 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
     expect(m.titleVf).toBe('Titre corrigé');
     expect(m.personalNotes).toBe('Avis modifié');
     expect(m.tmdbId).toBe(70981); // préservé (le formulaire ne le porte pas)
-    expect(m.trailerYoutubeKey).toBe('trail'); // préservé
+    expect(m.trailerYoutubeKey).toBe('cleManuelle'); // remplacé par la saisie
+    // Les langues saisies sont écrites sur le fichier de la fiche.
+    const file = db.select().from(videoFiles).all()[0]!;
+    expect(file.audioLangs).toEqual(['fr', 'en']);
+    expect(file.subtitleLangs).toEqual(['fr']);
     // Personnage retrouvé par nom (le formulaire ne porte que des noms).
     const characters = db.select().from(mediaPeople).all().map((p) => p.character);
     expect(characters).toContain('Elizabeth Shaw');
@@ -449,6 +458,7 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
       await scanner.updateMovieManual(999, {
         titleVo: 'X', titleVf: null, year: null, overview: null,
         personalRating: null, personalNotes: null, tmdbRating: null,
+        trailerYoutubeKey: null, audioLangs: [], subtitleLangs: [],
         directors: [], writers: [], actors: [], genres: [], tags: [],
       }),
     ).toBe(false);

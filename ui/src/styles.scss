@@ -14,9 +14,9 @@ html {
   // Suit le système tant que l'utilisateur n'a pas choisi explicitement.
   color-scheme: light dark;
 
-  // Palettes alignées sur l'identité bi-thème (décision utilisateur,
-  // phase 3) : primaire cyan (famille de la sarcelle du thème clair),
-  // tertiaire orange (famille de l'ambre du thème sombre).
+  // Identité bi-thème (décision utilisateur, phase 3) : sarcelle en
+  // clair, ambre en sombre. Le thème de BASE est émis avec la palette
+  // cyan (famille sarcelle) — il fait foi pour le thème clair.
   @include mat.theme((
     color: (
       theme-type: color-scheme,
@@ -25,6 +25,22 @@ html {
     ),
     typography: Roboto,
     density: 0,
+  ));
+}
+
+// Thème SOMBRE : l'identité passe à l'ambre — on ré-émet les tokens
+// couleur M3 en palette orange, scopés sur `.dark`. La classe est
+// TOUJOURS synchronisée avec le thème effectif par le ThemeService
+// (y compris au premier lancement via la préférence système), ce scope
+// couvre donc tous les cas. Sans lui, les boutons/champs Material
+// resteraient cyan sur le thème sombre (retour utilisateur phase 3).
+html.dark {
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$orange-palette,
+      tertiary: mat.$cyan-palette,
+    ),
   ));
 }
 
