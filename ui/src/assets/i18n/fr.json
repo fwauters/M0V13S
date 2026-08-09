@@ -52,7 +52,40 @@
     "rowRecent": "Ajoutés récemment",
     "rowAll": "Tous les films ({{count}})",
     "scrollLeft": "Faire défiler vers la gauche",
-    "scrollRight": "Faire défiler vers la droite"
+    "scrollRight": "Faire défiler vers la droite",
+    "filters": {
+      "search": "Rechercher un titre",
+      "genre": "Genre",
+      "tag": "Tag",
+      "director": "Réalisateur",
+      "actor": "Acteur",
+      "year": "Année",
+      "duration": "Durée",
+      "seen": "Vu / pas vu",
+      "sort": "Trier par",
+      "direction": "Inverser le sens du tri",
+      "any": "Tous",
+      "clear": "Réinitialiser filtres et tri",
+      "results": "{{count}} résultat(s)",
+      "noResults": "Aucun film ne correspond à ces critères.",
+      "durations": {
+        "all": "Toutes",
+        "lt90": "Moins de 90 min",
+        "b90to120": "90 à 120 min",
+        "b120to150": "120 à 150 min",
+        "gt150": "Plus de 150 min"
+      },
+      "seenStates": {
+        "all": "Tous",
+        "seen": "Vus",
+        "unseen": "Pas vus"
+      },
+      "sorts": {
+        "title": "Titre",
+        "year": "Année",
+        "added": "Date d'ajout"
+      }
+    }
   },
   "detail": {
     "back": "Retour à la bibliothèque",

@@ -52,7 +52,40 @@
     "rowRecent": "Recently added",
     "rowAll": "All movies ({{count}})",
     "scrollLeft": "Scroll left",
-    "scrollRight": "Scroll right"
+    "scrollRight": "Scroll right",
+    "filters": {
+      "search": "Search a title",
+      "genre": "Genre",
+      "tag": "Tag",
+      "director": "Director",
+      "actor": "Actor",
+      "year": "Year",
+      "duration": "Runtime",
+      "seen": "Seen / unseen",
+      "sort": "Sort by",
+      "direction": "Reverse sort direction",
+      "any": "All",
+      "clear": "Reset filters and sort",
+      "results": "{{count}} result(s)",
+      "noResults": "No movie matches these criteria.",
+      "durations": {
+        "all": "Any",
+        "lt90": "Under 90 min",
+        "b90to120": "90 to 120 min",
+        "b120to150": "120 to 150 min",
+        "gt150": "Over 150 min"
+      },
+      "seenStates": {
+        "all": "All",
+        "seen": "Seen",
+        "unseen": "Unseen"
+      },
+      "sorts": {
+        "title": "Title",
+        "year": "Year",
+        "added": "Date added"
+      }
+    }
   },
   "detail": {
     "back": "Back to the library",

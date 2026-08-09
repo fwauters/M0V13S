@@ -6,27 +6,47 @@
     } @else if (store.movies().length === 0) {
       <p class="px-8 opacity-70">{{ t('browse.empty') }}</p>
     } @else {
-      <!-- Rangée « ajoutés récemment » (derniers entrés dans l'index). -->
-      <app-poster-row [title]="t('browse.rowRecent')" [movies]="browse.recentlyAdded()" />
+      <!-- Filtres et tris combinables (état persistant dans BrowseStore). -->
+      <app-browse-filters />
 
-      <!-- Une rangée par genre fourni (les plus riches d'abord). -->
-      @for (row of browse.genreRows(); track row.genre) {
-        <app-poster-row [title]="row.genre" [movies]="row.movies" />
-      }
-
-      <!-- Grille complète, triée par titre. -->
-      <section class="flex flex-col gap-3 px-8">
-        <h2 class="text-lg font-medium">
-          {{ t('browse.rowAll', { count: browse.allMovies().length }) }}
-        </h2>
-        <div
-          class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
-        >
-          @for (movie of browse.allMovies(); track movie.id) {
-            <app-movie-card [movie]="movie" />
+      @if (browse.filtering()) {
+        <!-- Mode résultats : la grille filtrée/triée remplace les rangées. -->
+        <section class="flex flex-col gap-3 px-8">
+          @if (browse.filtered().length === 0) {
+            <p class="opacity-70">{{ t('browse.filters.noResults') }}</p>
+          } @else {
+            <div
+              class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
+            >
+              @for (movie of browse.filtered(); track movie.id) {
+                <app-movie-card [movie]="movie" />
+              }
+            </div>
           }
-        </div>
-      </section>
+        </section>
+      } @else {
+        <!-- Rangée « ajoutés récemment » (derniers entrés dans l'index). -->
+        <app-poster-row [title]="t('browse.rowRecent')" [movies]="browse.recentlyAdded()" />
+
+        <!-- Une rangée par genre fourni (les plus riches d'abord). -->
+        @for (row of browse.genreRows(); track row.genre) {
+          <app-poster-row [title]="row.genre" [movies]="row.movies" />
+        }
+
+        <!-- Grille complète, triée par titre. -->
+        <section class="flex flex-col gap-3 px-8">
+          <h2 class="text-lg font-medium">
+            {{ t('browse.rowAll', { count: browse.allMovies().length }) }}
+          </h2>
+          <div
+            class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
+          >
+            @for (movie of browse.allMovies(); track movie.id) {
+              <app-movie-card [movie]="movie" />
+            }
+          </div>
+        </section>
+      }
     }
   </div>
 </ng-container>

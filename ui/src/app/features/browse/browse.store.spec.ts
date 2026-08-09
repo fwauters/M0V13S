@@ -106,3 +106,141 @@ describe('BrowseStore — rangées', () => {
     expect(browse.allMovies()).toHaveLength(2);
   });
 });
+
+describe('BrowseStore — filtres et tris combinables (TODO 3.4)', () => {
+  let fake: FakeApiService;
+  let library: LibraryStore;
+  let browse: BrowseStore;
+
+  beforeEach(async () => {
+    fake = new FakeApiService();
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: fake }],
+    });
+    library = TestBed.inject(LibraryStore);
+    browse = TestBed.inject(BrowseStore);
+    fake.moviesResult = [
+      makeMovie({
+        id: 1,
+        titleVo: 'Alien',
+        year: 1979,
+        durationSec: 117 * 60,
+        genres: ['SF', 'Horreur'],
+        tags: ['huis clos'],
+        directors: ['Ridley Scott'],
+        actors: ['Sigourney Weaver'],
+        seen: true,
+        addedAt: 10,
+      }),
+      makeMovie({
+        id: 2,
+        titleVo: 'Léon',
+        titleVf: 'Léon',
+        year: 1994,
+        durationSec: 110 * 60,
+        genres: ['Thriller'],
+        directors: ['Luc Besson'],
+        actors: ['Jean Reno', 'Natalie Portman'],
+        addedAt: 30,
+      }),
+      makeMovie({
+        id: 3,
+        titleVo: 'Novecento',
+        year: null,
+        durationSec: 317 * 60,
+        genres: ['Drame'],
+        directors: ['Bernardo Bertolucci'],
+        addedAt: 20,
+      }),
+      makeMovie({ id: 4, titleVo: 'Sans durée', year: 2001, durationSec: null, addedAt: 40 }),
+    ];
+    await library.loadMovies();
+    browse.resetFilters();
+  });
+
+  it('sans critère, filtering est faux et filtered rend tout', () => {
+    expect(browse.filtering()).toBe(false);
+    expect(browse.filtered()).toHaveLength(4);
+  });
+
+  it('recherche : accents et casse ignorés, VO et titre localisé confondus', () => {
+    browse.search.set('leon');
+    expect(browse.filtered().map((m) => m.id)).toEqual([2]);
+    expect(browse.filtering()).toBe(true);
+  });
+
+  it('les critères se combinent en ET (genre + acteur)', () => {
+    browse.genre.set('SF');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1]);
+
+    browse.actor.set('Jean Reno'); // SF ET Jean Reno → aucun
+    expect(browse.filtered()).toHaveLength(0);
+  });
+
+  it('filtres réalisateur, tag, année', () => {
+    browse.director.set('Bernardo Bertolucci');
+    expect(browse.filtered().map((m) => m.id)).toEqual([3]);
+    browse.resetFilters();
+
+    browse.tag.set('huis clos');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1]);
+    browse.resetFilters();
+
+    browse.year.set(1994);
+    expect(browse.filtered().map((m) => m.id)).toEqual([2]);
+  });
+
+  it('durée : tranches en minutes, durée inconnue exclue des tranches', () => {
+    browse.duration.set('b90to120');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1, 2]);
+
+    browse.duration.set('gt150');
+    expect(browse.filtered().map((m) => m.id)).toEqual([3]);
+
+    browse.duration.set('lt90'); // « Sans durée » (null) ne matche jamais
+    expect(browse.filtered()).toHaveLength(0);
+  });
+
+  it('vu / pas vu', () => {
+    browse.seen.set('seen');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1]);
+
+    browse.seen.set('unseen');
+    expect(browse.filtered().map((m) => m.id)).toEqual([2, 3, 4]);
+  });
+
+  it('tri par année : inconnues en dernier dans les deux sens', () => {
+    browse.sortKey.set('year');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1, 2, 4, 3]);
+
+    browse.sortDesc.set(true);
+    expect(browse.filtered().map((m) => m.id)).toEqual([4, 2, 1, 3]);
+  });
+
+  it('tri par date d ajout, sens inversable', () => {
+    browse.sortKey.set('added');
+    expect(browse.filtered().map((m) => m.id)).toEqual([1, 3, 2, 4]);
+
+    browse.sortDesc.set(true);
+    expect(browse.filtered().map((m) => m.id)).toEqual([4, 2, 3, 1]);
+  });
+
+  it('resetFilters remet tous les critères et le tri au défaut', () => {
+    browse.search.set('alien');
+    browse.genre.set('SF');
+    browse.sortDesc.set(true);
+    browse.resetFilters();
+    expect(browse.filtering()).toBe(false);
+    expect(browse.filtered()).toHaveLength(4);
+  });
+
+  it('les listes d options viennent de la bibliothèque, triées', () => {
+    expect(browse.allGenres()).toEqual(['Drame', 'Horreur', 'SF', 'Thriller']);
+    expect(browse.allDirectors()).toEqual([
+      'Bernardo Bertolucci',
+      'Luc Besson',
+      'Ridley Scott',
+    ]);
+    expect(browse.allYears()).toEqual([2001, 1994, 1979]);
+  });
+});
