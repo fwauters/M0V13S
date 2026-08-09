@@ -1,43 +1,32 @@
-<!-- Liste brute des films (phase 1) — cartes cliquables vers la fiche. -->
+<!-- Browse « façon Netflix » : rangées horizontales + grille complète. -->
 <ng-container *transloco="let t">
-  <div class="flex grow flex-col gap-6 p-8">
-    <h1 class="text-2xl font-medium">{{ t('browse.title') }}</h1>
-
+  <div class="flex grow flex-col gap-8 py-8">
     @if (store.loading()) {
-      <p class="opacity-70">{{ t('common.loading') }}</p>
+      <p class="px-8 opacity-70">{{ t('common.loading') }}</p>
     } @else if (store.movies().length === 0) {
-      <p class="opacity-70">{{ t('browse.empty') }}</p>
+      <p class="px-8 opacity-70">{{ t('browse.empty') }}</p>
     } @else {
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        @for (movie of store.movies(); track movie.id) {
-          <a
-            [routerLink]="['/movie', movie.id]"
-            class="flex flex-col gap-2 rounded-xl border border-black/10 p-4 transition hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
-          >
-            <!-- Affiche sidecar (protocole local) ou pochette de repli. -->
-            @if (movie.posterPath | sidecarImg; as posterSrc) {
-              <img [src]="posterSrc" alt="" class="aspect-2/3 w-full rounded-lg object-cover" />
-            } @else {
-              <div class="flex aspect-2/3 w-full items-center justify-center rounded-lg bg-black/10 dark:bg-white/10">
-                <mat-icon class="scale-150 opacity-50">movie</mat-icon>
-              </div>
-            }
-            <!-- Titre d'affichage : VF si présente, sinon VO. -->
-            <span class="font-medium">{{ movie.titleVf ?? movie.titleVo }}</span>
-            <span class="text-sm opacity-70">
-              @if (movie.year !== null) {
-                {{ movie.year }}
-              }
-              @if (movie.durationSec | minutes; as min) {
-                · {{ t('browse.minutes', { min }) }}
-              }
-            </span>
-            @if (movie.genres.length > 0) {
-              <span class="text-xs opacity-60">{{ movie.genres | join }}</span>
-            }
-          </a>
-        }
-      </div>
+      <!-- Rangée « ajoutés récemment » (derniers entrés dans l'index). -->
+      <app-poster-row [title]="t('browse.rowRecent')" [movies]="browse.recentlyAdded()" />
+
+      <!-- Une rangée par genre fourni (les plus riches d'abord). -->
+      @for (row of browse.genreRows(); track row.genre) {
+        <app-poster-row [title]="row.genre" [movies]="row.movies" />
+      }
+
+      <!-- Grille complète, triée par titre. -->
+      <section class="flex flex-col gap-3 px-8">
+        <h2 class="text-lg font-medium">
+          {{ t('browse.rowAll', { count: browse.allMovies().length }) }}
+        </h2>
+        <div
+          class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
+        >
+          @for (movie of browse.allMovies(); track movie.id) {
+            <app-movie-card [movie]="movie" />
+          }
+        </div>
+      </section>
     }
   </div>
 </ng-container>

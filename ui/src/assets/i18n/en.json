@@ -47,7 +47,11 @@
   "browse": {
     "title": "My library",
     "empty": "Nothing to show. Run a scan to qualify your files.",
-    "minutes": "{{min}} min"
+    "minutes": "{{min}} min",
+    "rowRecent": "Recently added",
+    "rowAll": "All movies ({{count}})",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right"
   },
   "detail": {
     "back": "Back to the library",

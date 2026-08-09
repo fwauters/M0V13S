@@ -320,7 +320,12 @@ export interface ManualEditInput {
 /* Bibliothèque (mode classique — liste et fiches)                     */
 /* ------------------------------------------------------------------ */
 
-/** Élément de la liste des films (règle : présent ET reconnu uniquement). */
+/**
+ * Élément de la liste des films (règle : présent ET reconnu uniquement).
+ * Porte TOUT ce que le browse consomme (rangées, filtres, tris — phase 3) :
+ * la liste est chargée une fois, le filtrage combinable se fait côté UI
+ * (signaux) — instantané, sans aller-retour IPC sur un disque dur lent.
+ */
 export interface MovieListItem {
   id: number;
   titleVo: string;
@@ -329,7 +334,20 @@ export interface MovieListItem {
   durationSec: number | null;
   /** Affiche sidecar (chemin relatif au lecteur), servie via m0v13s-img. */
   posterPath: string | null;
+  /** Fanart sidecar — décors éventuels des rangées (même protocole). */
+  backdropPath: string | null;
+  personalRating: number | null;
+  tmdbRating: number | null;
   genres: string[];
+  tags: string[];
+  /** Noms seuls (les personnages restent sur la fiche détail). */
+  directors: string[];
+  actors: string[];
+  /** Date d'ajout à l'index (ms epoch) — rangée et tri « ajouts ». */
+  addedAt: number;
+  /** Vu jusqu'au bout (watch_state PERSONNEL — alimenté en phase 4,
+   *  déjà exposé pour le filtre vu/pas vu). */
+  seen: boolean;
 }
 
 /** Personne d'une fiche, avec son rôle. */

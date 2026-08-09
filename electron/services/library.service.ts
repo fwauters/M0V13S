@@ -18,12 +18,18 @@ import {
   people,
   tags,
   videoFiles,
+  watchState,
 } from '../db/schema';
 
 export class LibraryService {
   constructor(private readonly db: AppDatabase) {}
 
-  /** Liste des films affichables, triés par titre. */
+  /**
+   * Liste des films affichables, triés par titre, ENRICHIE pour le browse
+   * (phase 3) : genres, tags, réalisateurs/acteurs, date d'ajout et état
+   * « vu » voyagent avec chaque film — les rangées, filtres et tris de
+   * l'UI travaillent ensuite en mémoire, sans autre requête.
+   */
   listMovies(): MovieListItem[] {
     // 1. Films ayant au moins un fichier présent (règle d'affichage).
     const rows = this.db
@@ -33,6 +39,10 @@ export class LibraryService {
         titleVf: media.titleVf,
         year: media.year,
         posterPath: media.posterPath,
+        backdropPath: media.backdropPath,
+        personalRating: media.personalRating,
+        tmdbRating: media.tmdbRating,
+        createdAt: media.createdAt,
         durationSec: videoFiles.durationSec,
       })
       .from(media)
@@ -55,17 +65,25 @@ export class LibraryService {
           titleVf: row.titleVf,
           year: row.year,
           posterPath: row.posterPath,
+          backdropPath: row.backdropPath,
+          personalRating: row.personalRating,
+          tmdbRating: row.tmdbRating,
           durationSec: row.durationSec,
           genres: [],
+          tags: [],
+          directors: [],
+          actors: [],
+          addedAt: row.createdAt,
+          seen: false,
         });
       } else if (existing.durationSec === null && row.durationSec !== null) {
         existing.durationSec = row.durationSec;
       }
     }
 
-    // 2. Genres en une seule requête pour toute la liste.
     const ids = [...byId.keys()];
     if (ids.length > 0) {
+      // 2. Genres en une seule requête pour toute la liste.
       const genreRows = this.db
         .select({ mediaId: mediaGenres.mediaId, name: genres.name })
         .from(mediaGenres)
@@ -74,6 +92,57 @@ export class LibraryService {
         .all();
       for (const g of genreRows) {
         byId.get(g.mediaId)?.genres.push(g.name);
+      }
+
+      // 3. Tags (filtre par tag du browse).
+      const tagRows = this.db
+        .select({ mediaId: mediaTags.mediaId, name: tags.name })
+        .from(mediaTags)
+        .innerJoin(tags, eq(tags.id, mediaTags.tagId))
+        .where(inArray(mediaTags.mediaId, ids))
+        .all();
+      for (const t of tagRows) {
+        byId.get(t.mediaId)?.tags.push(t.name);
+      }
+
+      // 4. Réalisateurs et acteurs (filtres par personne) — les
+      //    scénaristes restent sur la fiche détail, inutiles ici.
+      const peopleRows = this.db
+        .select({
+          mediaId: mediaPeople.mediaId,
+          name: people.name,
+          role: mediaPeople.role,
+        })
+        .from(mediaPeople)
+        .innerJoin(people, eq(people.id, mediaPeople.personId))
+        .where(
+          and(
+            inArray(mediaPeople.mediaId, ids),
+            inArray(mediaPeople.role, ['director', 'actor']),
+          ),
+        )
+        .orderBy(asc(mediaPeople.sortOrder))
+        .all();
+      for (const p of peopleRows) {
+        const item = byId.get(p.mediaId);
+        if (item !== undefined) {
+          (p.role === 'director' ? item.directors : item.actors).push(p.name);
+        }
+      }
+
+      // 5. État « vu » (watch_state personnel — filtre vu/pas vu).
+      const watchedRows = this.db
+        .select({ mediaId: watchState.mediaId })
+        .from(watchState)
+        .where(and(inArray(watchState.mediaId, ids), eq(watchState.completed, true)))
+        .all();
+      for (const w of watchedRows) {
+        if (w.mediaId !== null) {
+          const item = byId.get(w.mediaId);
+          if (item !== undefined) {
+            item.seen = true;
+          }
+        }
       }
     }
 

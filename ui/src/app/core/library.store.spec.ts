@@ -18,7 +18,23 @@ class FakeApiService {
     forcedScan: false,
   };
   moviesResult: MovieListItem[] = [
-    { id: 1, titleVo: 'Alien', titleVf: null, year: 1979, durationSec: 6960, posterPath: null, genres: ['SF'] },
+    {
+      id: 1,
+      titleVo: 'Alien',
+      titleVf: null,
+      year: 1979,
+      durationSec: 6960,
+      posterPath: null,
+      backdropPath: null,
+      personalRating: null,
+      tmdbRating: null,
+      genres: ['SF'],
+      tags: [],
+      directors: ['Ridley Scott'],
+      actors: [],
+      addedAt: 1000,
+      seen: false,
+    },
   ];
 
   async checkConformity(): Promise<ConformitySummary> {

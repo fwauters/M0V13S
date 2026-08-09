@@ -47,7 +47,11 @@
   "browse": {
     "title": "Ma bibliothèque",
     "empty": "Aucun film affichable. Lancez un scan pour qualifier vos fichiers.",
-    "minutes": "{{min}} min"
+    "minutes": "{{min}} min",
+    "rowRecent": "Ajoutés récemment",
+    "rowAll": "Tous les films ({{count}})",
+    "scrollLeft": "Faire défiler vers la gauche",
+    "scrollRight": "Faire défiler vers la droite"
   },
   "detail": {
     "back": "Retour à la bibliothèque",
