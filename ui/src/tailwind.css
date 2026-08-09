@@ -29,6 +29,11 @@
 @theme {
   --color-brand: oklch(0.55 0.22 27);
   --color-brand-hover: oklch(0.62 0.22 25);
+  /* Police du wordmark « M0V13S » (TODO 3.5) : chiffres différenciés des
+   * lettres (zéro barré, 1 distinct du I). Bundlée via @fontsource
+   * (angular.json) comme Roboto — pour en changer : la dépendance,
+   * l'entrée styles d'angular.json, et cette valeur. */
+  --font-wordmark: 'Space Mono', monospace;
 }
 
 /*
