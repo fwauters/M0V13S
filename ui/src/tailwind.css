@@ -15,3 +15,30 @@
  * (propriété CSS `color-scheme`). Une seule source de vérité, deux systèmes.
  */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Charte « cinéma » (phase 3) — identité visuelle de l'UI façon Netflix.
+ *
+ * - `brand` : le rouge M0V13S (wordmark, navigation active, actions de
+ *   lecture). Une seule valeur pour les deux thèmes : il vit toujours sur
+ *   des surfaces neutres où son contraste est suffisant.
+ * - Les surfaces/bordures des cartes restent les paires utilitaires
+ *   `black/N` + `dark:white/N` : elles suivent le thème sans variable.
+ * - Ces tokens deviennent des classes Tailwind (`text-brand`, `bg-brand`…).
+ */
+@theme {
+  --color-brand: oklch(0.55 0.22 27);
+  --color-brand-hover: oklch(0.62 0.22 25);
+}
+
+/*
+ * Rangées horizontales (browse) : le défilement se fait à la molette ou aux
+ * chevrons — la barre de défilement native ne fait qu'ajouter du bruit
+ * visuel sous chaque rangée, on la masque (le contenu RESTE défilable).
+ */
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

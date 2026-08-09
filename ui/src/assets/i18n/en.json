@@ -3,6 +3,9 @@
     "title": "M0V13S"
   },
   "shell": {
+    "navHome": "Home",
+    "navBrowse": "Library",
+    "navScan": "Scan",
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
     "language": "Language",
