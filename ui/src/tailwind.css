@@ -17,18 +17,24 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Charte « cinéma » (phase 3) — identité visuelle de l'UI façon Netflix.
+ * Charte « cinéma » (phase 3) — identité visuelle de l'UI.
  *
- * - `brand` : le rouge M0V13S (wordmark, navigation active, actions de
- *   lecture). Une seule valeur pour les deux thèmes : il vit toujours sur
- *   des surfaces neutres où son contraste est suffisant.
+ * - `brand` : l'accent M0V13S (wordmark, bouton trailer, anneaux de
+ *   survol, étoile de note). Identité BI-THÈME choisie par l'utilisateur :
+ *   sarcelle « écran » en thème clair, ambre « projecteur » en thème
+ *   sombre — la paire est portée par `light-dark()` (la propriété
+ *   `color-scheme` de <html> arbitre, comme pour Material).
+ * - `on-brand` : couleur du texte posé SUR un fond brand (blanc sur la
+ *   sarcelle, quasi-noir sur l'ambre clair — contraste garanti).
  * - Les surfaces/bordures des cartes restent les paires utilitaires
  *   `black/N` + `dark:white/N` : elles suivent le thème sans variable.
- * - Ces tokens deviennent des classes Tailwind (`text-brand`, `bg-brand`…).
+ * - Ces tokens deviennent des classes Tailwind (`text-brand`, `bg-brand`,
+ *   `text-on-brand`…).
  */
 @theme {
-  --color-brand: oklch(0.55 0.22 27);
-  --color-brand-hover: oklch(0.62 0.22 25);
+  --color-brand: light-dark(oklch(0.5 0.1 200), oklch(0.78 0.14 80));
+  --color-brand-hover: light-dark(oklch(0.44 0.1 200), oklch(0.84 0.13 82));
+  --color-on-brand: light-dark(#ffffff, oklch(0.22 0.03 80));
   /* Police du wordmark « M0V13S » (TODO 3.5) : chiffres différenciés des
    * lettres (zéro barré, 1 distinct du I). Bundlée via @fontsource
    * (angular.json) comme Roboto — pour en changer : la dépendance,

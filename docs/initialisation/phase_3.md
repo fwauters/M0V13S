@@ -146,6 +146,36 @@ assumée : le trailer YouTube).
   `browse.store` : rangées, 10 cas de filtres/tris) — tous verts.
 - Typecheck strict, build prod et packaging OK.
 
+## Ajustements post-validation (retour utilisateur du 2026-08-09)
+
+Premier retour : « pas mal du tout », avec trois ajustements.
+
+1. **Police du wordmark confirmée** : Space Mono (choix acté, dépendances
+   inutiles retirées).
+2. **Langues audio et sous-titres des fichiers** (demande utilisateur) :
+   - ffprobe extrait les langues des pistes audio et sous-titres (tags
+     ISO 639-2 du conteneur, dédupliquées ; `und` et pistes non taguées
+     ignorées) ;
+   - colonnes JSON `audio_langs` / `subtitle_langs` sur `video_files`
+     (migration 0003) — null = fichier analysé avant l'ajout de l'info,
+     **un scan complet re-analyse et remplit** ;
+   - fiche : ligne « Audio / Sous-titres » dans le hero (union des
+     fichiers) + badges par fichier (utile en multi-versions) ; noms de
+     langues traduits dans la langue de l'UI via `Intl.DisplayNames`
+     (hors ligne, mapping 639-2B/T → 639-1, code inconnu affiché tel
+     quel). Décision : ces données techniques ne vont PAS dans les
+     `.nfo` (re-dérivables du fichier lui-même, qui voyage avec le
+     dossier).
+3. **Identité couleur propre** (le rouge faisait trop « Netflix ») :
+   quatre pistes proposées sur maquettes bi-thèmes ; **choix utilisateur :
+   identité BI-THÈME — sarcelle « écran » en thème clair, ambre
+   « projecteur » en thème sombre**, portée par `light-dark()` dans les
+   tokens (`--color-brand`, `--color-brand-hover`). Nouveau token
+   `--color-on-brand` (texte sur fond brand : blanc sur sarcelle,
+   quasi-noir sur ambre — contraste garanti, notamment le bouton trailer
+   sur le hero). Material aligné : primaire cyan (famille sarcelle),
+   tertiaire orange (famille ambre).
+
 ## Validation utilisateur attendue (avant merge de la PR #4)
 
 1. `git pull` sur `phase-3`, `nvm use 22.23.2`, `pnpm i`, `pnpm dev`.

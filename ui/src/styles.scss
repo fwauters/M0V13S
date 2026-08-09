@@ -14,11 +14,14 @@ html {
   // Suit le système tant que l'utilisateur n'a pas choisi explicitement.
   color-scheme: light dark;
 
+  // Palettes alignées sur l'identité bi-thème (décision utilisateur,
+  // phase 3) : primaire cyan (famille de la sarcelle du thème clair),
+  // tertiaire orange (famille de l'ambre du thème sombre).
   @include mat.theme((
     color: (
       theme-type: color-scheme,
-      primary: mat.$azure-palette,
-      tertiary: mat.$violet-palette,
+      primary: mat.$cyan-palette,
+      tertiary: mat.$orange-palette,
     ),
     typography: Roboto,
     density: 0,

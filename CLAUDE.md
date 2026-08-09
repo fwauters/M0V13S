@@ -29,7 +29,7 @@ Projet **open source (MIT)**, publié sur GitHub.
 | Shell | Electron, build portable (electron-builder) |
 | Frontend | Angular 22 — signals, standalone, zoneless si stable |
 | UI kit | Hybride : Angular Material (formulaires, dialogues, chips, autocomplete — admin/scan) + Tailwind custom (UI cinéma : browse, fiches, carrousels) |
-| Thèmes | Light + dark, commutables à chaud, un seul signal pilote Material (tokens M3) et Tailwind (`class="dark"`) |
+| Thèmes | Light + dark, commutables à chaud, un seul signal pilote Material (tokens M3) et Tailwind (`class="dark"`). Accent « brand » BI-THÈME (choix utilisateur) : sarcelle en clair, ambre en sombre, via `light-dark()` (tokens `--color-brand`/`--color-on-brand`) ; Material aligné (primaire cyan, tertiaire orange) |
 | Polices | Roboto (base, bundlée). Wordmark « M0V13S » : **Space Mono 700** (choix utilisateur phase 3 — zéro barré, 1 distinct du I), bundlée via @fontsource, token Tailwind `--font-wordmark` |
 | i18n | @jsverse/transloco, fr + en, extensible, changement à chaud |
 | Vue données admin | ag-grid Community : tables de la DB en mode admin (tri, filtre, virtualisation) |

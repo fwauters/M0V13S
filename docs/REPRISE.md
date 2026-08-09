@@ -19,10 +19,11 @@
 
 ## Actions en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-1. Valider la phase 3 (procédure détaillée : phase_3.md § Validation) —
-   l'essentiel : rangées + miniatures, filtres combinés persistants,
-   fiche hero + trailer, thèmes/langues. (La police du wordmark est déjà
-   choisie et actée : **Space Mono**.)
+1. Re-valider la phase 3 après les ajustements du premier retour
+   (phase_3.md § Ajustements) : identité couleur bi-thème (sarcelle en
+   clair / ambre en sombre), langues audio/sous-titres sur la fiche
+   (lancer un SCAN COMPLET pour remplir les fichiers déjà indexés),
+   wordmark Space Mono acté.
 2. Puis **merger la PR #4**.
 
 ## Méthode de travail établie (récap opérationnel)
