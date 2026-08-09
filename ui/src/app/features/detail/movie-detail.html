@@ -1,127 +1,216 @@
-<!-- Fiche sommaire (phase 1) — lecture seule. -->
+<!-- Fiche « cinéma » (phase 3) : hero backdrop, casting, trailer. -->
 <ng-container *transloco="let t">
-  <div class="flex grow flex-col gap-6 p-8">
-    <a routerLink="/browse" class="flex w-fit items-center gap-1 text-sm opacity-70 hover:opacity-100">
-      <mat-icon inline>arrow_back</mat-icon>
-      {{ t('detail.back') }}
-    </a>
-
+  <div class="flex grow flex-col gap-8 pb-10">
     @if (!loaded()) {
-      <p class="opacity-70">{{ t('common.loading') }}</p>
+      <p class="p-8 opacity-70">{{ t('common.loading') }}</p>
     } @else if (movie(); as m) {
-      <div class="flex flex-col gap-4">
-        <!-- Titres : VF en vedette si présente, VO en sous-titre. -->
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="flex items-start gap-4">
-          <!-- Affiche sidecar (protocole local m0v13s-img). -->
-          @if (m.posterPath | sidecarImg; as posterSrc) {
-            <img [src]="posterSrc" alt="" class="w-32 shrink-0 rounded-lg object-cover" />
-          }
-          <div>
-          <h1 class="text-3xl font-medium">{{ m.titleVf ?? m.titleVo }}</h1>
-          @if (m.titleVf !== null && m.titleVf !== m.titleVo) {
-            <p class="opacity-70">{{ m.titleVo }}</p>
-          }
-          <p class="mt-1 text-sm opacity-70">
-            @if (m.year !== null) {
-              {{ m.year }}
-            }
-            @if (m.personalRating !== null) {
-              · {{ t('detail.rating', { rating: m.personalRating }) }}
-            }
-            @if (m.tmdbRating !== null) {
-              · {{ t('detail.tmdbRating', { rating: m.tmdbRating }) }}
-            }
-          </p>
-          </div>
-          </div>
-
-          <!-- Actions sur la fiche : enrichissement TMDB + édition manuelle. -->
-          @if (!editing()) {
-            <div class="flex flex-col gap-2">
-              <button matButton (click)="openEnrichDialog()">
-                <mat-icon>cloud_download</mat-icon>
-                {{ t('detail.enrichButton') }}
-              </button>
-              <button matButton (click)="startEdit()">
-                <mat-icon>edit</mat-icon>
-                {{ t('detail.editButton') }}
-              </button>
-            </div>
-          }
-        </div>
-
-        <!-- ÉDITION MANUELLE (décision phase 2) : la fiche devient un
-             formulaire, mêmes champs que l'assistant de scan. Le bloc est
-             créé/détruit avec editing() : widgets toujours frais. -->
-        @if (editing()) {
-          <div class="flex max-w-3xl flex-col gap-3">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <mat-form-field>
-                <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
-                <input matInput required [(ngModel)]="editDraft.titleVo" />
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>{{ t('scan.form.titleLocalized', { lang: metadataLangLabel() }) }}</mat-label>
-                <input matInput [(ngModel)]="editDraft.titleVf" />
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>{{ t('scan.form.year') }}</mat-label>
-                <input matInput type="number" [(ngModel)]="editDraft.year" />
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>{{ t('scan.form.rating') }}</mat-label>
-                <input matInput type="number" min="0" max="10" [(ngModel)]="editDraft.personalRating" />
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>{{ t('scan.form.tmdbRating') }}</mat-label>
-                <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="editDraft.tmdbRating" />
-              </mat-form-field>
-            </div>
-
-            <mat-form-field class="w-full">
-              <mat-label>{{ t('scan.form.overview') }}</mat-label>
-              <textarea matInput rows="3" [(ngModel)]="editDraft.overview"></textarea>
-            </mat-form-field>
-
-            <div class="grid gap-1 sm:grid-cols-2">
-              <app-chips-input [label]="t('scan.form.directors')" [(values)]="editDraft.directors" />
-              <app-chips-input [label]="t('scan.form.writers')" [(values)]="editDraft.writers" />
-              <app-chips-input [label]="t('scan.form.actors')" [(values)]="editDraft.actors" />
-              <app-chips-input [label]="t('scan.form.genres')" [(values)]="editDraft.genres" />
-            </div>
-            <app-chips-input [label]="t('scan.form.tags')" [(values)]="editDraft.tags" />
-
-            <mat-form-field class="w-full">
-              <mat-label>{{ t('scan.form.notes') }}</mat-label>
-              <textarea matInput rows="2" [(ngModel)]="editDraft.personalNotes"></textarea>
-            </mat-form-field>
-
-            <div class="flex gap-3">
-              <button matButton="filled" [disabled]="savingEdit()" (click)="saveEdit()">
-                {{ t('common.save') }}
-              </button>
-              <button matButton [disabled]="savingEdit()" (click)="cancelEdit()">
-                {{ t('common.cancel') }}
-              </button>
-            </div>
-          </div>
-        } @else {
-
-        @if (m.overview !== null) {
-          <p class="max-w-3xl">{{ m.overview }}</p>
+      <!-- HERO : bannière backdrop en carte arrondie. Le voile sombre est
+           CONSTANT (texte blanc) : une image de film reste sombre dans les
+           deux thèmes — c'est la carte qui s'intègre à la page. -->
+      <div class="relative mx-6 mt-6 overflow-hidden rounded-2xl bg-neutral-900">
+        @if (m.backdropPath | sidecarImg; as backdropSrc) {
+          <img [src]="backdropSrc" alt="" class="absolute inset-0 h-full w-full object-cover" />
         }
+        <div
+          class="absolute inset-0 bg-linear-to-r from-neutral-950/90 via-neutral-950/60 to-neutral-950/25"
+        ></div>
 
+        <div class="relative z-10 flex flex-col gap-6 p-8 text-white sm:flex-row">
+          <!-- Affiche : image ORIGINALE (pas la miniature) — qualité fiche. -->
+          @if (m.posterPath | sidecarImg; as posterSrc) {
+            <img
+              [src]="posterSrc"
+              alt=""
+              class="w-36 shrink-0 self-start rounded-xl shadow-lg sm:w-48"
+            />
+          }
+
+          <div class="flex min-w-0 flex-col gap-3">
+            <a
+              routerLink="/browse"
+              class="flex w-fit items-center gap-1 text-sm text-white/70 transition hover:text-white"
+            >
+              <mat-icon inline>arrow_back</mat-icon>
+              {{ t('detail.back') }}
+            </a>
+
+            <!-- Titres : localisé en vedette si présent, VO en sous-titre. -->
+            <div>
+              <h1 class="text-3xl font-bold sm:text-4xl">{{ m.titleVf ?? m.titleVo }}</h1>
+              @if (m.titleVf !== null && m.titleVf !== m.titleVo) {
+                <p class="text-white/70">{{ m.titleVo }}</p>
+              }
+            </div>
+
+            <!-- Méta : année · durée · note TMDB · note personnelle. -->
+            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
+              @if (m.year !== null) {
+                <span>{{ m.year }}</span>
+              }
+              @if (durationSec() | minutes; as min) {
+                <span>{{ t('browse.minutes', { min }) }}</span>
+              }
+              @if (m.tmdbRating !== null) {
+                <span class="rounded bg-white/15 px-2 py-0.5">
+                  {{ t('detail.tmdbRating', { rating: m.tmdbRating }) }}
+                </span>
+              }
+              @if (m.personalRating !== null) {
+                <span class="flex items-center gap-1">
+                  <mat-icon inline>star</mat-icon>
+                  {{ t('detail.rating', { rating: m.personalRating }) }}
+                </span>
+              }
+            </p>
+
+            <!-- Genres en chips (les tags, personnels, restent plus bas). -->
+            @if (m.genres.length > 0) {
+              <div class="flex flex-wrap gap-2">
+                @for (genre of m.genres; track genre) {
+                  <span class="rounded-full border border-white/25 px-3 py-0.5 text-xs">
+                    {{ genre }}
+                  </span>
+                }
+              </div>
+            }
+
+            @if (m.overview !== null) {
+              <p class="max-w-2xl text-sm text-white/90">{{ m.overview }}</p>
+            }
+
+            <!-- Actions : boutons Tailwind (pas Material) — leurs couleurs
+                 doivent rester lisibles sur le hero sombre quel que soit
+                 le thème de l'app. -->
+            @if (!editing()) {
+              <div class="mt-1 flex flex-wrap items-center gap-3">
+                @if (m.trailerYoutubeKey !== null) {
+                  <!-- Trailer : SEULE fonctionnalité online-only (CLAUDE.md). -->
+                  <button
+                    type="button"
+                    [disabled]="!connectivity.online()"
+                    (click)="openTrailer()"
+                    class="flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <mat-icon inline>play_arrow</mat-icon>
+                    {{ t('detail.trailerButton') }}
+                  </button>
+                  @if (!connectivity.online()) {
+                    <span class="text-xs text-white/60">{{ t('detail.trailerOffline') }}</span>
+                  }
+                }
+                <button
+                  type="button"
+                  (click)="openEnrichDialog()"
+                  class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                >
+                  <mat-icon inline>cloud_download</mat-icon>
+                  {{ t('detail.enrichButton') }}
+                </button>
+                <button
+                  type="button"
+                  (click)="startEdit()"
+                  class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                >
+                  <mat-icon inline>edit</mat-icon>
+                  {{ t('detail.editButton') }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉDITION MANUELLE (décision phase 2) : la fiche devient un
+           formulaire, mêmes champs que l'assistant de scan. Le bloc est
+           créé/détruit avec editing() : widgets toujours frais. -->
+      @if (editing()) {
+        <div class="flex max-w-3xl flex-col gap-3 px-8">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
+              <input matInput required [(ngModel)]="editDraft.titleVo" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.titleLocalized', { lang: metadataLangLabel() }) }}</mat-label>
+              <input matInput [(ngModel)]="editDraft.titleVf" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.year') }}</mat-label>
+              <input matInput type="number" [(ngModel)]="editDraft.year" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.rating') }}</mat-label>
+              <input matInput type="number" min="0" max="10" [(ngModel)]="editDraft.personalRating" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.tmdbRating') }}</mat-label>
+              <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="editDraft.tmdbRating" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.overview') }}</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="editDraft.overview"></textarea>
+          </mat-form-field>
+
+          <div class="grid gap-1 sm:grid-cols-2">
+            <app-chips-input [label]="t('scan.form.directors')" [(values)]="editDraft.directors" />
+            <app-chips-input [label]="t('scan.form.writers')" [(values)]="editDraft.writers" />
+            <app-chips-input [label]="t('scan.form.actors')" [(values)]="editDraft.actors" />
+            <app-chips-input [label]="t('scan.form.genres')" [(values)]="editDraft.genres" />
+          </div>
+          <app-chips-input [label]="t('scan.form.tags')" [(values)]="editDraft.tags" />
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.notes') }}</mat-label>
+            <textarea matInput rows="2" [(ngModel)]="editDraft.personalNotes"></textarea>
+          </mat-form-field>
+
+          <div class="flex gap-3">
+            <button matButton="filled" [disabled]="savingEdit()" (click)="saveEdit()">
+              {{ t('common.save') }}
+            </button>
+            <button matButton [disabled]="savingEdit()" (click)="cancelEdit()">
+              {{ t('common.cancel') }}
+            </button>
+          </div>
+        </div>
+      } @else {
         <!-- Avis/notes libres de l'utilisateur (champ personnel). -->
         @if (m.personalNotes !== null) {
-          <div class="max-w-3xl rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+          <div class="mx-8 max-w-3xl rounded-xl border border-black/10 p-4 text-sm dark:border-white/10">
             <p class="mb-1 font-medium">{{ t('detail.notes') }}</p>
             <p class="whitespace-pre-line opacity-80">{{ m.personalNotes }}</p>
           </div>
         }
 
-        <!-- Équipe et classement — listes précalculées dans le composant. -->
-        <dl class="grid max-w-3xl gap-2 text-sm">
+        <!-- Casting : cartes avec avatar d'initiales (aucune photo — les
+             portraits ne sont pas stockés en sidecars) et personnage. -->
+        @if (actorCards().length > 0) {
+          <section class="flex flex-col gap-3 px-8">
+            <h2 class="text-lg font-medium">{{ t('detail.actors') }}</h2>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              @for (actor of actorCards(); track actor.name) {
+                <div class="flex items-center gap-3 rounded-xl border border-black/10 p-3 dark:border-white/10">
+                  <span
+                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-black/10 text-sm font-semibold dark:bg-white/10"
+                  >
+                    {{ actor.initials }}
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-medium">{{ actor.name }}</span>
+                    @if (actor.character !== null) {
+                      <span class="block truncate text-xs opacity-60">{{ actor.character }}</span>
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Équipe (réalisation / scénario) — listes précalculées. -->
+        <dl class="grid max-w-3xl gap-2 px-8 text-sm">
           @if (directors().length > 0) {
             <div class="flex gap-2">
               <dt class="font-medium">{{ t('detail.directors') }} :</dt>
@@ -134,28 +223,27 @@
               <dd class="opacity-80">{{ writers() | join }}</dd>
             </div>
           }
-          @if (actors().length > 0) {
-            <div class="flex gap-2">
-              <dt class="font-medium">{{ t('detail.actors') }} :</dt>
-              <dd class="opacity-80">{{ actors() | join }}</dd>
-            </div>
-          }
-          @if (m.genres.length > 0) {
-            <div class="flex gap-2">
-              <dt class="font-medium">{{ t('detail.genres') }} :</dt>
-              <dd class="opacity-80">{{ m.genres | join }}</dd>
-            </div>
-          }
-          @if (m.tags.length > 0) {
-            <div class="flex gap-2">
-              <dt class="font-medium">{{ t('detail.tags') }} :</dt>
-              <dd class="opacity-80">{{ m.tags | join }}</dd>
-            </div>
-          }
         </dl>
 
+        <!-- Tags personnels en chips. -->
+        @if (m.tags.length > 0) {
+          <section class="flex flex-col gap-2 px-8">
+            <h2 class="text-lg font-medium">{{ t('detail.tags') }}</h2>
+            <div class="flex flex-wrap gap-2">
+              @for (tag of m.tags; track tag) {
+                <span
+                  class="flex items-center gap-1 rounded-full border border-black/15 px-3 py-0.5 text-xs dark:border-white/20"
+                >
+                  <mat-icon inline class="opacity-60">sell</mat-icon>
+                  {{ tag }}
+                </span>
+              }
+            </div>
+          </section>
+        }
+
         <!-- Fichiers de la fiche (multi-parties, statut). -->
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 px-8">
           <h2 class="text-lg font-medium">{{ t('detail.files') }}</h2>
           @for (file of m.files; track file.id) {
             <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
@@ -184,10 +272,9 @@
             </div>
           }
         </div>
-        }
-      </div>
+      }
     } @else {
-      <p class="opacity-70">{{ t('detail.notFound') }}</p>
+      <p class="p-8 opacity-70">{{ t('detail.notFound') }}</p>
     }
   </div>
 </ng-container>

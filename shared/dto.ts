@@ -370,6 +370,8 @@ export interface MovieDetail {
   /** Images sidecar (chemins relatifs), servies via le protocole m0v13s-img. */
   posterPath: string | null;
   backdropPath: string | null;
+  /** Clé YouTube du trailer — lecture embarquée, online-only (phase 3). */
+  trailerYoutubeKey: string | null;
   genres: string[];
   tags: string[];
   people: MoviePerson[];

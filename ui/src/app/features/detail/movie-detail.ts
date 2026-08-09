@@ -15,11 +15,13 @@ import {
 } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
+import { ConnectivityService } from '../../core/services/connectivity.service';
 import { JoinPipe } from '../../core/pipes/join.pipe';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 import { ChipsInput } from '../scan/chips-input';
 import { TmdbEnrichDialog, TmdbEnrichDialogData } from './tmdb-enrich-dialog';
+import { TrailerDialog, TrailerDialogData } from './trailer-dialog';
 
 /** Brouillon du formulaire d'édition manuelle (mêmes champs que l'assistant). */
 interface EditDraft {
@@ -37,10 +39,28 @@ interface EditDraft {
   tags: string[];
 }
 
+/** Carte d'acteur du casting (initiales précalculées — rien en template). */
+interface ActorCard {
+  name: string;
+  character: string | null;
+  initials: string;
+}
+
+/** Initiales d'un nom (deux premiers mots), sûres en Unicode. */
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+    .slice(0, 2)
+    .map((word) => [...word][0]?.toUpperCase() ?? '')
+    .join('');
+}
+
 /**
- * Fiche sommaire d'un film (phase 1) : tous les champs de la fiche, la
- * liste des fichiers et leur état. La fiche « cinéma » (backdrop, affiche,
- * trailer) arrive en phase 3, l'édition en phase 5.
+ * Fiche « cinéma » d'un film (phase 3) : hero backdrop + affiche, méta,
+ * trailer YouTube (online-only), casting avec personnages, genres/tags en
+ * chips, fichiers. Porte aussi l'enrichissement TMDB et l'édition
+ * manuelle (décisions phase 2).
  */
 @Component({
   selector: 'app-movie-detail',
@@ -67,6 +87,9 @@ export class MovieDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
 
+  /** Connectivité (signal) : pilote le bouton trailer (online-only). */
+  protected readonly connectivity = inject(ConnectivityService);
+
   /** Fiche chargée (null = introuvable une fois `loaded` vrai). */
   protected readonly movie = signal<MovieDetailDto | null>(null);
   protected readonly loaded = signal(false);
@@ -80,6 +103,20 @@ export class MovieDetail {
   );
   protected readonly actors = computed(() =>
     (this.movie()?.people ?? []).filter((p) => p.role === 'actor').map((p) => p.name),
+  );
+
+  /** Casting du hero : nom + personnage + initiales pour l'avatar. */
+  protected readonly actorCards = computed<ActorCard[]>(() =>
+    (this.movie()?.people ?? [])
+      .filter((p) => p.role === 'actor')
+      .map((p) => ({ name: p.name, character: p.character, initials: initialsOf(p.name) })),
+  );
+
+  /** Durée affichée dans le hero : premier fichier qui la connaît. */
+  protected readonly durationSec = computed(
+    () =>
+      (this.movie()?.files ?? []).find((f) => f.tech.durationSec !== null)?.tech.durationSec ??
+      null,
   );
 
   /* ---------------- édition manuelle (décision phase 2) ------------- */
@@ -172,6 +209,21 @@ export class MovieDetail {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.movie.set(await this.api.getMovie(id));
     this.loaded.set(true);
+  }
+
+  /**
+   * Ouvre le trailer YouTube en dialogue embarqué (online-only assumé —
+   * le bouton est désactivé hors ligne). La clé est validée par une regex
+   * stricte avant de construire l'URL d'embed.
+   */
+  protected openTrailer(): void {
+    const m = this.movie();
+    const key = m?.trailerYoutubeKey ?? null;
+    if (m === null || key === null || !/^[A-Za-z0-9_-]{6,}$/.test(key)) {
+      return;
+    }
+    const data: TrailerDialogData = { youtubeKey: key, title: m.titleVf ?? m.titleVo };
+    this.dialog.open(TrailerDialog, { data, width: 'min(92vw, 60rem)', maxWidth: '95vw' });
   }
 
   /**

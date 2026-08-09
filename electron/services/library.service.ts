@@ -205,6 +205,7 @@ export class LibraryService {
       tmdbRating: m.tmdbRating,
       posterPath: m.posterPath,
       backdropPath: m.backdropPath,
+      trailerYoutubeKey: m.trailerYoutubeKey,
       genres: genreRows.map((g) => g.name),
       tags: tagRows.map((t) => t.name),
       people: peopleRows.map(
