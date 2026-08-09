@@ -3,12 +3,19 @@ import type {
   AdminTableData,
   AdminTableName,
   ConformitySummary,
+  ManualEditInput,
   MovieDetail,
   MovieListItem,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbCallStatus,
+  TmdbDetailsOutcome,
+  TmdbKeyStatus,
+  TmdbKeyTestResult,
+  TmdbLanguageConfig,
+  TmdbSearchOutcome,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
 
@@ -79,15 +86,38 @@ export class ApiService {
     await window.api?.library.setRoots(roots);
   }
 
+  /** Édition manuelle d'une fiche (met à jour fiche + .nfo + regroupement). */
+  async updateMovie(mediaId: number, form: ManualEditInput): Promise<boolean> {
+    return window.api?.library.updateMovie(mediaId, form) ?? false;
+  }
+
+  /** Ré-enrichit une fiche depuis un film TMDB choisi (fiche + .nfo + images). */
+  async enrichFromTmdb(
+    mediaId: number,
+    tmdbId: number,
+  ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }> {
+    return (
+      window.api?.library.enrichFromTmdb(mediaId, tmdbId) ?? {
+        status: 'error',
+        httpStatus: null,
+      }
+    );
+  }
+
   /* ------------------------ scanner ------------------------- */
 
-  /** Scan complet (mode Scanner). */
-  async scan(): Promise<ScanResult> {
+  /**
+   * Scan des racines (mode Scanner).
+   * @param full vrai = scan complet forcé : les fichiers déjà indexés
+   *             repassent dans l'assistant (mise à jour de fiche)
+   */
+  async scan(full = false): Promise<ScanResult> {
     return (
-      window.api?.scanner.scan() ?? {
+      window.api?.scanner.scan(full) ?? {
         newFiles: [],
         missingFiles: [],
         relinkCandidates: [],
+        importedFromNfo: [],
       }
     );
   }
@@ -122,5 +152,59 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /* -------------------------- tmdb -------------------------- */
+
+  /** Statut (masqué) de la clé API TMDB. */
+  async getTmdbKeyStatus(): Promise<TmdbKeyStatus> {
+    return window.api?.tmdb.getKeyStatus() ?? { configured: false, maskedKey: null };
+  }
+
+  /** Enregistre (ou efface, si vide) la clé API TMDB. */
+  async setTmdbKey(key: string): Promise<void> {
+    await window.api?.tmdb.setKey(key);
+  }
+
+  /** Teste la clé fournie (ou la clé stockée) contre l'API TMDB. */
+  async testTmdbKey(candidateKey?: string): Promise<TmdbKeyTestResult> {
+    return window.api?.tmdb.testKey(candidateKey) ?? 'offline';
+  }
+
+  /** Recherche TMDB (titre + année, langue configurée). */
+  async searchTmdb(query: string, year?: number | null): Promise<TmdbSearchOutcome> {
+    return (
+      window.api?.tmdb.searchMovies(query, year) ?? {
+        status: 'error',
+        httpStatus: null,
+        results: [],
+      }
+    );
+  }
+
+  /** Détails complets d'un film TMDB, mappés vers notre schéma. */
+  async getTmdbDetails(tmdbId: number): Promise<TmdbDetailsOutcome> {
+    return (
+      window.api?.tmdb.getDetails(tmdbId) ?? {
+        status: 'error',
+        httpStatus: null,
+        details: null,
+      }
+    );
+  }
+
+  /** Préférences de langues TMDB (métadonnées + trailer). */
+  async getTmdbLanguageConfig(): Promise<TmdbLanguageConfig> {
+    return (
+      window.api?.tmdb.getLanguageConfig() ?? {
+        metadataLanguage: 'en-US',
+        trailerLanguage: 'original',
+      }
+    );
+  }
+
+  /** Enregistre les préférences de langues TMDB. */
+  async setTmdbLanguageConfig(config: TmdbLanguageConfig): Promise<void> {
+    await window.api?.tmdb.setLanguageConfig(config);
   }
 }

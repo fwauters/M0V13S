@@ -31,10 +31,15 @@
 
     <!-- 2. Lancement du scan + progression + annulation. -->
     <section class="flex max-w-2xl flex-col gap-3">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <button matButton="filled" [disabled]="scanning() || roots().length === 0" (click)="startScan()">
           {{ t('scan.start') }}
         </button>
+        <!-- Scan complet forcé : repasse aussi les fichiers déjà indexés
+             (leur fiche préremplit l'assistant, l'enregistrement la met à jour). -->
+        <mat-checkbox [(ngModel)]="fullScan" [disabled]="scanning()">
+          {{ t('scan.fullScanLabel') }}
+        </mat-checkbox>
         @if (scanning()) {
           <button matButton (click)="cancelScan()">{{ t('common.cancel') }}</button>
         }
@@ -84,6 +89,23 @@
         </section>
       }
 
+      <!-- 3b-bis. Importés silencieusement depuis leur sidecar .nfo :
+           le scénario « partage » (PLAN § 6.2.2) — aucune question posée. -->
+      @if (r.importedFromNfo.length > 0) {
+        <section class="flex max-w-3xl flex-col gap-2">
+          <h2 class="text-lg font-medium">
+            {{ t('scan.importedTitle', { count: r.importedFromNfo.length }) }}
+          </h2>
+          <p class="text-sm opacity-70">{{ t('scan.importedHint') }}</p>
+          @for (imported of r.importedFromNfo; track imported.relPath) {
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+              <span class="font-medium">{{ imported.title }}</span>
+              <span class="font-mono opacity-70">{{ imported.relPath }}</span>
+            </div>
+          }
+        </section>
+      }
+
       <!-- 3c. Séries détectées : signalées, non gérées en v1. -->
       @if (episodeFiles().length > 0) {
         <section class="flex max-w-3xl flex-col gap-2">
@@ -107,9 +129,25 @@
             {{ t('scan.fileOf', { index: currentIndex() + 1, total: filmFiles().length }) }}
           </h2>
 
-          <!-- Identité disque + infos techniques (ffprobe). -->
-          <div class="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+          <!-- Identité disque + infos techniques + aperçu d'affiche
+               (résultat TMDB appliqué, sinon sidecar existant via le
+               protocole local m0v13s-img). -->
+          <div class="flex items-start gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+            @if (pickedPosterUrl() ?? ((file.existing?.posterPath ?? null) | sidecarImg); as posterSrc) {
+              <img [src]="posterSrc" alt="" class="h-24 w-16 shrink-0 rounded object-cover" />
+            }
+            <div class="min-w-0">
             <p class="font-mono">{{ file.relPath }}</p>
+            @if (file.existing !== null) {
+              <p class="mt-1 w-fit rounded bg-sky-500/20 px-2 py-0.5 text-xs text-sky-700 dark:text-sky-300">
+                {{ t('scan.updateBadge') }}
+              </p>
+            }
+            @if (file.loose) {
+              <p class="mt-1 w-fit rounded bg-violet-500/20 px-2 py-0.5 text-xs text-violet-700 dark:text-violet-300">
+                {{ t('scan.looseBadge') }}
+              </p>
+            }
             @if (file.tech; as tech) {
               <p class="mt-1 opacity-70">
                 @if (tech.durationSec | minutes; as min) {
@@ -128,7 +166,85 @@
             } @else {
               <p class="mt-1 text-amber-600 dark:text-amber-400">{{ t('scan.noTech') }}</p>
             }
+            </div>
           </div>
+
+          <!-- Recherche TMDB (en ligne) : l'utilisateur choisit le bon film
+               dans la liste — jamais d'application automatique. Les vignettes
+               viennent d'image.tmdb.org (online-only, autorisé par PLAN). -->
+          <section class="flex flex-col gap-2 rounded-lg border border-black/10 p-3 dark:border-white/10">
+            <div class="flex items-end gap-2">
+              <mat-form-field class="grow" subscriptSizing="dynamic">
+                <mat-label>{{ t('scan.tmdb.searchLabel') }}</mat-label>
+                <input matInput [(ngModel)]="tmdbQuery" (keydown.enter)="searchTmdb()" />
+              </mat-form-field>
+              <button matButton [disabled]="tmdbSearching()" (click)="searchTmdb()">
+                {{ t('scan.tmdb.searchButton') }}
+              </button>
+            </div>
+
+            @if (tmdbSearching()) {
+              <p class="text-sm opacity-70">{{ t('scan.tmdb.searching') }}</p>
+            } @else if (tmdbLoadingDetails()) {
+              <p class="text-sm opacity-70">{{ t('scan.tmdb.loadingDetails') }}</p>
+            } @else {
+              @switch (tmdbStatus()) {
+                @case ('idle') {}
+                @case ('noKey') {
+                  <p class="text-sm text-amber-600 dark:text-amber-400">{{ t('scan.tmdb.noKey') }}</p>
+                }
+                @case ('ok') {
+                  @if (appliedTmdb(); as applied) {
+                    <p class="text-sm font-medium text-green-700 dark:text-green-400">
+                      {{ t('scan.tmdb.applied', { title: applied.titleVo }) }}
+                    </p>
+                  } @else if (tmdbResults().length === 0) {
+                    <p class="text-sm opacity-70">{{ t('scan.tmdb.noResults') }}</p>
+                  } @else {
+                    <div class="flex flex-col gap-1">
+                      @for (result of tmdbResults(); track result.tmdbId) {
+                        <button
+                          type="button"
+                          class="flex items-center gap-3 rounded-lg border border-black/10 p-2 text-left transition hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
+                          (click)="applyTmdbResult(result)"
+                        >
+                          @if (result.posterUrl !== null) {
+                            <img [src]="result.posterUrl" alt="" class="h-16 w-11 shrink-0 rounded object-cover" />
+                          } @else {
+                            <div class="flex h-16 w-11 shrink-0 items-center justify-center rounded bg-black/10 dark:bg-white/10">
+                              <mat-icon inline>movie</mat-icon>
+                            </div>
+                          }
+                          <span class="flex flex-col">
+                            <span class="font-medium">
+                              {{ result.title }}
+                              @if (result.year !== null) {
+                                ({{ result.year }})
+                              }
+                            </span>
+                            @if (result.originalTitle !== result.title) {
+                              <span class="text-sm opacity-70">{{ result.originalTitle }}</span>
+                            }
+                            @if (result.overview !== null) {
+                              <span class="line-clamp-2 text-xs opacity-60">{{ result.overview }}</span>
+                            }
+                          </span>
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+                <!-- Toute erreur (401/404/429/5xx/timeout/réseau/inattendue) :
+                     message ROUGE avec code + explication — jamais bloquant,
+                     la fiche reste qualifiable à la main (retour validation). -->
+                @default {
+                  <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                    {{ t('scan.tmdb.errors.' + tmdbStatus(), { code: tmdbHttpStatus() }) }}
+                  </p>
+                }
+              }
+            }
+          </section>
 
           <!-- Formulaire de fiche (Material — préremplissage : nom de fichier). -->
           <div class="grid gap-3 sm:grid-cols-2">
@@ -136,8 +252,11 @@
               <mat-label>{{ t('scan.form.titleVo') }}</mat-label>
               <input matInput required [(ngModel)]="draft.titleVo" />
             </mat-form-field>
+            <!-- Titre LOCALISÉ : suit la langue de fiches choisie sur
+                 l'accueil (le champ VO garde toujours le vrai titre
+                 original, quel que soit l'alphabet). -->
             <mat-form-field>
-              <mat-label>{{ t('scan.form.titleVf') }}</mat-label>
+              <mat-label>{{ t('scan.form.titleLocalized', { lang: metadataLangLabel() }) }}</mat-label>
               <input matInput [(ngModel)]="draft.titleVf" />
             </mat-form-field>
             <mat-form-field>
@@ -147,6 +266,10 @@
             <mat-form-field>
               <mat-label>{{ t('scan.form.rating') }}</mat-label>
               <input matInput type="number" min="0" max="10" [(ngModel)]="draft.personalRating" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ t('scan.form.tmdbRating') }}</mat-label>
+              <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="draft.tmdbRating" />
             </mat-form-field>
           </div>
 
@@ -164,6 +287,13 @@
             <app-chips-input [label]="t('scan.form.genres')" [(values)]="draft.genres" />
           </div>
           <app-chips-input [label]="t('scan.form.tags')" [(values)]="draft.tags" />
+
+          <!-- Avis/notes libres — champ PERSONNEL : comme la note perso et
+               les tags, jamais écrasé par TMDB (demande utilisateur). -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.notes') }}</mat-label>
+            <textarea matInput rows="2" [(ngModel)]="draft.personalNotes"></textarea>
+          </mat-form-field>
 
           <div class="flex gap-3">
             <button matButton="filled" [disabled]="saving()" (click)="saveCurrent()">

@@ -51,5 +51,104 @@
         <span class="text-sm opacity-70">{{ t('home.scanHint') }}</span>
       </a>
     </div>
+
+    <!-- Clé API TMDB (décision phase 2) : chaque utilisateur saisit la
+         sienne ici, avant le scan. Le renderer ne voit que le statut
+         MASQUÉ ; le test distingue valide / invalide / hors ligne. -->
+    <section
+      class="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-black/10 p-5 text-left dark:border-white/10"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon inline>key</mat-icon>
+        <h2 class="font-medium">{{ t('home.tmdb.title') }}</h2>
+      </div>
+
+      @if (tmdbStatus(); as status) {
+        @if (!editingKey()) {
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            @if (status.configured) {
+              <span>{{ t('home.tmdb.configured', { masked: status.maskedKey }) }}</span>
+            } @else {
+              <span class="text-amber-600 dark:text-amber-400">{{ t('home.tmdb.missing') }}</span>
+            }
+            <span class="grow"></span>
+            @if (status.configured) {
+              <button matButton [disabled]="testing()" (click)="testStoredKey()">
+                {{ t('home.tmdb.test') }}
+              </button>
+            }
+            <button matButton (click)="startEditKey()">
+              {{ status.configured ? t('home.tmdb.change') : t('home.tmdb.add') }}
+            </button>
+          </div>
+        } @else {
+          <div class="flex items-end gap-2">
+            <mat-form-field class="grow" subscriptSizing="dynamic">
+              <mat-label>{{ t('home.tmdb.placeholder') }}</mat-label>
+              <!-- type=password : la clé ne s'affiche pas en clair à l'écran. -->
+              <input matInput type="password" [(ngModel)]="keyDraft" (keydown.enter)="saveKey()" />
+            </mat-form-field>
+            <button matButton="filled" (click)="saveKey()">{{ t('common.save') }}</button>
+            <button matButton (click)="cancelEditKey()">{{ t('common.cancel') }}</button>
+          </div>
+        }
+
+        <!-- Langues (décision utilisateur) : métadonnées des fiches (repli
+             VO/anglais si traduction absente) et langue préférée du trailer
+             (VO du film par défaut, repli VO si indisponible). -->
+        @if (languageConfig(); as config) {
+          <div class="grid gap-3 sm:grid-cols-2">
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>{{ t('home.tmdb.metadataLanguage') }}</mat-label>
+              <mat-select
+                [value]="config.metadataLanguage"
+                (selectionChange)="onMetadataLanguageChange($event.value)"
+              >
+                @for (lang of metadataLanguages; track lang.value) {
+                  <mat-option [value]="lang.value">{{ lang.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>{{ t('home.tmdb.trailerLanguage') }}</mat-label>
+              <mat-select
+                [value]="config.trailerLanguage"
+                (selectionChange)="onTrailerLanguageChange($event.value)"
+              >
+                @for (lang of trailerLanguages; track lang.value) {
+                  <mat-option [value]="lang.value">
+                    {{ lang.value === 'original' ? t('home.tmdb.trailerOriginal') : lang.label }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
+
+        @if (testing()) {
+          <p class="text-sm opacity-70">{{ t('home.tmdb.testing') }}</p>
+        } @else {
+          @switch (testResult()) {
+            @case ('valid') {
+              <p class="text-sm font-medium text-green-700 dark:text-green-400">
+                {{ t('home.tmdb.resultValid') }}
+              </p>
+            }
+            @case ('invalid') {
+              <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                {{ t('home.tmdb.resultInvalid') }}
+              </p>
+            }
+            @case ('offline') {
+              <p class="text-sm font-medium text-amber-600 dark:text-amber-400">
+                {{ t('home.tmdb.resultOffline') }}
+              </p>
+            }
+          }
+        }
+
+        <p class="text-xs opacity-60">{{ t('home.tmdb.hint') }}</p>
+      }
+    </section>
   </div>
 </ng-container>

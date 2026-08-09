@@ -12,12 +12,19 @@ import type {
   AdminTableData,
   AdminTableName,
   ConformitySummary,
+  ManualEditInput,
   MovieDetail,
   MovieListItem,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
   ScanResult,
+  TmdbCallStatus,
+  TmdbDetailsOutcome,
+  TmdbKeyStatus,
+  TmdbKeyTestResult,
+  TmdbLanguageConfig,
+  TmdbSearchOutcome,
 } from './dto';
 
 /** Noms des canaux IPC, groupés par domaine. */
@@ -42,6 +49,10 @@ export const IPC = {
     /** Racines de bibliothèque (chemins relatifs au lecteur). */
     getRoots: 'library:get-roots',
     setRoots: 'library:set-roots',
+    /** Ré-enrichit une fiche existante depuis un film TMDB choisi. */
+    enrichFromTmdb: 'library:enrich-from-tmdb',
+    /** Édition manuelle d'une fiche (formulaire de la page fiche). */
+    updateMovie: 'library:update-movie',
   },
   scanner: {
     /** Scan complet (mode Scanner) : nouveaux / manquants / renommés. */
@@ -60,6 +71,21 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+  },
+  tmdb: {
+    /** Statut de la clé API (masquée — jamais la clé en clair). */
+    getKeyStatus: 'tmdb:get-key-status',
+    /** Enregistre (ou efface, si vide) la clé API. */
+    setKey: 'tmdb:set-key',
+    /** Teste la validité d'une clé contre l'API TMDB. */
+    testKey: 'tmdb:test-key',
+    /** Recherche de films (titre + année, langue configurée). */
+    searchMovies: 'tmdb:search-movies',
+    /** Détails complets d'un film (crédits, trailer), mappés au schéma. */
+    getDetails: 'tmdb:get-details',
+    /** Préférences de langues (métadonnées + trailer). */
+    getLanguageConfig: 'tmdb:get-language-config',
+    setLanguageConfig: 'tmdb:set-language-config',
   },
 } as const;
 
@@ -104,9 +130,18 @@ export interface WindowApi {
     getMovie(id: number): Promise<MovieDetail | null>;
     getRoots(): Promise<string[]>;
     setRoots(roots: string[]): Promise<void>;
+    /** Ré-enrichit une fiche depuis un tmdbId choisi (fiche + .nfo + images). */
+    enrichFromTmdb(
+      mediaId: number,
+      tmdbId: number,
+    ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }>;
+    /** Édition manuelle : met à jour la fiche + .nfo + regroupement. */
+    updateMovie(mediaId: number, form: ManualEditInput): Promise<boolean>;
   };
   scanner: {
-    scan(): Promise<ScanResult>;
+    /** Scan des racines ; `full` repasse aussi les fichiers déjà indexés
+     *  dans l'assistant (leur enregistrement met la fiche à jour). */
+    scan(full?: boolean): Promise<ScanResult>;
     /** S'abonne à la progression du scan ; retourne la désinscription. */
     onProgress(listener: (progress: ScanProgress) => void): () => void;
     cancel(): Promise<void>;
@@ -116,5 +151,15 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+  };
+  tmdb: {
+    getKeyStatus(): Promise<TmdbKeyStatus>;
+    setKey(key: string): Promise<void>;
+    /** Teste la clé fournie, ou la clé stockée si omise. */
+    testKey(candidateKey?: string): Promise<TmdbKeyTestResult>;
+    searchMovies(query: string, year?: number | null): Promise<TmdbSearchOutcome>;
+    getDetails(tmdbId: number): Promise<TmdbDetailsOutcome>;
+    getLanguageConfig(): Promise<TmdbLanguageConfig>;
+    setLanguageConfig(config: TmdbLanguageConfig): Promise<void>;
   };
 }

@@ -15,6 +15,13 @@
       "when": 1785707310311,
       "tag": "0001_marvelous_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786061769105,
+      "tag": "0002_curly_the_order",
+      "breakpoints": true
     }
   ]
 }

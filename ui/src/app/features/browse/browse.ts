@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { JoinPipe } from '../../core/pipes/join.pipe';
 import { LibraryStore } from '../../core/library.store';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
+import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 
 /**
  * Liste des films affichables (mode classique) — version « brute » de la
@@ -13,7 +15,7 @@ import { MinutesPipe } from '../../core/pipes/minutes.pipe';
  */
 @Component({
   selector: 'app-browse',
-  imports: [TranslocoDirective, RouterLink, MinutesPipe, JoinPipe],
+  imports: [TranslocoDirective, RouterLink, MatIcon, MinutesPipe, JoinPipe, SidecarImgPipe],
   templateUrl: './browse.html',
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
   host: { class: 'flex grow flex-col' },

@@ -62,19 +62,26 @@
 
 ## Phase 2 — Sidecars & enrichissement TMDB
 
-- [ ] **2.1** `nfo.service` : lecture/écriture `.nfo` (XML Kodi), écritures
+- [x] **2.1** `nfo.service` : lecture/écriture `.nfo` (XML Kodi), écritures
   atomiques, parseur tolérant + tests.
-- [ ] **2.2** Import silencieux en masse des fichiers arrivés avec `.nfo`
-  (+ images) — le scénario « partage » fonctionne, hors ligne + tests.
-- [ ] **2.3** `tmdb.service` : recherche (titre + année, fr-FR), détails,
-  mapping vers le schéma + tests (HTTP mocké).
-- [ ] **2.4** UI scan : recherche TMDB, choix du bon film (vignettes),
-  préremplissage du formulaire, recherche manuelle.
-- [ ] **2.5** Téléchargement poster/fanart **en sidecars** + `thumbs.service`
-  (cache de miniatures régénérable) + tests.
-- [ ] **2.6** Scan hors-ligne : fiches manuelles + bouton « réessayer
-  l'enrichissement TMDB » sur fiche.
-- [ ] **2.7** Fin de phase : deps, docs, portabilité, push.
+- [x] **2.2** Import silencieux en masse des fichiers arrivés avec `.nfo`
+  — le scénario « partage » fonctionne, hors ligne + tests (les images
+  sidecars arrivent en 2.5).
+- [x] **2.3** `tmdb.service` : gestion de la clé API dans l'app (accueil,
+  test de validité — décision utilisateur), recherche (titre + année,
+  fr-FR), détails, mapping vers le schéma + tests (HTTP mocké).
+- [x] **2.4** UI scan : recherche TMDB auto-lancée, choix du bon film
+  (vignettes), préremplissage du formulaire (tags/note perso conservés),
+  recherche manuelle, messages par statut (sans clé / hors ligne…).
+- [x] **2.5** Téléchargement poster/fanart **en sidecars** (Kodi, atomique,
+  repli hors-ligne sur les images présentes) + chemins relatifs en base +
+  tests. (`thumbs.service` reporté en 3.2, où la grille le consommera.)
+- [x] **2.6** Scan hors-ligne (statuts explicites, import .nfo et images en
+  repli hors ligne) + bouton « Compléter via TMDB » sur la fiche (dialogue
+  de recherche, tags/note perso conservés — décision utilisateur).
+- [x] **2.7** Fin de phase : deps à jour (better-sqlite3 patch, Electron
+  minor ; TS 7 exclu), audit sans vulnérabilité, portabilité revalidée,
+  docs, PR #3 ouverte.
 
 ## Phase 3 — UI « Netflix »
 

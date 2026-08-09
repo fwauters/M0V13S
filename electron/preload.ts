@@ -7,9 +7,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type {
   AdminTableName,
+  ManualEditInput,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
+  TmdbLanguageConfig,
 } from '@shared/dto';
 import { IPC, SystemPingResult, UiSettingKey, WindowApi } from '@shared/ipc';
 
@@ -30,9 +32,13 @@ const api: WindowApi = {
     getMovie: (id: number) => ipcRenderer.invoke(IPC.library.getMovie, id),
     getRoots: () => ipcRenderer.invoke(IPC.library.getRoots),
     setRoots: (roots: string[]) => ipcRenderer.invoke(IPC.library.setRoots, roots),
+    enrichFromTmdb: (mediaId: number, tmdbId: number) =>
+      ipcRenderer.invoke(IPC.library.enrichFromTmdb, mediaId, tmdbId),
+    updateMovie: (mediaId: number, form: ManualEditInput) =>
+      ipcRenderer.invoke(IPC.library.updateMovie, mediaId, form),
   },
   scanner: {
-    scan: () => ipcRenderer.invoke(IPC.scanner.scan),
+    scan: (full?: boolean) => ipcRenderer.invoke(IPC.scanner.scan, full === true),
     cancel: () => ipcRenderer.invoke(IPC.scanner.cancel),
     qualify: (input: QualifyMovieInput) => ipcRenderer.invoke(IPC.scanner.qualify, input),
     relink: (candidate: ScanRelinkCandidate) =>
@@ -49,6 +55,17 @@ const api: WindowApi = {
   },
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
+  },
+  tmdb: {
+    getKeyStatus: () => ipcRenderer.invoke(IPC.tmdb.getKeyStatus),
+    setKey: (key: string) => ipcRenderer.invoke(IPC.tmdb.setKey, key),
+    testKey: (candidateKey?: string) => ipcRenderer.invoke(IPC.tmdb.testKey, candidateKey),
+    searchMovies: (query: string, year?: number | null) =>
+      ipcRenderer.invoke(IPC.tmdb.searchMovies, query, year),
+    getDetails: (tmdbId: number) => ipcRenderer.invoke(IPC.tmdb.getDetails, tmdbId),
+    getLanguageConfig: () => ipcRenderer.invoke(IPC.tmdb.getLanguageConfig),
+    setLanguageConfig: (config: TmdbLanguageConfig) =>
+      ipcRenderer.invoke(IPC.tmdb.setLanguageConfig, config),
   },
 };
 

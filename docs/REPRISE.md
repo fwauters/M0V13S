@@ -6,20 +6,23 @@
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phase 0 (squelette portable) : terminée, validée sur machine B hors
-   ligne, mergée** (PR #1).
-2. **Phase 1 (bibliothèque locale & conformité) : terminée et poussée —
-   PR #2 OUVERTE, en attente de la validation utilisateur puis du merge.**
-3. **Prochaine étape : phase 2** (sidecars `.nfo` + images, import
-   silencieux/partage, enrichissement TMDB — TODO 2.1 → 2.7).
+1. **Phases 0 et 1 : terminées, validées, mergées** (PR #1, #2).
+2. **Phase 2 : TERMINÉE et poussée — PR #3 OUVERTE, en attente de la
+   validation utilisateur puis du merge.** Tout y est : sidecars .nfo +
+   images, import silencieux (partage), TMDB de bout en bout (clé dans
+   l'app, recherche dans l'assistant, bouton « Compléter via TMDB » par
+   fiche), scan complet forcé, deps à jour, portabilité revalidée.
+3. **Ensuite : phase 3 (UI « Netflix »)** — branche `phase-3` depuis main
+   mergé, TODO 3.1 → 3.6 (+ thumbs.service reporté de 2.5 vers 3.2, et le
+   protocole de service des images au renderer à concevoir en 3.1/3.2).
 
 ## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Re-valider la phase 1 après les 3 correctifs du 2026-08-06 (reset du
-formulaire entre fichiers, chips addOnBlur, hauteur de la vue admin —
-détail dans phase_1.md § Corrections) : `nvm use 22.23.2` puis `pnpm dev`,
-re-dérouler le parcours en vérifiant ces trois points, puis **merger la
-PR #2**. En cas de souci : le signaler, correction sur `phase-1`.
+Valider la phase 2 (procédure détaillée : phase_2.md § Validation) —
+l'essentiel : scan complet avec clé TMDB active → choix des films →
+fiches enrichies + `.nfo` + images à côté des vidéos ; bouton « Compléter
+via TMDB » sur une fiche ; import silencieux d'un dossier partagé.
+Puis **merger la PR #3**.
 
 ## Méthode de travail établie (récap opérationnel)
 

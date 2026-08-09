@@ -20,6 +20,8 @@ const SCAN_RESULT: ScanResult = {
       mtimeMs: 1,
       tech: null,
       guess: { title: 'Alpha', year: 2001, partNumber: null, looksLikeEpisode: false },
+      existing: null,
+      loose: false,
     },
     {
       relPath: 'Films/Beta.mkv',
@@ -27,10 +29,13 @@ const SCAN_RESULT: ScanResult = {
       mtimeMs: 2,
       tech: null,
       guess: { title: 'Beta', year: null, partNumber: null, looksLikeEpisode: false },
+      existing: null,
+      loose: false,
     },
   ],
   missingFiles: [],
   relinkCandidates: [],
+  importedFromNfo: [],
 };
 
 /** Double d'ApiService : uniquement ce que Scan et LibraryStore consomment. */
@@ -51,6 +56,14 @@ function makeApiMock() {
       forcedScan: false,
     }),
     listMovies: async () => [],
+    // TMDB : l'assistant lance une recherche automatique par fichier —
+    // le double répond « pas de clé » (aucun réseau en test).
+    searchTmdb: async () => ({ status: 'noKey', httpStatus: null, results: [] }),
+    getTmdbDetails: async () => ({ status: 'noKey', httpStatus: null, details: null }),
+    getTmdbLanguageConfig: async () => ({
+      metadataLanguage: 'fr-FR',
+      trailerLanguage: 'original',
+    }),
   };
 }
 

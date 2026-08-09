@@ -7,8 +7,10 @@ import { BrowserWindow, ipcMain } from 'electron';
 
 import type {
   AdminTableName,
+  ManualEditInput,
   QualifyMovieInput,
   ScanRelinkCandidate,
+  TmdbCallStatus,
 } from '@shared/dto';
 import { IPC } from '@shared/ipc';
 import type { AdminTablesService } from '../services/admin-tables.service';
@@ -16,6 +18,7 @@ import type { ConformityService } from '../services/conformity.service';
 import type { LibraryService } from '../services/library.service';
 import type { ScannerService } from '../services/scanner.service';
 import type { SettingsService } from '../services/settings.service';
+import type { TmdbService } from '../services/tmdb.service';
 
 /** Ensemble des services métier requis par ces handlers (null = DB KO). */
 export interface LibraryIpcServices {
@@ -24,6 +27,7 @@ export interface LibraryIpcServices {
   scanner: ScannerService;
   settings: SettingsService;
   adminTables: AdminTablesService;
+  tmdb: TmdbService;
 }
 
 export function registerLibraryIpc(services: LibraryIpcServices | null): void {
@@ -44,6 +48,44 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
     services?.library.getMovie(Number(id)) ?? null,
   );
 
+  ipcMain.handle(
+    IPC.library.enrichFromTmdb,
+    async (
+      _e,
+      mediaId: number,
+      tmdbId: number,
+    ): Promise<{ status: TmdbCallStatus; httpStatus: number | null }> => {
+      if (!services) {
+        return { status: 'error', httpStatus: null };
+      }
+      // 1. Détails TMDB (crédits, trailer, images) — statuts granulaires
+      //    remontés tels quels à l'UI (messages avec code HTTP).
+      const outcome = await services.tmdb.getMovieDetails(Number(tmdbId));
+      if (outcome.status !== 'ok' || outcome.details === null) {
+        return {
+          status: outcome.status === 'ok' ? 'error' : outcome.status,
+          httpStatus: outcome.httpStatus,
+        };
+      }
+      // 2. Mise à jour de la fiche (tags/note/avis perso conservés) + .nfo + images.
+      const enriched = await services.scanner.enrichMedia(Number(mediaId), outcome.details);
+      return { status: enriched ? 'ok' : 'error', httpStatus: null };
+    },
+  );
+
+  ipcMain.handle(
+    IPC.library.updateMovie,
+    async (_e, mediaId: number, form: ManualEditInput): Promise<boolean> => {
+      if (!services) {
+        return false;
+      }
+      // Même voie que la qualification : upsert + regroupement en dossier
+      // + réécriture du .nfo + images (le formulaire ne porte que des noms,
+      // les personnages/tmdbId/trailer sont préservés côté service).
+      return services.scanner.updateMovieManual(Number(mediaId), form);
+    },
+  );
+
   ipcMain.handle(IPC.library.getRoots, () => services?.settings.getLibraryRoots() ?? []);
 
   ipcMain.handle(IPC.library.setRoots, (_e, roots: string[]) => {
@@ -56,15 +98,20 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
 
   /* ---------------------- scanner ---------------------- */
 
-  ipcMain.handle(IPC.scanner.scan, async (event) => {
+  ipcMain.handle(IPC.scanner.scan, async (event, full?: boolean) => {
     if (!services) {
-      return { newFiles: [], missingFiles: [], relinkCandidates: [] };
+      return { newFiles: [], missingFiles: [], relinkCandidates: [], importedFromNfo: [] };
     }
     // La progression est poussée vers la fenêtre appelante.
     const win = BrowserWindow.fromWebContents(event.sender);
-    return services.scanner.scan((progress) => {
-      win?.webContents.send(IPC.scanner.progress, progress);
-    });
+    return services.scanner.scan(
+      (progress) => {
+        win?.webContents.send(IPC.scanner.progress, progress);
+      },
+      // `full` : scan complet forcé (les fichiers indexés repassent
+      // dans l'assistant pour mise à jour de fiche).
+      { full: full === true },
+    );
   });
 
   ipcMain.handle(IPC.scanner.cancel, () => services?.scanner.cancel());

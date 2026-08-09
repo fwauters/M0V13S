@@ -1,6 +1,7 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -8,18 +9,23 @@ import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
-import type {
-  QualifyMovieInput,
-  ScanMissingFile,
-  ScanNewFile,
-  ScanProgress,
-  ScanRelinkCandidate,
-  ScanResult,
+import {
+  tmdbLanguageLabel,
+  type QualifyMovieInput,
+  type ScanMissingFile,
+  type ScanNewFile,
+  type ScanProgress,
+  type ScanRelinkCandidate,
+  type ScanResult,
+  type TmdbCallStatus,
+  type TmdbMovieDetails,
+  type TmdbSearchResult,
 } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
+import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 import { ChipsInput } from './chips-input';
 import { ConfirmDialog, ConfirmDialogData } from './confirm-dialog';
 
@@ -30,6 +36,10 @@ interface QualifyDraft {
   year: number | null;
   overview: string;
   personalRating: number | null;
+  /** Avis/notes libres — champ PERSONNEL, jamais écrasé par TMDB. */
+  personalNotes: string;
+  /** Note moyenne TMDB (préremplie par l'enrichissement, modifiable). */
+  tmdbRating: number | null;
   directors: string[];
   writers: string[];
   actors: string[];
@@ -52,12 +62,14 @@ interface QualifyDraft {
     FormsModule,
     MatButton,
     MatIconButton,
+    MatCheckbox,
     MatIcon,
     MatFormField,
     MatLabel,
     MatInput,
     MatProgressBar,
     MinutesPipe,
+    SidecarImgPipe,
     ChipsInput,
   ],
   templateUrl: './scan.html',
@@ -84,6 +96,10 @@ export class Scan implements OnDestroy {
   protected readonly scanning = signal(false);
   protected readonly progress = signal<ScanProgress | null>(null);
   protected readonly result = signal<ScanResult | null>(null);
+  /** Case « scan complet » : repasse AUSSI les fichiers déjà indexés dans
+   *  l'assistant (préremplis avec leur fiche — l'enregistrement la met à
+   *  jour). Demande utilisateur, phase 2. */
+  protected fullScan = false;
   /** Valeur 0-100 pour la barre de progression Material. */
   protected readonly progressPercent = computed(() => {
     const p = this.progress();
@@ -123,11 +139,86 @@ export class Scan implements OnDestroy {
   /** Sauvegarde en cours (désactive le bouton). */
   protected readonly saving = signal(false);
 
+  /* ------------------- recherche TMDB (2.4) ---------------------- */
+
+  /** Requête de recherche (préremplie par le titre deviné/fiche). */
+  protected tmdbQuery = '';
+  /** Recherche en cours. */
+  protected readonly tmdbSearching = signal(false);
+  /** Statut du dernier appel ('idle' avant toute recherche). */
+  protected readonly tmdbStatus = signal<'idle' | TmdbCallStatus>('idle');
+  /** Code HTTP de la dernière erreur (affiché dans le message). */
+  protected readonly tmdbHttpStatus = signal<number | null>(null);
+  /** Résultats proposés au choix de l'utilisateur. */
+  protected readonly tmdbResults = signal<TmdbSearchResult[]>([]);
+  /** Vignette d'affiche du résultat appliqué (aperçu dans le formulaire). */
+  protected readonly pickedPosterUrl = signal<string | null>(null);
+  /** Chargement des détails du résultat cliqué. */
+  protected readonly tmdbLoadingDetails = signal(false);
+  /** Fiche TMDB appliquée au brouillon (source du tmdbId/trailer/personnages). */
+  protected readonly appliedTmdb = signal<TmdbMovieDetails | null>(null);
+
+  /** Lance (ou relance) la recherche TMDB pour le fichier courant. */
+  protected async searchTmdb(): Promise<void> {
+    const query = this.tmdbQuery.trim();
+    if (query === '') {
+      return;
+    }
+    this.tmdbSearching.set(true);
+    try {
+      const outcome = await this.api.searchTmdb(query, this.draft.year);
+      this.tmdbStatus.set(outcome.status);
+      this.tmdbHttpStatus.set(outcome.httpStatus);
+      this.tmdbResults.set(outcome.results);
+    } finally {
+      this.tmdbSearching.set(false);
+    }
+  }
+
+  /**
+   * Applique un résultat choisi : charge les détails complets et remplace
+   * les champs de la fiche (les TAGS et la note perso, personnels, sont
+   * conservés). Tout reste modifiable ensuite (PLAN § 6.2.3c).
+   */
+  protected async applyTmdbResult(result: TmdbSearchResult): Promise<void> {
+    this.tmdbLoadingDetails.set(true);
+    try {
+      const outcome = await this.api.getTmdbDetails(result.tmdbId);
+      if (outcome.status !== 'ok' || outcome.details === null) {
+        this.tmdbStatus.set(outcome.status === 'ok' ? 'error' : outcome.status);
+        this.tmdbHttpStatus.set(outcome.httpStatus);
+        return;
+      }
+      const d = outcome.details;
+      this.appliedTmdb.set(d);
+      this.pickedPosterUrl.set(result.posterUrl);
+      this.draft.titleVo = d.titleVo;
+      this.draft.titleVf = d.titleVf ?? '';
+      this.draft.year = d.year;
+      this.draft.overview = d.overview ?? '';
+      this.draft.tmdbRating = d.tmdbRating;
+      this.draft.directors = [...d.directors];
+      this.draft.writers = [...d.writers];
+      this.draft.actors = d.actors.map((a) => a.name);
+      this.draft.genres = [...d.genres];
+      // Champs PERSONNELS jamais touchés par TMDB : personalRating,
+      // personalNotes, tags.
+    } finally {
+      this.tmdbLoadingDetails.set(false);
+    }
+  }
+
+  /** Libellé de la langue de fiches configurée (label du champ « Titre (…) »). */
+  protected readonly metadataLangLabel = signal('');
+
   /** Désinscription de l'événement de progression (fuite sinon). */
   private readonly unsubscribeProgress: () => void;
 
   constructor() {
     void this.api.getLibraryRoots().then((roots) => this.roots.set(roots));
+    void this.api
+      .getTmdbLanguageConfig()
+      .then((config) => this.metadataLangLabel.set(tmdbLanguageLabel(config.metadataLanguage)));
     this.unsubscribeProgress = this.api.onScanProgress((p) => this.progress.set(p));
   }
 
@@ -174,9 +265,14 @@ export class Scan implements OnDestroy {
     this.result.set(null);
     this.currentIndex.set(0);
     try {
-      const result = await this.api.scan();
+      const result = await this.api.scan(this.fullScan);
       this.result.set(result);
       this.prepareDraft();
+      // Des fiches ont pu être créées par l'import silencieux des .nfo :
+      // la conformité (et donc la bibliothèque) doit être rafraîchie.
+      if (result.importedFromNfo.length > 0) {
+        await this.store.refreshConformity();
+      }
     } finally {
       this.scanning.set(false);
     }
@@ -243,9 +339,27 @@ export class Scan implements OnDestroy {
         year: this.draft.year,
         overview: this.draft.overview.trim() === '' ? null : this.draft.overview.trim(),
         personalRating: this.draft.personalRating,
+        personalNotes:
+          this.draft.personalNotes.trim() === '' ? null : this.draft.personalNotes.trim(),
+        tmdbRating: this.draft.tmdbRating,
+        // Identifiant TMDB, trailer et personnages : priorité à la fiche
+        // TMDB appliquée dans l'assistant, sinon à la fiche existante
+        // (mise à jour) — les chips ne portent que des noms.
+        tmdbId: this.appliedTmdb()?.tmdbId ?? file.existing?.tmdbId ?? null,
+        trailerYoutubeKey:
+          this.appliedTmdb()?.trailerYoutubeKey ?? file.existing?.trailerYoutubeKey ?? null,
+        // Images à télécharger en sidecars (uniquement si fiche TMDB appliquée).
+        tmdbPosterPath: this.appliedTmdb()?.tmdbPosterPath ?? null,
+        tmdbBackdropPath: this.appliedTmdb()?.tmdbBackdropPath ?? null,
         directors: this.draft.directors,
         writers: this.draft.writers,
-        actors: this.draft.actors,
+        actors: this.draft.actors.map((name) => ({
+          name,
+          character:
+            this.appliedTmdb()?.actors.find((a) => a.name === name)?.character ??
+            file.existing?.actors.find((a) => a.name === name)?.character ??
+            null,
+        })),
         genres: this.draft.genres,
         tags: this.draft.tags,
       };
@@ -268,14 +382,49 @@ export class Scan implements OnDestroy {
     this.prepareDraft();
   }
 
-  /** Préremplit le brouillon depuis le parsing du nom de fichier. */
+  /**
+   * Préremplit le brouillon : depuis la FICHE EXISTANTE si le fichier est
+   * déjà indexé (scan complet — l'enregistrement mettra la fiche à jour),
+   * sinon depuis le parsing du nom de fichier.
+   */
   private prepareDraft(): void {
     const file = this.currentFile();
     this.draft = this.emptyDraft();
-    if (file !== null) {
+    // État TMDB remis à zéro pour chaque fichier.
+    this.appliedTmdb.set(null);
+    this.pickedPosterUrl.set(null);
+    this.tmdbResults.set([]);
+    this.tmdbStatus.set('idle');
+    this.tmdbHttpStatus.set(null);
+    if (file === null) {
+      this.tmdbQuery = '';
+      return;
+    }
+    if (file.existing !== null) {
+      const f = file.existing;
+      this.draft.titleVo = f.titleVo;
+      this.draft.titleVf = f.titleVf ?? '';
+      this.draft.year = f.year;
+      this.draft.overview = f.overview ?? '';
+      this.draft.personalRating = f.personalRating;
+      this.draft.personalNotes = f.personalNotes ?? '';
+      this.draft.tmdbRating = f.tmdbRating;
+      // Copies des tableaux : le brouillon est modifiable sans toucher au DTO.
+      this.draft.directors = [...f.directors];
+      this.draft.writers = [...f.writers];
+      this.draft.actors = f.actors.map((a) => a.name);
+      this.draft.genres = [...f.genres];
+      this.draft.tags = [...f.tags];
+    } else {
       this.draft.titleVo = file.guess.title;
       this.draft.year = file.guess.year;
     }
+
+    // Recherche TMDB préremplie et lancée automatiquement (PLAN § 6.2.3b) :
+    // l'utilisateur CHOISIT ensuite dans la liste — jamais d'application
+    // automatique. Sans clé/hors ligne, le statut affiche quoi faire.
+    this.tmdbQuery = this.draft.titleVo;
+    void this.searchTmdb();
   }
 
   private emptyDraft(): QualifyDraft {
@@ -285,6 +434,8 @@ export class Scan implements OnDestroy {
       year: null,
       overview: '',
       personalRating: null,
+      personalNotes: '',
+      tmdbRating: null,
       directors: [],
       writers: [],
       actors: [],
