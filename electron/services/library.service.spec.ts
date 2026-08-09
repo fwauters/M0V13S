@@ -162,3 +162,30 @@ describe('LibraryService.listMovies — browse enrichi', () => {
     expect(list[0]?.durationSec).toBe(9000);
   });
 });
+
+describe('LibraryService.getMovie — langues des pistes', () => {
+  it('restitue audio/sous-titres stockés, [] pour un fichier ancien (null)', () => {
+    const id = seedMovie({ titleVo: 'Alien' });
+    // Le fichier seedé (langs null = analysé avant l'ajout de l'info)
+    // cohabite avec un fichier récent porteur de langues.
+    handle.db
+      .insert(videoFiles)
+      .values({
+        mediaId: id,
+        relPath: 'Films/Alien/Alien-vf.mkv',
+        sizeBytes: 2000,
+        mtimeMs: 2,
+        partNumber: 2,
+        status: 'ok',
+        audioLangs: ['fre', 'eng'],
+        subtitleLangs: ['fre'],
+      })
+      .run();
+
+    const movie = service.getMovie(id);
+    const techs = movie?.files.map((f) => f.tech) ?? [];
+    expect(techs[0]?.audioLangs).toEqual([]); // null en base → [] côté DTO
+    expect(techs[1]?.audioLangs).toEqual(['fre', 'eng']);
+    expect(techs[1]?.subtitleLangs).toEqual(['fre']);
+  });
+});

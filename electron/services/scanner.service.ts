@@ -372,6 +372,8 @@ export class ScannerService {
         audioCodec: file.audioCodec,
         width: file.width,
         height: file.height,
+        audioLangs: file.audioLangs ?? [],
+        subtitleLangs: file.subtitleLangs ?? [],
       },
       partNumber: file.partNumber,
       titleVo: form.titleVo,
@@ -427,6 +429,8 @@ export class ScannerService {
         audioCodec: file.audioCodec,
         width: file.width,
         height: file.height,
+        audioLangs: file.audioLangs ?? [],
+        subtitleLangs: file.subtitleLangs ?? [],
       },
       partNumber: file.partNumber,
       titleVo: details.titleVo,
@@ -521,6 +525,8 @@ export class ScannerService {
             audioCodec: input.tech?.audioCodec ?? null,
             width: input.tech?.width ?? null,
             height: input.tech?.height ?? null,
+            audioLangs: input.tech?.audioLangs ?? null,
+            subtitleLangs: input.tech?.subtitleLangs ?? null,
             status: 'ok',
             scannedAt: Date.now(),
           })
@@ -588,6 +594,8 @@ export class ScannerService {
           audioCodec: input.tech?.audioCodec ?? null,
           width: input.tech?.width ?? null,
           height: input.tech?.height ?? null,
+          audioLangs: input.tech?.audioLangs ?? null,
+          subtitleLangs: input.tech?.subtitleLangs ?? null,
         })
         .run();
 

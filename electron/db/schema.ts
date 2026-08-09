@@ -154,6 +154,12 @@ export const videoFiles = sqliteTable(
     audioCodec: text('audio_codec'),
     width: integer('width'),
     height: integer('height'),
+    /** Langues des pistes audio (codes ISO 639-2, tableau JSON). Null =
+     *  fichier pas encore analysé depuis l'ajout de cette info — un scan
+     *  complet re-analyse et remplit. */
+    audioLangs: text('audio_langs', { mode: 'json' }).$type<string[]>(),
+    /** Langues des pistes de sous-titres (même convention). */
+    subtitleLangs: text('subtitle_langs', { mode: 'json' }).$type<string[]>(),
     /** Numéro de partie pour les rips multi-fichiers (CD1 = 1, CD2 = 2…). */
     partNumber: integer('part_number'),
     /** `ok` = présent au dernier contrôle ; `missing` = disparu → masqué. */

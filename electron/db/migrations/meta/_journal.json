@@ -22,6 +22,13 @@
       "when": 1786061769105,
       "tag": "0002_curly_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786298658973,
+      "tag": "0003_rich_dormammu",
+      "breakpoints": true
     }
   ]
 }

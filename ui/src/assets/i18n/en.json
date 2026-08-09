@@ -94,6 +94,8 @@
     "editButton": "Edit manually",
     "trailerButton": "Watch the trailer",
     "trailerOffline": "Trailer unavailable offline (the only feature that needs internet).",
+    "audio": "Audio",
+    "subtitles": "Subtitles",
     "tmdbRating": "TMDB {{rating}}/10",
     "notes": "My review",
     "files": "Files",

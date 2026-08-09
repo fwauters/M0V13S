@@ -223,6 +223,9 @@ export class LibraryService {
           audioCodec: f.audioCodec,
           width: f.width,
           height: f.height,
+          // Null en base = fichier analysé avant l'ajout de cette info.
+          audioLangs: f.audioLangs ?? [],
+          subtitleLangs: f.subtitleLangs ?? [],
         },
       })),
     };

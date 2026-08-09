@@ -19,6 +19,11 @@ export interface MediaTechnicalInfo {
   audioCodec: string | null;
   width: number | null;
   height: number | null;
+  /** Langues des pistes audio (codes ISO 639-2 tels que tagués dans le
+   *  conteneur, dédupliqués, ordre des pistes). Vide si non tagué. */
+  audioLangs: string[];
+  /** Langues des pistes de sous-titres (même convention). */
+  subtitleLangs: string[];
 }
 
 /** Forme minimale de la sortie JSON de ffprobe qu'on exploite. */
@@ -29,7 +34,34 @@ interface FfprobeJson {
     codec_name?: string;
     width?: number;
     height?: number;
+    /** Métadonnées de piste — `language` est un code ISO 639-2 (fre, eng…). */
+    tags?: { language?: string };
   }>;
+}
+
+/**
+ * Langues dédupliquées des pistes d'un type donné, dans l'ordre du
+ * conteneur. `und` (undetermined) et les pistes non taguées sont
+ * ignorées : mieux vaut ne rien afficher qu'afficher « inconnu ».
+ */
+function streamLanguages(
+  streams: NonNullable<FfprobeJson['streams']>,
+  codecType: 'audio' | 'subtitle',
+): string[] {
+  const langs: string[] = [];
+  for (const stream of streams) {
+    const lang = stream.tags?.language?.toLowerCase();
+    if (
+      stream.codec_type === codecType &&
+      lang !== undefined &&
+      lang !== '' &&
+      lang !== 'und' &&
+      !langs.includes(lang)
+    ) {
+      langs.push(lang);
+    }
+  }
+  return langs;
 }
 
 /**
@@ -39,11 +71,12 @@ interface FfprobeJson {
  */
 export function parseFfprobeOutput(json: string): MediaTechnicalInfo {
   const data = JSON.parse(json) as FfprobeJson;
+  const streams = data.streams ?? [];
 
   // Premier flux vidéo et premier flux audio = flux principaux
   // (convention ffprobe : ordre du conteneur).
-  const video = data.streams?.find((s) => s.codec_type === 'video');
-  const audio = data.streams?.find((s) => s.codec_type === 'audio');
+  const video = streams.find((s) => s.codec_type === 'video');
+  const audio = streams.find((s) => s.codec_type === 'audio');
 
   const rawDuration = data.format?.duration;
   const duration = rawDuration === undefined ? NaN : Number.parseFloat(rawDuration);
@@ -54,6 +87,8 @@ export function parseFfprobeOutput(json: string): MediaTechnicalInfo {
     audioCodec: audio?.codec_name ?? null,
     width: video?.width ?? null,
     height: video?.height ?? null,
+    audioLangs: streamLanguages(streams, 'audio'),
+    subtitleLangs: streamLanguages(streams, 'subtitle'),
   };
 }
 

@@ -17,6 +17,8 @@ import {
 import { ApiService } from '../../core/services/api.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { JoinPipe } from '../../core/pipes/join.pipe';
+import { LangNamesPipe } from '../../core/pipes/lang-names.pipe';
+import { LanguageService } from '../../core/services/language.service';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
 import { ChipsInput } from '../scan/chips-input';
@@ -75,6 +77,7 @@ function initialsOf(name: string): string {
     MatInput,
     MinutesPipe,
     JoinPipe,
+    LangNamesPipe,
     SidecarImgPipe,
     ChipsInput,
   ],
@@ -89,6 +92,9 @@ export class MovieDetail {
 
   /** Connectivité (signal) : pilote le bouton trailer (online-only). */
   protected readonly connectivity = inject(ConnectivityService);
+
+  /** Langue de l'UI (signal) — paramètre du pipe langNames. */
+  protected readonly uiLang = inject(LanguageService).lang;
 
   /** Fiche chargée (null = introuvable une fois `loaded` vrai). */
   protected readonly movie = signal<MovieDetailDto | null>(null);
@@ -118,6 +124,32 @@ export class MovieDetail {
       (this.movie()?.files ?? []).find((f) => f.tech.durationSec !== null)?.tech.durationSec ??
       null,
   );
+
+  /** Langues audio du hero : union dédupliquée sur tous les fichiers. */
+  protected readonly audioLangs = computed(() => {
+    const langs: string[] = [];
+    for (const file of this.movie()?.files ?? []) {
+      for (const lang of file.tech.audioLangs) {
+        if (!langs.includes(lang)) {
+          langs.push(lang);
+        }
+      }
+    }
+    return langs;
+  });
+
+  /** Langues de sous-titres du hero (même union). */
+  protected readonly subtitleLangs = computed(() => {
+    const langs: string[] = [];
+    for (const file of this.movie()?.files ?? []) {
+      for (const lang of file.tech.subtitleLangs) {
+        if (!langs.includes(lang)) {
+          langs.push(lang);
+        }
+      }
+    }
+    return langs;
+  });
 
   /* ---------------- édition manuelle (décision phase 2) ------------- */
 

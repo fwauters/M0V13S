@@ -10,6 +10,12 @@ export interface TechInfo {
   audioCodec: string | null;
   width: number | null;
   height: number | null;
+  /** Langues des pistes audio (codes ISO 639-2 du conteneur : fre, eng…),
+   *  dédupliquées dans l'ordre des pistes. Vide si non tagué / fichier
+   *  analysé avant l'ajout de cette info (re-scan complet pour remplir). */
+  audioLangs: string[];
+  /** Langues des pistes de sous-titres (même convention). */
+  subtitleLangs: string[];
 }
 
 /* ------------------------------------------------------------------ */
