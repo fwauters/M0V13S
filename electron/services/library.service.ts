@@ -75,6 +75,9 @@ export class LibraryService {
           actors: [],
           addedAt: row.createdAt,
           seen: false,
+          watchCount: 0,
+          resumePositionSec: null,
+          lastWatchedAt: null,
         });
       } else if (existing.durationSec === null && row.durationSec !== null) {
         existing.durationSec = row.durationSec;
@@ -130,17 +133,22 @@ export class LibraryService {
         }
       }
 
-      // 5. État « vu » (watch_state personnel — filtre vu/pas vu).
+      // 5. État de visionnage complet (watch_state personnel) : filtre
+      //    vu/pas vu ET rangées de suggestions (reprendre, genre favori,
+      //    pas revus depuis longtemps).
       const watchedRows = this.db
-        .select({ mediaId: watchState.mediaId })
+        .select()
         .from(watchState)
-        .where(and(inArray(watchState.mediaId, ids), eq(watchState.completed, true)))
+        .where(inArray(watchState.mediaId, ids))
         .all();
       for (const w of watchedRows) {
         if (w.mediaId !== null) {
           const item = byId.get(w.mediaId);
           if (item !== undefined) {
-            item.seen = true;
+            item.seen = w.completed;
+            item.watchCount = w.watchCount;
+            item.resumePositionSec = w.resumePositionSec;
+            item.lastWatchedAt = w.lastWatchedAt;
           }
         }
       }

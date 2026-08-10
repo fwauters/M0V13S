@@ -368,9 +368,14 @@ export interface MovieListItem {
   actors: string[];
   /** Date d'ajout à l'index (ms epoch) — rangée et tri « ajouts ». */
   addedAt: number;
-  /** Vu jusqu'au bout (watch_state PERSONNEL — alimenté en phase 4,
-   *  déjà exposé pour le filtre vu/pas vu). */
+  /** Vu jusqu'au bout (watch_state PERSONNEL — filtre vu/pas vu). */
   seen: boolean;
+  /** Nombre de visionnages complets (genre favori des suggestions). */
+  watchCount: number;
+  /** Position de reprise (s) — rangée « Reprendre » des suggestions. */
+  resumePositionSec: number | null;
+  /** Dernière activité de lecture (ms epoch) — tri des suggestions. */
+  lastWatchedAt: number | null;
 }
 
 /** Personne d'une fiche, avec son rôle. */

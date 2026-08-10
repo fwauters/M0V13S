@@ -34,6 +34,9 @@ class FakeApiService {
       actors: [],
       addedAt: 1000,
       seen: false,
+      watchCount: 0,
+      resumePositionSec: null,
+      lastWatchedAt: null,
     },
   ];
 

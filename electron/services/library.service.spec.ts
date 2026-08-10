@@ -119,7 +119,16 @@ describe('LibraryService.listMovies — browse enrichi', () => {
       ])
       .run();
 
-    handle.db.insert(watchState).values({ mediaId: id, completed: true }).run();
+    handle.db
+      .insert(watchState)
+      .values({
+        mediaId: id,
+        completed: true,
+        watchCount: 2,
+        resumePositionSec: 900,
+        lastWatchedAt: 424999,
+      })
+      .run();
 
     const [movie] = service.listMovies();
     expect(movie).toMatchObject({
@@ -129,7 +138,11 @@ describe('LibraryService.listMovies — browse enrichi', () => {
       directors: ['Ridley Scott'],
       actors: ['Sigourney Weaver'],
       addedAt: 424242,
+      // Visionnage complet exposé (suggestions de la phase 5).
       seen: true,
+      watchCount: 2,
+      resumePositionSec: 900,
+      lastWatchedAt: 424999,
     });
   });
 

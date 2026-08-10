@@ -27,6 +27,9 @@ function makeMovie(partial: Partial<MovieListItem> & { id: number }): MovieListI
     actors: [],
     addedAt: partial.id,
     seen: false,
+    watchCount: 0,
+    resumePositionSec: null,
+    lastWatchedAt: null,
     ...partial,
   };
 }
@@ -242,5 +245,76 @@ describe('BrowseStore — filtres et tris combinables (TODO 3.4)', () => {
       'Ridley Scott',
     ]);
     expect(browse.allYears()).toEqual([2001, 1994, 1979]);
+  });
+});
+
+describe('BrowseStore — rangées de suggestions (TODO 5.1)', () => {
+  let fake: FakeApiService;
+  let library: LibraryStore;
+  let browse: BrowseStore;
+
+  /** Il y a ~1 an et ~1 mois (bornes de « pas revus depuis longtemps »). */
+  const ONE_YEAR_AGO = Date.now() - 365 * 24 * 3600 * 1000;
+  const ONE_MONTH_AGO = Date.now() - 30 * 24 * 3600 * 1000;
+
+  beforeEach(() => {
+    fake = new FakeApiService();
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: fake }],
+    });
+    library = TestBed.inject(LibraryStore);
+    browse = TestBed.inject(BrowseStore);
+  });
+
+  it('sans aucun historique : seules Reprendre/… restent vides', async () => {
+    fake.moviesResult = [makeMovie({ id: 1 }), makeMovie({ id: 2 })];
+    await library.loadMovies();
+    expect(browse.resumeRow()).toEqual([]);
+    expect(browse.neverSeenRow()).toEqual([]); // sinon = toute la bibliothèque
+    expect(browse.favoriteGenre()).toBeNull();
+    expect(browse.favoriteGenreRow()).toEqual([]);
+    expect(browse.longUnseenRow()).toEqual([]);
+  });
+
+  it('« Reprendre » : films entamés, dernière activité d abord', async () => {
+    fake.moviesResult = [
+      makeMovie({ id: 1, resumePositionSec: 600, lastWatchedAt: 100 }),
+      makeMovie({ id: 2, resumePositionSec: 1200, lastWatchedAt: 300 }),
+      makeMovie({ id: 3 }),
+    ];
+    await library.loadMovies();
+    expect(browse.resumeRow().map((m) => m.id)).toEqual([2, 1]);
+  });
+
+  it('« Jamais vus » : ni terminés ni entamés, dès qu un historique existe', async () => {
+    fake.moviesResult = [
+      makeMovie({ id: 1, seen: true, lastWatchedAt: ONE_MONTH_AGO }),
+      makeMovie({ id: 2, resumePositionSec: 600 }),
+      makeMovie({ id: 3 }),
+    ];
+    await library.loadMovies();
+    expect(browse.neverSeenRow().map((m) => m.id)).toEqual([3]);
+  });
+
+  it('genre favori : pondéré par les visionnages, films PAS VUS proposés', async () => {
+    fake.moviesResult = [
+      makeMovie({ id: 1, seen: true, watchCount: 3, genres: ['SF'] }),
+      makeMovie({ id: 2, seen: true, watchCount: 1, genres: ['Drame'] }),
+      makeMovie({ id: 3, genres: ['SF'] }), // pas vu → proposé
+      makeMovie({ id: 4, genres: ['Drame'] }),
+    ];
+    await library.loadMovies();
+    expect(browse.favoriteGenre()).toBe('SF');
+    expect(browse.favoriteGenreRow().map((m) => m.id)).toEqual([3]);
+  });
+
+  it('« Pas revus depuis longtemps » : > ~6 mois, les plus anciens d abord', async () => {
+    fake.moviesResult = [
+      makeMovie({ id: 1, seen: true, lastWatchedAt: ONE_MONTH_AGO }), // trop récent
+      makeMovie({ id: 2, seen: true, lastWatchedAt: ONE_YEAR_AGO }),
+      makeMovie({ id: 3, seen: true, lastWatchedAt: ONE_YEAR_AGO - 1000 }), // plus ancien
+    ];
+    await library.loadMovies();
+    expect(browse.longUnseenRow().map((m) => m.id)).toEqual([3, 2]);
   });
 });
