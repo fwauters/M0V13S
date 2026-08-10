@@ -6,25 +6,25 @@
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phases 0 à 3 : terminées, validées, mergées** (PR #1 à #4 — la
-   phase 3 inclut les ajustements post-validation : identité bi-thème
-   sarcelle/ambre partout, trailer + langues éditables, Space Mono).
-2. **Phase 4 (lecture VLC & suivi) : TERMINÉE et poussée — PR #5
-   OUVERTE, en attente de la validation utilisateur puis du merge.**
-   vlc.service (spawn portable, HTTP local port dynamique, polling),
-   watch.service (reprise continue, vu > 90 %, marquage manuel), UI
-   (Lire/Reprendre, badges vus), packaging embarquant désormais tools\.
-3. **Ensuite : phase 5 (intelligence & finitions)** — TODO 5.1 → 5.8
-   (suggestions, verrou admin, MAJ VLC, édition admin, premier
-   lancement, polish, e2e smoke, release v1.0).
+1. **Phases 0 à 4 : terminées, validées, mergées** (PR #1 à #5).
+   Restructuration actée (2026-08-10) : la release quitte la phase 5 →
+   **phase 6 « Recette générale & release »** (checklist `docs/RECETTE.md`
+   déroulée par l'utilisateur, corrections par lots, puis v1.0).
+2. **Phase 5 (intelligence & finitions) : TERMINÉE et poussée — PR #6
+   OUVERTE, en attente de validation utilisateur puis merge.**
+   Suggestions (Reprendre/Jamais vus/genre favori/pas revus), verrou
+   admin (mot de passe scrypt via guard, SANS combo — décision
+   utilisateur), MAJ VLC (staging + bascule au démarrage + secours),
+   édition contrôlée vue admin, écran /setup, polish, e2e smoke.
+3. **Ensuite : phase 6** — rédiger `docs/RECETTE.md` (inventaire réel du
+   code), recette utilisateur, corrections par lots, release v1.0.
 
 ## Actions en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-1. Valider la phase 4 (procédure détaillée : phase_4.md § Validation) —
-   l'essentiel : « Lire » lance le VLC embarqué plein écran, quitter en
-   cours → « Reprendre à … », > 90 % → badge « Vu » + coche browse,
-   marquage manuel, messages non bloquants (VLC absent, déjà en cours).
-2. Puis **merger la PR #5**.
+1. Valider la phase 5 (procédure : phase_5.md § Validation) —
+   suggestions, verrou admin, MAJ VLC, édition admin (fiche + .nfo),
+   premier lancement (renommer data\), `pnpm e2e`.
+2. Puis **merger la PR #6**.
 
 ## Méthode de travail établie (récap opérationnel)
 
@@ -67,30 +67,45 @@
 - Confidentialité : jamais de nom réel/email dans le code — pseudonyme
   **S13N** si besoin.
 
-## Snapshot technique (fin de session)
+## Snapshot technique (fin de session du 2026-08-10)
 
 - Stack : Electron 43 + Angular 22.1.1 (zoneless) + Material M3 (identité
   bi-thème : sarcelle clair / ambre sombre, overrides ciblés `html.dark`,
   ag-grid accentColor aligné) + Tailwind v4 + Transloco fr/en +
   better-sqlite3/Drizzle (migrations 0000-0003) + VLC portable 3.0.23 +
-  ffprobe dans `tools\`.
-- **142 tests backend + 32 tests UI verts** ; audit 0 vulnérabilité ;
-  packaging portable vérifié AVEC tools embarqués (exe + fenêtre OK).
-- Lecture : `player:play` → premier fichier présent, VLC HTTP 127.0.0.1
-  port dynamique + mot de passe jetable, polling 2 s, reprise continue,
-  vu > 90 % (une fois), `player:ended` → l'UI recharge.
-- Branches : `main` (phases 0-3), `phase-4` (poussée, PR #5 ouverte).
-- Rapports : phase_0 à phase_3 (validés), phase_4.md (en validation).
+  ffprobe dans `tools\` + Playwright (dev, e2e Electron — pas de
+  navigateur téléchargé, son postinstall bloqué par pnpm 10 convient).
+- **163 tests backend + 37 tests UI verts** ; audit 0 vulnérabilité
+  (TS 7 exclu — Angular 22.1 exige ~6.0) ; packaging + e2e OK.
+- Services main : paths, settings, filename, ffprobe (langues de pistes
+  incluses), conformity, walker, scanner (+updateMediaField), library,
+  nfo, images, thumbs, tmdb, grouping, vlc (+logic), watch, vlc-updater
+  (+logic), admin (scrypt), admin-tables. IPC par domaines : system,
+  settings, library, scanner, admin (+updateMediaField), tmdb, player,
+  vlcUpdate, adminLock.
+- UI : routes `/` (setupGuard), `/setup`, `/browse` + `/movie/:id`
+  (classicModeGuard), `/scan` + `/admin/data` (adminGuard). Stores :
+  LibraryStore, BrowseStore (filtres persistants + suggestions),
+  AdminLockService (signal unlocked), ThemeService, LanguageService,
+  ConnectivityService.
+- Commandes de session : `pnpm dev` / `test` / `test:ui` / `typecheck` /
+  `build` / `package` / **`pnpm e2e`** (exige `pnpm package` avant ;
+  SUPPRIME release\win-unpacked\data pour partir propre — release\ est
+  un artefact jetable).
+- Branches : `main` (phases 0-4 mergées), `phase-5` (poussée, PR #6
+  ouverte). Rapports : phase_0 à phase_4 (validés), phase_5.md (en
+  validation). Le dossier `data\` de DEV (racine du repo) contient la
+  bibliothèque de test de l'utilisateur — ne pas y toucher.
 
-## Plan de la phase 5 (dès la PR #5 mergée)
+## Plan de la phase 6 (dès la PR #6 mergée)
 
-Créer la branche `phase-5` depuis `main` fraîchement mergé, puis dérouler
-TODO 5.1 → 5.8 : rangées de suggestions (SQL dédié : à reprendre, jamais
-vus, pas vus depuis longtemps, genre favori, ajoutés récemment) → verrou
-admin (combo touches + scrypt, définition au premier lancement) →
-vlc-updater (vérification/téléchargement en mode admin, bascule au
-redémarrage, version de secours) → édition contrôlée de la vue admin
-(via services métier, réécriture .nfo garantie) → écran de premier
-lancement (racines, clé TMDB, mot de passe admin) → polish UI
-(animations, focus clavier, états vides, accessibilité) → e2e smoke sur
-build packagé → release v1.0 (tag, GitHub Release, READMEs + captures).
+Créer la branche `phase-6` depuis `main` fraîchement mergé, puis :
+rédiger `docs/RECETTE.md` — la checklist EXHAUSTIVE générée depuis
+l'inventaire réel du code (routes/écrans, services main, canaux IPC,
+réglages, clés i18n, thèmes) — organisée par parcours avec cases à
+cocher et colonne remarques ; l'utilisateur la déroule (chaque écran
+dans les DEUX thèmes et les DEUX langues, systèmes : conformité,
+sidecars/partage, hors-ligne intégral, lecture/reprise/vu, MAJ VLC,
+portabilité réelle machine B) ; corrections par lots (un commit par lot,
+tests de non-régression, RECETTE re-cochée) ; PUIS release v1.0 : build
+final, tag git, GitHub Release, READMEs finalisés (guide + captures).

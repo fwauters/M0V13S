@@ -92,10 +92,15 @@ async function prepareVlc() {
   await download(new URL(zipName, VLC_LIST_URL).href, zipPath);
   unzip(zipPath, extractDir);
 
-  // 3. Déposer le contenu (dossier vlc-<version>) dans tools\vlc.
+  // 3. Déposer le contenu (dossier vlc-<version>) dans tools\vlc, avec
+  //    le marqueur de version lu par vlc-updater.service (phase 5).
   const target = path.join(TOOLS_DIR, 'vlc');
   fs.rmSync(target, { recursive: true, force: true });
   fs.renameSync(onlySubdir(extractDir), target);
+  const version = zipName.match(/vlc-([\d.]+)-win64/)?.[1];
+  if (version !== undefined) {
+    fs.writeFileSync(path.join(target, '.version'), version, 'utf8');
+  }
   console.log(`[prepare-tools] OK : tools\\vlc\\ (${zipName})`);
 }
 

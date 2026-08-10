@@ -15,6 +15,13 @@ import {
   type TmdbLanguageConfig,
 } from '@shared/dto';
 
+import type {
+  VlcUpdateCheckOutcome,
+  VlcUpdateDownloadStatus,
+  VlcUpdaterState,
+} from '@shared/dto';
+
+import { AdminLockService } from '../../core/services/admin-lock.service';
 import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
 
@@ -49,6 +56,9 @@ import { LibraryStore } from '../../core/library.store';
 })
 export class Home {
   protected readonly store = inject(LibraryStore);
+
+  /** Verrou admin (signal) : la section réglages TMDB est admin. */
+  protected readonly adminLock = inject(AdminLockService);
   private readonly api = inject(ApiService);
 
   /** Statut (masqué) de la clé TMDB — null tant que non chargé. */
@@ -69,10 +79,44 @@ export class Home {
   /** Préférences de langues courantes (null tant que non chargées). */
   protected readonly languageConfig = signal<TmdbLanguageConfig | null>(null);
 
+  /* -------- MAJ de VLC (carte admin — PLAN § 6.7, TODO 5.3) -------- */
+
+  /** État du lecteur embarqué (null tant que non chargé). */
+  protected readonly vlcState = signal<VlcUpdaterState | null>(null);
+  /** Résultat de la dernière vérification (null avant tout clic). */
+  protected readonly vlcCheck = signal<VlcUpdateCheckOutcome | null>(null);
+  /** Vérification ou téléchargement en cours. */
+  protected readonly vlcBusy = signal(false);
+  /** Résultat du dernier téléchargement (null avant tout). */
+  protected readonly vlcDownload = signal<VlcUpdateDownloadStatus | null>(null);
+
   constructor() {
     void this.store.ensureConformity();
     void this.refreshTmdbStatus();
     void this.api.getTmdbLanguageConfig().then((config) => this.languageConfig.set(config));
+    void this.api.getVlcUpdaterState().then((state) => this.vlcState.set(state));
+  }
+
+  /** Vérifie la dernière version VLC publiée (bouton admin). */
+  protected async checkVlc(): Promise<void> {
+    this.vlcBusy.set(true);
+    this.vlcDownload.set(null);
+    try {
+      this.vlcCheck.set(await this.api.checkVlcUpdate());
+    } finally {
+      this.vlcBusy.set(false);
+    }
+  }
+
+  /** Télécharge la MAJ en staging (bascule au prochain démarrage). */
+  protected async downloadVlc(): Promise<void> {
+    this.vlcBusy.set(true);
+    try {
+      this.vlcDownload.set(await this.api.downloadVlcUpdate());
+      this.vlcState.set(await this.api.getVlcUpdaterState());
+    } finally {
+      this.vlcBusy.set(false);
+    }
   }
 
   /** Change la langue des fiches (persistée immédiatement). */

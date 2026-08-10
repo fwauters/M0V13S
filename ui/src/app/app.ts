@@ -6,6 +6,7 @@ import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
+import { AdminLockService } from './core/services/admin-lock.service';
 import { AppLang, LanguageService } from './core/services/language.service';
 import { LibraryStore } from './core/library.store';
 import { ThemeService } from './core/services/theme.service';
@@ -39,6 +40,9 @@ export class App {
 
   /** Conformité (signal) : pilote l'affichage du lien « Bibliothèque ». */
   protected readonly store = inject(LibraryStore);
+
+  /** Verrou admin (signal) : cadenas et outils admin du header. */
+  protected readonly adminLock = inject(AdminLockService);
 
   constructor() {
     // Conformité vérifiée dès l'ouverture, sans bloquer le rendu :

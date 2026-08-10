@@ -1,0 +1,79 @@
+<!-- Premier lancement : trois réglages, tout reste modifiable ensuite. -->
+<ng-container *transloco="let t">
+  <div class="mx-auto flex w-full max-w-2xl grow flex-col gap-8 p-8">
+    <div>
+      <h1 class="text-3xl font-medium">{{ t('setup.title') }}</h1>
+      <p class="mt-1 opacity-70">{{ t('setup.intro') }}</p>
+    </div>
+
+    <!-- 1. Racines de bibliothèque. -->
+    <section class="flex flex-col gap-3 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <h2 class="font-medium">{{ t('setup.rootsTitle') }}</h2>
+      <p class="text-sm opacity-70">{{ t('scan.rootsHint') }}</p>
+
+      @for (root of roots(); track root) {
+        <div class="flex items-center gap-2 rounded-lg border border-black/10 px-3 py-1.5 dark:border-white/10">
+          <span class="grow font-mono text-sm">{{ root }}</span>
+          <button
+            matIconButton
+            (click)="removeRoot(root)"
+            [attr.aria-label]="t('common.remove')"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+
+      <div class="flex items-end gap-2">
+        <mat-form-field class="grow" subscriptSizing="dynamic">
+          <mat-label>{{ t('scan.rootPlaceholder') }}</mat-label>
+          <input matInput [(ngModel)]="rootDraft" (keydown.enter)="addRoot()" />
+        </mat-form-field>
+        <button matButton (click)="addRoot()">{{ t('scan.addRoot') }}</button>
+      </div>
+      @if (rootInvalid()) {
+        <p class="text-sm font-medium text-red-600 dark:text-red-400">
+          {{ t('scan.rootInvalid') }}
+        </p>
+      }
+    </section>
+
+    <!-- 2. Clé TMDB (optionnelle). -->
+    <section class="flex flex-col gap-3 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <h2 class="font-medium">{{ t('setup.tmdbTitle') }}</h2>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('home.tmdb.placeholder') }}</mat-label>
+        <input matInput type="password" [(ngModel)]="tmdbKeyDraft" />
+        <mat-hint>{{ t('setup.tmdbHint') }}</mat-hint>
+      </mat-form-field>
+    </section>
+
+    <!-- 3. Mot de passe admin (optionnel, recommandé). -->
+    <section class="flex flex-col gap-3 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <h2 class="font-medium">{{ t('setup.adminTitle') }}</h2>
+      <p class="text-sm opacity-70">{{ t('setup.adminHint') }}</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>{{ t('admin.unlock.password') }}</mat-label>
+          <input matInput type="password" [(ngModel)]="passwordDraft" />
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>{{ t('setup.adminConfirm') }}</mat-label>
+          <input matInput type="password" [(ngModel)]="passwordConfirm" />
+        </mat-form-field>
+      </div>
+      @if (passwordMismatch()) {
+        <p class="text-sm font-medium text-red-600 dark:text-red-400">
+          {{ t('setup.adminMismatch') }}
+        </p>
+      }
+    </section>
+
+    <div class="flex items-center gap-3">
+      <button matButton="filled" [disabled]="saving()" (click)="finish()">
+        {{ t('setup.finish') }}
+      </button>
+      <span class="text-sm opacity-60">{{ t('setup.finishHint') }}</span>
+    </div>
+  </div>
+</ng-container>

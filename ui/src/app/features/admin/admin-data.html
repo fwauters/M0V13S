@@ -1,7 +1,9 @@
-<!-- Vue admin des tables (ag-grid, lecture seule en phase 1). -->
+<!-- Vue admin des tables (ag-grid) — lecture, et édition CONTRÔLÉE des
+     champs scalaires de `media` (liste blanche, phase 5). -->
 <ng-container *transloco="let t">
   <div class="flex grow flex-col gap-4 p-8">
     <h1 class="text-2xl font-medium">{{ t('admin.dataTitle') }}</h1>
+    <p class="text-sm opacity-70">{{ t('admin.editHint') }}</p>
 
     <!-- Sélecteur de table (liste blanche alignée sur le backend). -->
     <mat-button-toggle-group
@@ -33,6 +35,7 @@
       [columnDefs]="columns()"
       [defaultColDef]="defaultColDef"
       [rowData]="rows()"
+      (cellValueChanged)="onCellValueChanged($event)"
     />
   </div>
 </ng-container>

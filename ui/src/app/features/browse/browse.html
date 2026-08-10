@@ -4,7 +4,17 @@
     @if (store.loading()) {
       <p class="px-8 opacity-70">{{ t('common.loading') }}</p>
     } @else if (store.movies().length === 0) {
-      <p class="px-8 opacity-70">{{ t('browse.empty') }}</p>
+      <!-- État vide (5.6) : icône + appel à l'action vers le Scanner. -->
+      <div class="flex grow flex-col items-center justify-center gap-4 p-8 text-center">
+        <mat-icon class="scale-[2.5] opacity-30">movie</mat-icon>
+        <p class="opacity-70">{{ t('browse.empty') }}</p>
+        <a
+          routerLink="/scan"
+          class="rounded-full bg-brand px-5 py-2 text-sm font-medium text-on-brand transition hover:bg-brand-hover"
+        >
+          {{ t('browse.emptyCta') }}
+        </a>
+      </div>
     } @else {
       <!-- Filtres et tris combinables (état persistant dans BrowseStore). -->
       <app-browse-filters />
@@ -25,8 +35,27 @@
           }
         </section>
       } @else {
+        <!-- Suggestions (TODO 5.1) : dérivées du watch_state personnel.
+             Chaque rangée n'apparaît que si elle a du contenu. -->
+        @if (browse.resumeRow().length > 0) {
+          <app-poster-row [title]="t('browse.rowResume')" [movies]="browse.resumeRow()" />
+        }
+
         <!-- Rangée « ajoutés récemment » (derniers entrés dans l'index). -->
         <app-poster-row [title]="t('browse.rowRecent')" [movies]="browse.recentlyAdded()" />
+
+        @if (browse.neverSeenRow().length > 0) {
+          <app-poster-row [title]="t('browse.rowNeverSeen')" [movies]="browse.neverSeenRow()" />
+        }
+        @if (browse.favoriteGenreRow().length > 0) {
+          <app-poster-row
+            [title]="t('browse.rowFavoriteGenre', { genre: browse.favoriteGenre() })"
+            [movies]="browse.favoriteGenreRow()"
+          />
+        }
+        @if (browse.longUnseenRow().length > 0) {
+          <app-poster-row [title]="t('browse.rowLongUnseen')" [movies]="browse.longUnseenRow()" />
+        }
 
         <!-- Une rangée par genre fourni (les plus riches d'abord). -->
         @for (row of browse.genreRows(); track row.genre) {

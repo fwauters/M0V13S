@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import type {
+  AdminEditableMediaField,
   AdminTableData,
   AdminTableName,
   ConformitySummary,
@@ -17,6 +18,9 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  VlcUpdateCheckOutcome,
+  VlcUpdateDownloadStatus,
+  VlcUpdaterState,
   WatchStateInfo,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
@@ -154,6 +158,55 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /** Édition contrôlée d'un champ de `media` (vue admin, liste blanche). */
+  async updateAdminMediaField(
+    mediaId: number,
+    field: AdminEditableMediaField,
+    value: string | number | null,
+  ): Promise<boolean> {
+    return window.api?.admin.updateMediaField(mediaId, field, value) ?? false;
+  }
+
+  /* ------------------------ MAJ de VLC ---------------------- */
+
+  /** État du lecteur embarqué (versions installée / en attente). */
+  async getVlcUpdaterState(): Promise<VlcUpdaterState> {
+    return (
+      window.api?.vlcUpdate.getState() ?? {
+        vlcPresent: false,
+        installedVersion: null,
+        pendingVersion: null,
+      }
+    );
+  }
+
+  /** Vérifie la dernière version publiée (hors Electron : hors ligne). */
+  async checkVlcUpdate(): Promise<VlcUpdateCheckOutcome> {
+    return window.api?.vlcUpdate.check() ?? { status: 'offline', latestVersion: null };
+  }
+
+  /** Télécharge la mise à jour en staging. */
+  async downloadVlcUpdate(): Promise<VlcUpdateDownloadStatus> {
+    return window.api?.vlcUpdate.download() ?? 'offline';
+  }
+
+  /* ----------------------- verrou admin --------------------- */
+
+  /** Vrai si un mot de passe admin est défini (hors Electron : faux). */
+  async hasAdminPassword(): Promise<boolean> {
+    return window.api?.adminLock.hasPassword() ?? false;
+  }
+
+  /** Vérifie un mot de passe de déverrouillage. */
+  async verifyAdminPassword(password: string): Promise<boolean> {
+    return window.api?.adminLock.verify(password) ?? true;
+  }
+
+  /** Définit/remplace le mot de passe admin (faux si refusé). */
+  async setAdminPassword(newPassword: string, currentPassword: string | null): Promise<boolean> {
+    return window.api?.adminLock.setPassword(newPassword, currentPassword) ?? false;
   }
 
   /* ------------------------- player ------------------------- */

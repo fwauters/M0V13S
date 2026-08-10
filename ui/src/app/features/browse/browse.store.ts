@@ -25,8 +25,11 @@ const MAX_GENRE_ROWS = 8;
  *  seuil, la rangée n'apporte rien de plus que la grille complète). */
 const MIN_MOVIES_PER_GENRE_ROW = 2;
 
-/** Taille de la rangée « ajoutés récemment ». */
+/** Taille des rangées « ajoutés récemment » et suggestions. */
 const RECENT_ROW_SIZE = 20;
+
+/** « Pas revus depuis longtemps » : dernier visionnage > ~6 mois. */
+const LONG_UNSEEN_MS = 182 * 24 * 60 * 60 * 1000;
 
 /** Titre d'affichage d'un film : localisé si présent, sinon VO. */
 export function displayTitle(movie: MovieListItem): string {
@@ -131,6 +134,75 @@ export class BrowseStore {
       )
       .slice(0, MAX_GENRE_ROWS)
       .map(([genre, movies]) => ({ genre, movies }));
+  });
+
+  /* ----------------- rangées de suggestions (TODO 5.1) --------------- */
+
+  /** Vrai dès qu'il existe un historique de visionnage (vu ou entamé) —
+   *  sans lui, « jamais vus » et consorts dupliqueraient la bibliothèque. */
+  private readonly hasHistory = computed(() =>
+    this.library.movies().some((m) => m.seen || m.resumePositionSec !== null),
+  );
+
+  /** « Reprendre » : films entamés, dernière activité d'abord. */
+  readonly resumeRow = computed(() =>
+    [...this.library.movies()]
+      .filter((m) => m.resumePositionSec !== null)
+      .sort((a, b) => (b.lastWatchedAt ?? 0) - (a.lastWatchedAt ?? 0))
+      .slice(0, RECENT_ROW_SIZE),
+  );
+
+  /** « Jamais vus » : ni terminés ni entamés (seulement si historique). */
+  readonly neverSeenRow = computed(() =>
+    this.hasHistory()
+      ? this.allMovies()
+          .filter((m) => !m.seen && m.resumePositionSec === null)
+          .slice(0, RECENT_ROW_SIZE)
+      : [],
+  );
+
+  /** Genre favori : le plus présent parmi les films VUS (pondéré par le
+   *  nombre de visionnages). Null sans historique de films vus. */
+  readonly favoriteGenre = computed<string | null>(() => {
+    const scores = new Map<string, number>();
+    for (const movie of this.library.movies()) {
+      if (movie.seen) {
+        for (const genre of movie.genres) {
+          scores.set(genre, (scores.get(genre) ?? 0) + Math.max(movie.watchCount, 1));
+        }
+      }
+    }
+    let best: string | null = null;
+    let bestScore = 0;
+    for (const [genre, score] of scores) {
+      // Égalité → ordre alphabétique, pour un résultat stable.
+      if (score > bestScore || (score === bestScore && best !== null && genre < best)) {
+        best = genre;
+        bestScore = score;
+      }
+    }
+    return best;
+  });
+
+  /** « Parce que vous aimez {genre} » : films PAS VUS du genre favori. */
+  readonly favoriteGenreRow = computed(() => {
+    const genre = this.favoriteGenre();
+    if (genre === null) {
+      return [];
+    }
+    return this.allMovies()
+      .filter((m) => !m.seen && m.genres.includes(genre))
+      .slice(0, RECENT_ROW_SIZE);
+  });
+
+  /** « Pas revus depuis longtemps » : vus il y a plus de ~6 mois,
+   *  les plus anciens d'abord. */
+  readonly longUnseenRow = computed(() => {
+    const threshold = Date.now() - LONG_UNSEEN_MS;
+    return [...this.library.movies()]
+      .filter((m) => m.seen && m.lastWatchedAt !== null && m.lastWatchedAt < threshold)
+      .sort((a, b) => (a.lastWatchedAt ?? 0) - (b.lastWatchedAt ?? 0))
+      .slice(0, RECENT_ROW_SIZE);
   });
 
   /* --------------- filtres et tris combinables (TODO 3.4) ------------ */

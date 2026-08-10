@@ -9,7 +9,8 @@
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
     "language": "Language",
-    "adminData": "Data view (admin)"
+    "adminData": "Data view (admin)",
+    "adminLock": "Lock admin mode"
   },
   "common": {
     "loading": "Loading…",
@@ -36,6 +37,21 @@
       "resultInvalid": "Key rejected by TMDB: check your input.",
       "resultOffline": "Offline: cannot verify right now. The key is saved and can be tested when online."
     },
+    "vlc": {
+      "title": "Embedded VLC player",
+      "missing": "Portable VLC missing (tools\\vlc) — run “pnpm prepare-tools --only=vlc”.",
+      "installed": "Installed version: {{version}}",
+      "installedUnknown": "Installed version: unknown (deployed without a marker).",
+      "check": "Check for updates",
+      "busy": "Working…",
+      "updateAvailable": "Version {{version}} is available.",
+      "upToDate": "Up to date ({{version}}).",
+      "download": "Download",
+      "pending": "Version {{version}} ready — it will be applied on the next startup (the current one is kept as a backup).",
+      "offline": "Offline: cannot reach videolan.org.",
+      "error": "Operation failed — the current version was not touched.",
+      "hint": "The update is downloaded next to the current version and only applied on the next startup — never during playback."
+    },
     "tagline": "Your movie library, Netflix-style, 100% offline.",
     "launch": "Start the program",
     "launchHint": "Browse and watch your library",
@@ -48,8 +64,13 @@
   "browse": {
     "title": "My library",
     "empty": "Nothing to show. Run a scan to qualify your files.",
+    "emptyCta": "Scan my files",
     "minutes": "{{min}} min",
     "seenBadge": "Seen",
+    "rowResume": "Continue watching",
+    "rowNeverSeen": "Never seen",
+    "rowFavoriteGenre": "Because you like {{genre}}",
+    "rowLongUnseen": "Not watched in a while",
     "rowRecent": "Recently added",
     "rowAll": "All movies ({{count}})",
     "scrollLeft": "Scroll left",
@@ -191,8 +212,28 @@
     "noNewFiles": "Nothing new: the library matches the drive.",
     "done": "All new files have been processed."
   },
+  "setup": {
+    "title": "Welcome to M0V13S",
+    "intro": "Three settings and you're in — everything stays editable later (home and Scan mode).",
+    "rootsTitle": "1. Library folders",
+    "tmdbTitle": "2. TMDB API key (optional)",
+    "tmdbHint": "Without a key, scanning still works — entries are filled manually. Free key: themoviedb.org → Settings → API.",
+    "adminTitle": "3. Admin password (optional, recommended)",
+    "adminHint": "Protects scanning, settings, entry editing and the data view. Leave empty to keep everything open.",
+    "adminConfirm": "Confirm password",
+    "adminMismatch": "The two entries do not match.",
+    "finish": "Finish",
+    "finishHint": "You can run your first scan right after."
+  },
   "admin": {
-    "dataTitle": "Database tables (read-only)",
+    "unlock": {
+      "title": "Admin mode",
+      "password": "Password",
+      "unlock": "Unlock",
+      "wrong": "Incorrect password."
+    },
+    "dataTitle": "Database tables",
+    "editHint": "All tables are readable. On “media”, the localized title, year, ratings and review columns are editable (double-click): every change goes through the business services — record AND .nfo rewritten, never raw SQL.",
     "table": "Table",
     "totalRows": "{{count}} row(s)",
     "truncated": "display truncated"

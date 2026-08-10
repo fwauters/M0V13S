@@ -9,6 +9,7 @@
  * Le renderer ne voit que `window.api`, jamais ipcRenderer directement.
  */
 import type {
+  AdminEditableMediaField,
   AdminTableData,
   AdminTableName,
   ConformitySummary,
@@ -26,6 +27,9 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  VlcUpdateCheckOutcome,
+  VlcUpdateDownloadStatus,
+  VlcUpdaterState,
   WatchStateInfo,
 } from './dto';
 
@@ -73,6 +77,25 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+    /** Édition contrôlée d'un champ de `media` (liste blanche, via
+     *  updateMovieManual — fiche + .nfo réécrits, jamais de SQL direct). */
+    updateMediaField: 'admin:update-media-field',
+  },
+  vlcUpdate: {
+    /** État du lecteur embarqué (version installée / en attente). */
+    getState: 'vlc-update:get-state',
+    /** Vérifie la dernière version publiée (en ligne). */
+    check: 'vlc-update:check',
+    /** Télécharge en staging (bascule au prochain démarrage). */
+    download: 'vlc-update:download',
+  },
+  adminLock: {
+    /** Vrai si un mot de passe admin est défini. */
+    hasPassword: 'admin-lock:has-password',
+    /** Vérifie un mot de passe de déverrouillage. */
+    verify: 'admin-lock:verify',
+    /** Définit/remplace le mot de passe (l'actuel est exigé s'il existe). */
+    setPassword: 'admin-lock:set-password',
   },
   player: {
     /** Lance la lecture VLC d'un film (reprise optionnelle). */
@@ -104,8 +127,9 @@ export const IPC = {
  * Clés de réglage accessibles au RENDERER (préférences d'interface).
  * Les clés sensibles (clé TMDB, hash admin) restent côté main
  * et ne transitent que par des canaux dédiés et contrôlés.
+ * `app.setupDone` : l'écran de premier lancement a été terminé (phase 5).
  */
-export type UiSettingKey = 'ui.theme' | 'ui.lang';
+export type UiSettingKey = 'ui.theme' | 'ui.lang' | 'app.setupDone';
 
 /** Réponse du ping de diagnostic (étape 0.6). */
 export interface SystemPingResult {
@@ -162,6 +186,23 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+    /** Faux si fiche inconnue ou champ hors liste blanche. */
+    updateMediaField(
+      mediaId: number,
+      field: AdminEditableMediaField,
+      value: string | number | null,
+    ): Promise<boolean>;
+  };
+  vlcUpdate: {
+    getState(): Promise<VlcUpdaterState>;
+    check(): Promise<VlcUpdateCheckOutcome>;
+    download(): Promise<VlcUpdateDownloadStatus>;
+  };
+  adminLock: {
+    hasPassword(): Promise<boolean>;
+    verify(password: string): Promise<boolean>;
+    /** Retourne faux si l'actuel est incorrect ou le nouveau vide. */
+    setPassword(newPassword: string, currentPassword: string | null): Promise<boolean>;
   };
   player: {
     /** Lance VLC sur le premier fichier présent du film.

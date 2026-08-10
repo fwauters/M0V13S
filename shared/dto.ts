@@ -368,9 +368,14 @@ export interface MovieListItem {
   actors: string[];
   /** Date d'ajout à l'index (ms epoch) — rangée et tri « ajouts ». */
   addedAt: number;
-  /** Vu jusqu'au bout (watch_state PERSONNEL — alimenté en phase 4,
-   *  déjà exposé pour le filtre vu/pas vu). */
+  /** Vu jusqu'au bout (watch_state PERSONNEL — filtre vu/pas vu). */
   seen: boolean;
+  /** Nombre de visionnages complets (genre favori des suggestions). */
+  watchCount: number;
+  /** Position de reprise (s) — rangée « Reprendre » des suggestions. */
+  resumePositionSec: number | null;
+  /** Dernière activité de lecture (ms epoch) — tri des suggestions. */
+  lastWatchedAt: number | null;
 }
 
 /** Personne d'une fiche, avec son rôle. */
@@ -443,6 +448,29 @@ export interface PlayOutcome {
 }
 
 /* ------------------------------------------------------------------ */
+/* Mise à jour de VLC (mode admin, en ligne — PLAN § 6.7)              */
+/* ------------------------------------------------------------------ */
+
+/** État du lecteur embarqué pour la carte admin de l'accueil. */
+export interface VlcUpdaterState {
+  /** tools\vlc\vlc.exe présent. */
+  vlcPresent: boolean;
+  /** Version installée (marqueur `.version`), null = inconnue. */
+  installedVersion: string | null;
+  /** Version en staging (`vlc-next`), appliquée au prochain démarrage. */
+  pendingVersion: string | null;
+}
+
+/** Résultat de la vérification de mise à jour. */
+export interface VlcUpdateCheckOutcome {
+  status: 'update' | 'upToDate' | 'offline' | 'error';
+  latestVersion: string | null;
+}
+
+/** Résultat du téléchargement (staging). */
+export type VlcUpdateDownloadStatus = 'ok' | 'offline' | 'error';
+
+/* ------------------------------------------------------------------ */
 /* Vue admin des tables (ag-grid, lecture seule en phase 1)            */
 /* ------------------------------------------------------------------ */
 
@@ -460,6 +488,21 @@ export type AdminTableName =
   | 'tags'
   | 'media_tags'
   | 'watch_state';
+
+/**
+ * Champs de `media` éditables depuis la vue admin (phase 5) — liste
+ * BLANCHE de scalaires sûrs. L'édition passe par `updateMovieManual`
+ * (services métier : fiche + `.nfo` réécrits, relations préservées),
+ * JAMAIS par du SQL direct (décision PLAN § 1). Noms de colonnes DB.
+ */
+export const ADMIN_EDITABLE_MEDIA_FIELDS = [
+  'title_vf',
+  'year',
+  'personal_rating',
+  'personal_notes',
+  'tmdb_rating',
+] as const;
+export type AdminEditableMediaField = (typeof ADMIN_EDITABLE_MEDIA_FIELDS)[number];
 
 /** Contenu d'une table pour la grille admin (lecture seule). */
 export interface AdminTableData {

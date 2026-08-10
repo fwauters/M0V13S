@@ -9,11 +9,14 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
+import { registerAdminLockIpc } from './ipc/admin-lock.ipc';
 import { registerLibraryIpc } from './ipc/library.ipc';
 import { registerPlayerIpc } from './ipc/player.ipc';
+import { registerVlcUpdateIpc } from './ipc/vlc-update.ipc';
 import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
 import { registerTmdbIpc } from './ipc/tmdb.ipc';
+import { AdminService } from './services/admin.service';
 import { AdminTablesService } from './services/admin-tables.service';
 import { ConformityService } from './services/conformity.service';
 import { LibraryService } from './services/library.service';
@@ -25,6 +28,7 @@ import { SettingsService } from './services/settings.service';
 import { ThumbsService } from './services/thumbs.service';
 import { TmdbService } from './services/tmdb.service';
 import { VlcService } from './services/vlc.service';
+import { VlcUpdaterService } from './services/vlc-updater.service';
 import { WatchService } from './services/watch.service';
 
 /**
@@ -111,6 +115,16 @@ function registerImageProtocol(thumbs: ThumbsService): void {
 app.whenReady().then(() => {
   registerImageProtocol(new ThumbsService(getThumbsDir()));
 
+  // MAJ VLC en attente : bascule AU DÉMARRAGE, avant toute lecture
+  // (PLAN § 6.7 — l'ancienne version reste en secours dans vlc-prev).
+  const vlcUpdater = new VlcUpdaterService();
+  try {
+    vlcUpdater.applyPendingUpdate();
+  } catch (error) {
+    console.error('Bascule de la MAJ VLC impossible :', error);
+  }
+  registerVlcUpdateIpc(vlcUpdater);
+
   // L'échec d'ouverture de la DB ne doit pas empêcher l'app de démarrer :
   // le ping IPC remontera dbOk=false et l'UI pourra l'afficher.
   try {
@@ -143,11 +157,14 @@ app.whenReady().then(() => {
     // Lecture VLC + suivi de visionnage (phase 4).
     const watchService = new WatchService(db);
     registerPlayerIpc({ vlc: new VlcService(db, watchService), watch: watchService });
+    // Verrou du mode admin (phase 5).
+    registerAdminLockIpc(new AdminService(settingsService));
   } else {
     registerSettingsIpc(null);
     registerTmdbIpc(null);
     registerLibraryIpc(null);
     registerPlayerIpc(null);
+    registerAdminLockIpc(null);
   }
 
   createWindow();

@@ -35,10 +35,12 @@ export class WatchService {
    * Sauvegarde la position de reprise (appelée en continu pendant la
    * lecture, et en fin de lecture non terminée). Ne touche ni au
    * compteur ni au drapeau « vu » : revoir un film déjà vu conserve
-   * son historique.
+   * son historique. `lastWatchedAt` est rafraîchi : c'est la DERNIÈRE
+   * ACTIVITÉ de lecture (tri de la rangée « Reprendre », phase 5) —
+   * pas seulement le dernier visionnage complet.
    */
   saveResume(mediaId: number, positionSec: number | null): void {
-    this.upsert(mediaId, { resumePositionSec: positionSec });
+    this.upsert(mediaId, { resumePositionSec: positionSec, lastWatchedAt: Date.now() });
   }
 
   /**

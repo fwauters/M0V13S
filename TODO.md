@@ -124,18 +124,57 @@
 
 ## Phase 5 — Intelligence & finitions
 
-- [ ] **5.1** Rangées de suggestions (à reprendre, jamais vus, pas vus depuis
-  longtemps, genre favori, ajoutés récemment) + tests SQL.
-- [ ] **5.2** Verrou admin : combo touches + mot de passe (scrypt) + définition
-  au premier lancement.
-- [ ] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin,
-  bascule au redémarrage, version de secours + tests.
-- [ ] **5.4** Édition contrôlée dans la vue admin des tables (via services
-  métier, réécriture `.nfo` garantie).
-- [ ] **5.5** Écran de premier lancement : choix des racines, clé TMDB, mot de
-  passe admin.
-- [ ] **5.6** Polish UI : animations, focus clavier, états vides, accessibilité.
-- [ ] **5.7** Test e2e « smoke » sur le build packagé (lancement, conformité,
-  navigation, lecture).
-- [ ] **5.8** **Release v1.0** : build final, tag git, GitHub Release, READMEs
-  finalisés (guide d'utilisation complet, captures d'écran).
+> La release ne clôt PLUS cette phase : elle arrive en fin de phase 6,
+> après la recette générale (décision utilisateur, 2026-08-10).
+
+- [x] **5.1** Rangées de suggestions (Reprendre, Jamais vus, Parce que vous
+  aimez {genre}, Pas revus depuis longtemps — en computed BrowseStore,
+  approche mémoire unifiée documentée) + tests.
+- [x] **5.2** Verrou admin : mot de passe (scrypt), dialogue ouvert par le
+  guard des routes admin (pas de combo touches — décision utilisateur),
+  cadenas de re-verrouillage, outils admin masqués quand verrouillé ;
+  définition du mot de passe au premier lancement (5.5).
+- [x] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin
+  (carte accueil), staging `vlc-next`, bascule au démarrage, `vlc-prev` en
+  secours + tests (faux réseau/unzip).
+- [x] **5.4** Édition contrôlée dans la vue admin : liste blanche de champs
+  scalaires de `media` (double-clic ag-grid) routée vers `updateMovieManual`
+  — fiche + `.nfo` réécrits, jamais de SQL direct + tests.
+- [x] **5.5** Écran de premier lancement `/setup` : racines, clé TMDB
+  (optionnelle), mot de passe admin (optionnel) ; guard sur l'accueil,
+  installations antérieures marquées configurées sans re-questionnement.
+- [x] **5.6** Polish UI : focus clavier visible (anneau brand),
+  `prefers-reduced-motion` respecté, apparition douce des pages, état vide
+  du browse avec appel à l'action.
+- [x] **5.7** Test e2e « smoke » sur le build packagé (`pnpm e2e`, Playwright
+  Electron sur l'exe réel) : fenêtre, shell, premier lancement, accueil —
+  validé en réel.
+- [x] **5.8** Fin de phase : deps (TS 7 toujours exclu, audit 0 vuln), docs,
+  rapport phase_5.md, PR #6 — validation utilisateur avant merge.
+
+## Phase 6 — Recette générale & release v1.0
+
+*Objectif (demande utilisateur) : une checklist EXHAUSTIVE de tout ce qui
+existe — systèmes, fonctionnalités, vues, designs — que l'utilisateur
+déroule pour traquer micro-changements et oublis, afin de sortir une
+v1.0 la plus nickel possible.*
+
+- [ ] **6.1** Rédaction de `docs/RECETTE.md` : checklist complète générée
+  depuis l'INVENTAIRE RÉEL du code (routes, écrans, services, canaux IPC,
+  réglages, clés i18n, thèmes) — organisée par parcours, cases à cocher,
+  colonne « remarque » pour chaque point.
+- [ ] **6.2** Recette « parcours & vues » (déroulée par l'utilisateur) :
+  accueil, browse (rangées, suggestions, filtres/tris, badges), fiche
+  (hero, casting, langues, trailer, lecture/reprise, édition), scan
+  (racines, assistant, TMDB, regroupement, re-liens, suppressions), admin
+  (tables, édition contrôlée, verrou), premier lancement — le tout dans
+  les DEUX thèmes et les DEUX langues.
+- [ ] **6.3** Recette « systèmes » : conformité au lancement, sidecars
+  `.nfo`/images (scénario partage), hors-ligne intégral (débrancher le
+  réseau), lecture VLC/reprise/vu, MAJ VLC, portabilité réelle (copie sur
+  disque externe + machine B hors ligne).
+- [ ] **6.4** Corrections et ajouts issus de la recette : traités par lots
+  (un commit par lot, tests de non-régression), RECETTE.md re-cochée
+  après chaque lot.
+- [ ] **6.5** **Release v1.0** : build final, tag git, GitHub Release,
+  READMEs finalisés (guide d'utilisation complet, captures d'écran).
