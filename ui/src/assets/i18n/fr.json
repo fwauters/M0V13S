@@ -9,7 +9,8 @@
     "themeToLight": "Passer au thème clair",
     "themeToDark": "Passer au thème sombre",
     "language": "Langue",
-    "adminData": "Vue des données (admin)"
+    "adminData": "Vue des données (admin)",
+    "adminLock": "Verrouiller le mode admin"
   },
   "common": {
     "loading": "Chargement…",
@@ -196,6 +197,12 @@
     "done": "Tous les nouveaux fichiers ont été traités."
   },
   "admin": {
+    "unlock": {
+      "title": "Mode admin",
+      "password": "Mot de passe",
+      "unlock": "Déverrouiller",
+      "wrong": "Mot de passe incorrect."
+    },
     "dataTitle": "Tables de la base (lecture seule)",
     "table": "Table",
     "totalRows": "{{count}} ligne(s)",

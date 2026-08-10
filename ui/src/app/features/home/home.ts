@@ -15,6 +15,7 @@ import {
   type TmdbLanguageConfig,
 } from '@shared/dto';
 
+import { AdminLockService } from '../../core/services/admin-lock.service';
 import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
 
@@ -49,6 +50,9 @@ import { LibraryStore } from '../../core/library.store';
 })
 export class Home {
   protected readonly store = inject(LibraryStore);
+
+  /** Verrou admin (signal) : la section réglages TMDB est admin. */
+  protected readonly adminLock = inject(AdminLockService);
   private readonly api = inject(ApiService);
 
   /** Statut (masqué) de la clé TMDB — null tant que non chargé. */

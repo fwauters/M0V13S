@@ -149,22 +149,26 @@
                     <span class="text-xs text-white/60">{{ t('detail.trailerOffline') }}</span>
                   }
                 }
-                <button
-                  type="button"
-                  (click)="openEnrichDialog()"
-                  class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
-                >
-                  <mat-icon inline>cloud_download</mat-icon>
-                  {{ t('detail.enrichButton') }}
-                </button>
-                <button
-                  type="button"
-                  (click)="startEdit()"
-                  class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
-                >
-                  <mat-icon inline>edit</mat-icon>
-                  {{ t('detail.editButton') }}
-                </button>
+                <!-- ÉDITION = mode admin (PLAN § 6.6) : boutons cachés
+                     tant que le verrou est posé. -->
+                @if (adminLock.unlocked()) {
+                  <button
+                    type="button"
+                    (click)="openEnrichDialog()"
+                    class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                  >
+                    <mat-icon inline>cloud_download</mat-icon>
+                    {{ t('detail.enrichButton') }}
+                  </button>
+                  <button
+                    type="button"
+                    (click)="startEdit()"
+                    class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                  >
+                    <mat-icon inline>edit</mat-icon>
+                    {{ t('detail.editButton') }}
+                  </button>
+                }
                 <!-- Marquage manuel vu / pas vu (watch_state personnel). -->
                 <button
                   type="button"

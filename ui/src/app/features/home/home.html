@@ -54,7 +54,9 @@
 
     <!-- Clé API TMDB (décision phase 2) : chaque utilisateur saisit la
          sienne ici, avant le scan. Le renderer ne voit que le statut
-         MASQUÉ ; le test distingue valide / invalide / hors ligne. -->
+         MASQUÉ ; le test distingue valide / invalide / hors ligne.
+         RÉGLAGES = mode admin (PLAN § 6.6) : section cachée si verrouillé. -->
+    @if (adminLock.unlocked()) {
     <section
       class="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-black/10 p-5 text-left dark:border-white/10"
     >
@@ -150,5 +152,6 @@
         <p class="text-xs opacity-60">{{ t('home.tmdb.hint') }}</p>
       }
     </section>
+    }
   </div>
 </ng-container>

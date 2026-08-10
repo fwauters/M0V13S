@@ -56,6 +56,12 @@ const api: WindowApi = {
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
   },
+  adminLock: {
+    hasPassword: () => ipcRenderer.invoke(IPC.adminLock.hasPassword),
+    verify: (password: string) => ipcRenderer.invoke(IPC.adminLock.verify, password),
+    setPassword: (newPassword: string, currentPassword: string | null) =>
+      ipcRenderer.invoke(IPC.adminLock.setPassword, newPassword, currentPassword),
+  },
   player: {
     play: (mediaId: number, resume: boolean) =>
       ipcRenderer.invoke(IPC.player.play, mediaId, resume),

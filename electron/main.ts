@@ -9,11 +9,13 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
+import { registerAdminLockIpc } from './ipc/admin-lock.ipc';
 import { registerLibraryIpc } from './ipc/library.ipc';
 import { registerPlayerIpc } from './ipc/player.ipc';
 import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
 import { registerTmdbIpc } from './ipc/tmdb.ipc';
+import { AdminService } from './services/admin.service';
 import { AdminTablesService } from './services/admin-tables.service';
 import { ConformityService } from './services/conformity.service';
 import { LibraryService } from './services/library.service';
@@ -143,11 +145,14 @@ app.whenReady().then(() => {
     // Lecture VLC + suivi de visionnage (phase 4).
     const watchService = new WatchService(db);
     registerPlayerIpc({ vlc: new VlcService(db, watchService), watch: watchService });
+    // Verrou du mode admin (phase 5).
+    registerAdminLockIpc(new AdminService(settingsService));
   } else {
     registerSettingsIpc(null);
     registerTmdbIpc(null);
     registerLibraryIpc(null);
     registerPlayerIpc(null);
+    registerAdminLockIpc(null);
   }
 
   createWindow();

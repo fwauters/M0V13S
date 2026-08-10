@@ -15,6 +15,7 @@ import {
   type PlayStatus,
 } from '@shared/dto';
 
+import { AdminLockService } from '../../core/services/admin-lock.service';
 import { ApiService } from '../../core/services/api.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { formatDurationLabel } from '../../core/format-duration';
@@ -102,6 +103,9 @@ export class MovieDetail implements OnDestroy {
 
   /** Connectivité (signal) : pilote le bouton trailer (online-only). */
   protected readonly connectivity = inject(ConnectivityService);
+
+  /** Verrou admin (signal) : édition/enrichissement = mode admin. */
+  protected readonly adminLock = inject(AdminLockService);
 
   /** Langue de l'UI (signal) — paramètre du pipe langNames. */
   protected readonly uiLang = inject(LanguageService).lang;

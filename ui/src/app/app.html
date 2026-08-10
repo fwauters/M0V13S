@@ -46,15 +46,27 @@
 
       <span class="grow"></span>
 
-      <!-- Vue admin des tables (outil de contrôle, lecture seule en phase 1). -->
-      <a
-        matIconButton
-        routerLink="/admin/data"
-        [attr.aria-label]="t('shell.adminData')"
-        [title]="t('shell.adminData')"
-      >
-        <mat-icon>table_view</mat-icon>
-      </a>
+      <!-- Mode admin déverrouillé : cadenas de re-verrouillage + vue des
+           tables. RIEN n'est visible quand c'est verrouillé (obfuscation
+           assumée — combo Ctrl+Alt+A ou navigation vers une route admin). -->
+      @if (adminLock.unlocked()) {
+        <button
+          matIconButton
+          (click)="adminLock.lock()"
+          [attr.aria-label]="t('shell.adminLock')"
+          [title]="t('shell.adminLock')"
+        >
+          <mat-icon>lock_open</mat-icon>
+        </button>
+        <a
+          matIconButton
+          routerLink="/admin/data"
+          [attr.aria-label]="t('shell.adminData')"
+          [title]="t('shell.adminData')"
+        >
+          <mat-icon>table_view</mat-icon>
+        </a>
+      }
 
       <!-- Sélecteur de langue : changement à chaud via LanguageService. -->
       <mat-button-toggle-group

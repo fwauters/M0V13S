@@ -156,6 +156,23 @@ export class ApiService {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
   }
 
+  /* ----------------------- verrou admin --------------------- */
+
+  /** Vrai si un mot de passe admin est défini (hors Electron : faux). */
+  async hasAdminPassword(): Promise<boolean> {
+    return window.api?.adminLock.hasPassword() ?? false;
+  }
+
+  /** Vérifie un mot de passe de déverrouillage. */
+  async verifyAdminPassword(password: string): Promise<boolean> {
+    return window.api?.adminLock.verify(password) ?? true;
+  }
+
+  /** Définit/remplace le mot de passe admin (faux si refusé). */
+  async setAdminPassword(newPassword: string, currentPassword: string | null): Promise<boolean> {
+    return window.api?.adminLock.setPassword(newPassword, currentPassword) ?? false;
+  }
+
   /* ------------------------- player ------------------------- */
 
   /** Lance la lecture VLC (reprise optionnelle). Hors Electron : erreur. */

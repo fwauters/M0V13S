@@ -9,7 +9,8 @@
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
     "language": "Language",
-    "adminData": "Data view (admin)"
+    "adminData": "Data view (admin)",
+    "adminLock": "Lock admin mode"
   },
   "common": {
     "loading": "Loading…",
@@ -196,6 +197,12 @@
     "done": "All new files have been processed."
   },
   "admin": {
+    "unlock": {
+      "title": "Admin mode",
+      "password": "Password",
+      "unlock": "Unlock",
+      "wrong": "Incorrect password."
+    },
     "dataTitle": "Database tables (read-only)",
     "table": "Table",
     "totalRows": "{{count}} row(s)",

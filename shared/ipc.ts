@@ -74,6 +74,14 @@ export const IPC = {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
   },
+  adminLock: {
+    /** Vrai si un mot de passe admin est défini. */
+    hasPassword: 'admin-lock:has-password',
+    /** Vérifie un mot de passe de déverrouillage. */
+    verify: 'admin-lock:verify',
+    /** Définit/remplace le mot de passe (l'actuel est exigé s'il existe). */
+    setPassword: 'admin-lock:set-password',
+  },
   player: {
     /** Lance la lecture VLC d'un film (reprise optionnelle). */
     play: 'player:play',
@@ -162,6 +170,12 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+  };
+  adminLock: {
+    hasPassword(): Promise<boolean>;
+    verify(password: string): Promise<boolean>;
+    /** Retourne faux si l'actuel est incorrect ou le nouveau vide. */
+    setPassword(newPassword: string, currentPassword: string | null): Promise<boolean>;
   };
   player: {
     /** Lance VLC sur le premier fichier présent du film.

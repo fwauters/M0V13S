@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard } from './core/admin.guard';
 import { classicModeGuard } from './core/classic-mode.guard';
 
 /**
@@ -25,10 +26,13 @@ export const routes: Routes = [
   },
   {
     path: 'scan',
+    // Mode admin (PLAN § 6.6) : le guard déverrouille (dialogue) au besoin.
+    canActivate: [adminGuard],
     loadComponent: () => import('./features/scan/scan').then((m) => m.Scan),
   },
   {
     path: 'admin/data',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./features/admin/admin-data').then((m) => m.AdminData),
   },
