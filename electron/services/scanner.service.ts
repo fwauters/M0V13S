@@ -446,7 +446,10 @@ export class ScannerService {
       tags: existing.tags,
       tmdbRating: details.tmdbRating,
       tmdbId: details.tmdbId,
-      trailerYoutubeKey: details.trailerYoutubeKey,
+      // TMDB n'écrase le trailer QUE s'il en a trouvé un : un lien saisi
+      // à la main survit à un enrichissement sans résultat (retour
+      // utilisateur phase 3).
+      trailerYoutubeKey: details.trailerYoutubeKey ?? existing.trailerYoutubeKey,
       tmdbPosterPath: details.tmdbPosterPath,
       tmdbBackdropPath: details.tmdbBackdropPath,
       directors: details.directors,
@@ -642,6 +645,16 @@ export class ScannerService {
       .where(eq(mediaTags.mediaId, mediaId))
       .all();
 
+    // Langues du premier fichier : repli de préremplissage de l'assistant
+    // quand la re-détection ffprobe ne trouve rien (pistes non taguées) —
+    // des langues saisies à la main survivent ainsi au scan complet.
+    const firstFile = this.db
+      .select({ audioLangs: videoFiles.audioLangs, subtitleLangs: videoFiles.subtitleLangs })
+      .from(videoFiles)
+      .where(eq(videoFiles.mediaId, mediaId))
+      .orderBy(asc(videoFiles.partNumber))
+      .get();
+
     return {
       mediaId,
       titleVo: m.titleVo,
@@ -654,6 +667,8 @@ export class ScannerService {
       tmdbRating: m.tmdbRating,
       trailerYoutubeKey: m.trailerYoutubeKey,
       posterPath: m.posterPath,
+      audioLangs: firstFile?.audioLangs ?? [],
+      subtitleLangs: firstFile?.subtitleLangs ?? [],
       directors: personRows.filter((p) => p.role === 'director').map((p) => p.name),
       writers: personRows.filter((p) => p.role === 'writer').map((p) => p.name),
       actors: personRows

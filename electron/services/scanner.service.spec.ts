@@ -339,6 +339,22 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
     expect(parseMovieNfoXml(fs.readFileSync(nfoPath, 'utf8'))?.tmdbId).toBe(70981);
   });
 
+  it('CONSERVE le trailer existant si TMDB n en a pas trouvé (retour utilisateur)', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(
+      makeInput({ trailerYoutubeKey: 'lienSaisiALaMain' }),
+    );
+
+    await scanner.enrichMedia(mediaId, {
+      tmdbId: 70981, titleVo: 'Prometheus', titleVf: null, year: 2012,
+      overview: null, genres: [], directors: [], writers: [], actors: [],
+      trailerYoutubeKey: null, // TMDB sans trailer → on n'écrase PAS
+      tmdbRating: null, tmdbPosterPath: null, tmdbBackdropPath: null,
+    });
+
+    expect(db.select().from(media).all()[0]!.trailerYoutubeKey).toBe('lienSaisiALaMain');
+  });
+
   it('retourne faux pour une fiche sans fichier rattaché', async () => {
     expect(
       await scanner.enrichMedia(999, {

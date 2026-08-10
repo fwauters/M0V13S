@@ -28,19 +28,20 @@ html {
   ));
 }
 
-// Thème SOMBRE : l'identité passe à l'ambre — on ré-émet les tokens
-// couleur M3 en palette orange, scopés sur `.dark`. La classe est
-// TOUJOURS synchronisée avec le thème effectif par le ThemeService
-// (y compris au premier lancement via la préférence système), ce scope
-// couvre donc tous les cas. Sans lui, les boutons/champs Material
-// resteraient cyan sur le thème sombre (retour utilisateur phase 3).
+// Thème SOMBRE : l'identité passe à l'AMBRE VIF du wordmark. On ne
+// ré-émet PAS un thème complet (une palette orange re-teintait aussi
+// toutes les surfaces neutres — « filtre orange » relevé par
+// l'utilisateur, et son primaire M3 généré était un orange délavé) :
+// on surcharge UNIQUEMENT la famille primaire, les fonds et le reste
+// des tokens restent ceux du thème de base. La classe `.dark` est
+// toujours synchronisée avec le thème effectif par le ThemeService.
 html.dark {
-  @include mat.theme((
-    color: (
-      theme-type: dark,
-      primary: mat.$orange-palette,
-      tertiary: mat.$cyan-palette,
-    ),
+  @include mat.theme-overrides((
+    // Les mêmes valeurs que --color-brand / --color-on-brand (tailwind.css).
+    primary: oklch(0.78 0.14 80),
+    on-primary: oklch(0.22 0.03 80),
+    primary-container: oklch(0.38 0.09 75),
+    on-primary-container: oklch(0.93 0.08 85),
   ));
 }
 

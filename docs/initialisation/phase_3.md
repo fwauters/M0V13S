@@ -166,13 +166,15 @@ Premier retour : « pas mal du tout », avec trois ajustements.
      quel). Décision : ces données techniques ne vont PAS dans les
      `.nfo` (re-dérivables du fichier lui-même, qui voyage avec le
      dossier).
-3. **Material harmonisé en thème sombre** (retour utilisateur sur
-   captures : boutons/champs restés cyan sur le sombre) : un second
-   `mat.theme` en `theme-type: dark` (primaire orange/ambre, tertiaire
-   cyan) est émis SCOPÉ sur `html.dark` — la classe étant toujours
-   synchronisée avec le thème effectif par le ThemeService, le scope
-   couvre choix explicite ET préférence système. Le thème de base
-   (cyan) fait foi pour le clair.
+3. **Material harmonisé en thème sombre** (retours utilisateur en deux
+   temps) : la première tentative (second `mat.theme` complet en palette
+   orange scopé `html.dark`) donnait un primaire orange délavé ET
+   re-teintait toutes les surfaces neutres (« filtre orange » sur le
+   fond, relevé sur capture). Correction : le thème de base (cyan,
+   color-scheme) reste seul maître des surfaces ; `html.dark` ne porte
+   plus que des `mat.theme-overrides` CIBLÉS sur la famille primaire,
+   avec l'ambre VIF du wordmark (mêmes valeurs que `--color-brand` /
+   `--color-on-brand`). Fond identique à avant, accents ambre francs.
 4. **Trailer ET langues éditables manuellement** (demandes utilisateur :
    TMDB n'a pas toujours de trailer, les pistes ne sont pas toujours
    taguées) — dans l'édition manuelle de la fiche :
@@ -186,6 +188,14 @@ Premier retour : « pas mal du tout », avec trois ajustements.
      propres détectées au scan).
    `ManualEditInput` porte désormais `trailerYoutubeKey`, `audioLangs`
    et `subtitleLangs`.
+   Complément (second retour) — mêmes possibilités dans l'ASSISTANT DE
+   SCAN : champ « Trailer YouTube » (prérempli par la fiche existante,
+   TMDB ne le remplace QUE s'il en a trouvé un — un lien saisi à la main
+   survit aussi à « Compléter via TMDB » sans résultat, appliqué dans
+   `enrichMedia`) et chips de langues préremplies par ffprobe, avec
+   repli sur les valeurs en base quand les pistes ne sont pas taguées
+   (`ExistingFiche.audioLangs/subtitleLangs`) — des langues saisies à la
+   main survivent ainsi à un scan complet.
 5. **Identité couleur propre** (le rouge faisait trop « Netflix ») :
    quatre pistes proposées sur maquettes bi-thèmes ; **choix utilisateur :
    identité BI-THÈME — sarcelle « écran » en thème clair, ambre

@@ -278,8 +278,25 @@
             <textarea matInput rows="3" [(ngModel)]="draft.overview"></textarea>
           </mat-form-field>
 
+          <!-- Trailer : prérempli par la fiche existante, remplacé par TMDB
+               seulement s'il en a trouvé un — toujours modifiable (URL ou clé). -->
+          <mat-form-field class="w-full">
+            <mat-label>{{ t('scan.form.trailer') }}</mat-label>
+            <input matInput [(ngModel)]="draft.trailer" />
+            <mat-hint>{{ t('scan.form.trailerHint') }}</mat-hint>
+          </mat-form-field>
+
           <!-- Listes en chips (Entrée ou virgule pour ajouter). -->
           <p class="text-sm opacity-70">{{ t('scan.chipsHint') }}</p>
+          <!-- Langues des pistes : préremplies par ffprobe, éditables si le
+               conteneur n'est pas tagué. -->
+          <div class="grid gap-1 sm:grid-cols-2">
+            <app-chips-input [label]="t('scan.form.audioLangs')" [(values)]="draft.audioLangs" />
+            <app-chips-input
+              [label]="t('scan.form.subtitleLangs')"
+              [(values)]="draft.subtitleLangs"
+            />
+          </div>
           <div class="grid gap-1 sm:grid-cols-2">
             <app-chips-input [label]="t('scan.form.directors')" [(values)]="draft.directors" />
             <app-chips-input [label]="t('scan.form.writers')" [(values)]="draft.writers" />

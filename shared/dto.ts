@@ -54,6 +54,12 @@ export interface ExistingFiche {
   trailerYoutubeKey: string | null;
   /** Affiche sidecar (chemin relatif) — aperçu dans l'assistant. */
   posterPath: string | null;
+  /** Langues audio/sous-titres déjà en base pour le premier fichier de
+   *  la fiche : préremplissage de l'assistant quand la re-détection
+   *  ffprobe ne trouve rien (pistes non taguées) — des langues saisies
+   *  à la main survivent ainsi à un scan complet. */
+  audioLangs: string[];
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: QualifyActor[];

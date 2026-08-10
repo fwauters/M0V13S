@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -26,6 +26,7 @@ import { ApiService } from '../../core/services/api.service';
 import { LibraryStore } from '../../core/library.store';
 import { MinutesPipe } from '../../core/pipes/minutes.pipe';
 import { SidecarImgPipe } from '../../core/pipes/sidecar-img.pipe';
+import { parseYoutubeKey } from '../../core/youtube';
 import { ChipsInput } from './chips-input';
 import { ConfirmDialog, ConfirmDialogData } from './confirm-dialog';
 
@@ -40,6 +41,15 @@ interface QualifyDraft {
   personalNotes: string;
   /** Note moyenne TMDB (préremplie par l'enrichissement, modifiable). */
   tmdbRating: number | null;
+  /** Trailer : URL YouTube ou clé brute (parsée à l'enregistrement).
+   *  Prérempli par la fiche existante ; TMDB ne le remplace QUE s'il
+   *  en a trouvé un (retour utilisateur phase 3). */
+  trailer: string;
+  /** Langues audio / sous-titres (codes : fr, en, jpn…) — préremplies
+   *  par la détection ffprobe, éditables si les pistes ne sont pas
+   *  taguées. */
+  audioLangs: string[];
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: string[];
@@ -65,6 +75,7 @@ interface QualifyDraft {
     MatCheckbox,
     MatIcon,
     MatFormField,
+    MatHint,
     MatLabel,
     MatInput,
     MatProgressBar,
@@ -197,6 +208,11 @@ export class Scan implements OnDestroy {
       this.draft.year = d.year;
       this.draft.overview = d.overview ?? '';
       this.draft.tmdbRating = d.tmdbRating;
+      // Trailer : remplacé UNIQUEMENT si TMDB en a trouvé un — un lien
+      // existant/saisi survit à un enrichissement sans résultat.
+      if (d.trailerYoutubeKey !== null) {
+        this.draft.trailer = d.trailerYoutubeKey;
+      }
       this.draft.directors = [...d.directors];
       this.draft.writers = [...d.writers];
       this.draft.actors = d.actors.map((a) => a.name);
@@ -328,11 +344,32 @@ export class Scan implements OnDestroy {
     }
     this.saving.set(true);
     try {
+      // Langues normalisées (codes en minuscules) ; les saisies remplacent
+      // la détection dans les infos techniques enregistrées.
+      const audioLangs = this.draft.audioLangs.map((l) => l.trim().toLowerCase()).filter(Boolean);
+      const subtitleLangs = this.draft.subtitleLangs
+        .map((l) => l.trim().toLowerCase())
+        .filter(Boolean);
+      const tech =
+        file.tech !== null
+          ? { ...file.tech, audioLangs, subtitleLangs }
+          : audioLangs.length > 0 || subtitleLangs.length > 0
+            ? {
+                durationSec: null,
+                videoCodec: null,
+                audioCodec: null,
+                width: null,
+                height: null,
+                audioLangs,
+                subtitleLangs,
+              }
+            : null;
+
       const input: QualifyMovieInput = {
         relPath: file.relPath,
         sizeBytes: file.sizeBytes,
         mtimeMs: file.mtimeMs,
-        tech: file.tech,
+        tech,
         partNumber: file.guess.partNumber,
         titleVo: this.draft.titleVo.trim(),
         titleVf: this.draft.titleVf.trim() === '' ? null : this.draft.titleVf.trim(),
@@ -342,12 +379,13 @@ export class Scan implements OnDestroy {
         personalNotes:
           this.draft.personalNotes.trim() === '' ? null : this.draft.personalNotes.trim(),
         tmdbRating: this.draft.tmdbRating,
-        // Identifiant TMDB, trailer et personnages : priorité à la fiche
-        // TMDB appliquée dans l'assistant, sinon à la fiche existante
-        // (mise à jour) — les chips ne portent que des noms.
+        // Identifiant TMDB et personnages : priorité à la fiche TMDB
+        // appliquée dans l'assistant, sinon à la fiche existante (mise à
+        // jour) — les chips ne portent que des noms.
         tmdbId: this.appliedTmdb()?.tmdbId ?? file.existing?.tmdbId ?? null,
-        trailerYoutubeKey:
-          this.appliedTmdb()?.trailerYoutubeKey ?? file.existing?.trailerYoutubeKey ?? null,
+        // Trailer : le CHAMP fait foi (prérempli par la fiche existante,
+        // remplacé par TMDB seulement s'il en a trouvé un, modifiable).
+        trailerYoutubeKey: parseYoutubeKey(this.draft.trailer),
         // Images à télécharger en sidecars (uniquement si fiche TMDB appliquée).
         tmdbPosterPath: this.appliedTmdb()?.tmdbPosterPath ?? null,
         tmdbBackdropPath: this.appliedTmdb()?.tmdbBackdropPath ?? null,
@@ -409,6 +447,7 @@ export class Scan implements OnDestroy {
       this.draft.personalRating = f.personalRating;
       this.draft.personalNotes = f.personalNotes ?? '';
       this.draft.tmdbRating = f.tmdbRating;
+      this.draft.trailer = f.trailerYoutubeKey ?? '';
       // Copies des tableaux : le brouillon est modifiable sans toucher au DTO.
       this.draft.directors = [...f.directors];
       this.draft.writers = [...f.writers];
@@ -419,6 +458,16 @@ export class Scan implements OnDestroy {
       this.draft.titleVo = file.guess.title;
       this.draft.year = file.guess.year;
     }
+
+    // Langues des pistes : la détection ffprobe fait foi si elle a trouvé
+    // quelque chose ; sinon repli sur les valeurs en base (des langues
+    // saisies à la main survivent à un scan complet de pistes non taguées).
+    const detectedAudio = file.tech?.audioLangs ?? [];
+    const detectedSubs = file.tech?.subtitleLangs ?? [];
+    this.draft.audioLangs =
+      detectedAudio.length > 0 ? [...detectedAudio] : [...(file.existing?.audioLangs ?? [])];
+    this.draft.subtitleLangs =
+      detectedSubs.length > 0 ? [...detectedSubs] : [...(file.existing?.subtitleLangs ?? [])];
 
     // Recherche TMDB préremplie et lancée automatiquement (PLAN § 6.2.3b) :
     // l'utilisateur CHOISIT ensuite dans la liste — jamais d'application
@@ -436,6 +485,9 @@ export class Scan implements OnDestroy {
       personalRating: null,
       personalNotes: '',
       tmdbRating: null,
+      trailer: '',
+      audioLangs: [],
+      subtitleLangs: [],
       directors: [],
       writers: [],
       actors: [],
