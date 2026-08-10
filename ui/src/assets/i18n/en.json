@@ -3,6 +3,9 @@
     "title": "M0V13S"
   },
   "shell": {
+    "navHome": "Home",
+    "navBrowse": "Library",
+    "navScan": "Scan",
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
     "language": "Language",
@@ -11,6 +14,7 @@
   "common": {
     "loading": "Loading…",
     "cancel": "Cancel",
+    "close": "Close",
     "remove": "Remove",
     "save": "Save"
   },
@@ -44,13 +48,54 @@
   "browse": {
     "title": "My library",
     "empty": "Nothing to show. Run a scan to qualify your files.",
-    "minutes": "{{min}} min"
+    "minutes": "{{min}} min",
+    "rowRecent": "Recently added",
+    "rowAll": "All movies ({{count}})",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "filters": {
+      "search": "Search a title",
+      "genre": "Genre",
+      "tag": "Tag",
+      "director": "Director",
+      "actor": "Actor",
+      "year": "Year",
+      "duration": "Runtime",
+      "seen": "Seen / unseen",
+      "sort": "Sort by",
+      "direction": "Reverse sort direction",
+      "any": "All",
+      "clear": "Reset filters and sort",
+      "results": "{{count}} result(s)",
+      "noResults": "No movie matches these criteria.",
+      "durations": {
+        "all": "Any",
+        "lt90": "Under 90 min",
+        "b90to120": "90 to 120 min",
+        "b120to150": "120 to 150 min",
+        "gt150": "Over 150 min"
+      },
+      "seenStates": {
+        "all": "All",
+        "seen": "Seen",
+        "unseen": "Unseen"
+      },
+      "sorts": {
+        "title": "Title",
+        "year": "Year",
+        "added": "Date added"
+      }
+    }
   },
   "detail": {
     "back": "Back to the library",
     "enrichButton": "Complete from TMDB",
     "enrichTitle": "Complete the entry from TMDB",
     "editButton": "Edit manually",
+    "trailerButton": "Watch the trailer",
+    "trailerOffline": "Trailer unavailable offline (the only feature that needs internet).",
+    "audio": "Audio",
+    "subtitles": "Subtitles",
     "tmdbRating": "TMDB {{rating}}/10",
     "notes": "My review",
     "files": "Files",
@@ -118,6 +163,10 @@
       "tmdbRating": "TMDB rating (0-10)",
       "notes": "My review / additional information",
       "overview": "Overview",
+      "trailer": "YouTube trailer",
+      "trailerHint": "Paste a YouTube URL (watch, youtu.be…) or the video key — leave empty to remove the trailer.",
+      "audioLangs": "Audio languages (codes: fr, en, jpn…)",
+      "subtitleLangs": "Subtitle languages (codes: fr, en…)",
       "directors": "Director(s)",
       "writers": "Writer(s)",
       "actors": "Actors",

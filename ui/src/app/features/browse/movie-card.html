@@ -1,0 +1,30 @@
+<!-- Carte d'affiche : ratio 2/3 constant, zoom + anneau brand au survol. -->
+<ng-container *transloco="let t">
+  <a [routerLink]="['/movie', movie().id]" class="group flex w-full flex-col gap-1.5">
+    @if (movie().posterPath | sidecarImg: 'thumb'; as posterSrc) {
+      <img
+        [src]="posterSrc"
+        alt=""
+        loading="lazy"
+        class="aspect-2/3 w-full rounded-lg object-cover shadow-sm transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand"
+      />
+    } @else {
+      <!-- Pochette de repli quand aucune affiche sidecar n'existe. -->
+      <div
+        class="flex aspect-2/3 w-full items-center justify-center rounded-lg bg-black/10 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand dark:bg-white/10"
+      >
+        <mat-icon class="scale-150 opacity-40">movie</mat-icon>
+      </div>
+    }
+
+    <span class="truncate text-sm font-medium">{{ title() }}</span>
+    <span class="text-xs opacity-60">
+      @if (movie().year !== null) {
+        {{ movie().year }}
+      }
+      @if (movie().durationSec | minutes; as min) {
+        · {{ t('browse.minutes', { min }) }}
+      }
+    </span>
+  </a>
+</ng-container>

@@ -35,6 +35,12 @@ export function getDbPath(): string {
   return resolveDbPath(getDataDir());
 }
 
+/** Dossier du cache de miniatures (`data\thumbs`, reconstructible) —
+ *  créé à la demande par ThumbsService, pas ici. */
+export function getThumbsDir(): string {
+  return path.join(getDataDir(), 'thumbs');
+}
+
 /**
  * Dossier des migrations Drizzle :
  * - packagé : copié dans resources\migrations par electron-builder

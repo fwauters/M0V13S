@@ -91,6 +91,8 @@ describe('Scan — assistant de qualification', () => {
     // L'utilisateur complète la fiche du 1er film…
     component['draft'].titleVf = 'Alpha VF';
     component['draft'].overview = 'Synopsis du premier film';
+    component['draft'].trailer = 'https://youtu.be/AbC123xyz_-';
+    component['draft'].audioLangs = ['fr'];
     component['draft'].directors = ['Ridley Scott'];
     component['draft'].writers = ['Jon Spaihts'];
 
@@ -100,6 +102,8 @@ describe('Scan — assistant de qualification', () => {
     expect(component['draft'].year).toBeNull();
     expect(component['draft'].titleVf).toBe('');
     expect(component['draft'].overview).toBe('');
+    expect(component['draft'].trailer).toBe('');
+    expect(component['draft'].audioLangs).toEqual([]);
     expect(component['draft'].directors).toEqual([]);
     expect(component['draft'].writers).toEqual([]);
   });

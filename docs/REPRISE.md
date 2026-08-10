@@ -1,28 +1,30 @@
 # REPRISE DE SESSION — état exact du projet
 
 > Doc vivante : mise à jour à la FIN de chaque session de travail pour
-> reprendre exactement au même point. Dernière mise à jour : 2026-08-03,
-> fin de la session « phases 0 et 1 ».
+> reprendre exactement au même point. Dernière mise à jour : 2026-08-09,
+> fin de la session « phase 3 ».
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phases 0 et 1 : terminées, validées, mergées** (PR #1, #2).
-2. **Phase 2 : TERMINÉE et poussée — PR #3 OUVERTE, en attente de la
-   validation utilisateur puis du merge.** Tout y est : sidecars .nfo +
-   images, import silencieux (partage), TMDB de bout en bout (clé dans
-   l'app, recherche dans l'assistant, bouton « Compléter via TMDB » par
-   fiche), scan complet forcé, deps à jour, portabilité revalidée.
-3. **Ensuite : phase 3 (UI « Netflix »)** — branche `phase-3` depuis main
-   mergé, TODO 3.1 → 3.6 (+ thumbs.service reporté de 2.5 vers 3.2, et le
-   protocole de service des images au renderer à concevoir en 3.1/3.2).
+1. **Phases 0, 1 et 2 : terminées, validées, mergées** (PR #1, #2, #3).
+2. **Phase 3 (UI « Netflix ») : TERMINÉE et poussée — PR #4 OUVERTE, en
+   attente de la validation utilisateur puis du merge.** Tout y est :
+   charte (brand, header sticky, nav), browse en rangées + grille avec
+   cache de miniatures (`data\thumbs`, nativeImage), fiche cinéma (hero
+   backdrop, casting, trailer YouTube online-only), filtres/tris
+   combinables en mémoire, wordmark bundlé.
+3. **Ensuite : phase 4 (lecture VLC & suivi)** — branche `phase-4` depuis
+   main mergé, TODO 4.1 → 4.3 (vlc.service spawn + HTTP status,
+   watch_state vu/reprise).
 
-## Action en attente CÔTÉ UTILISATEUR (avant toute suite)
+## Actions en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Valider la phase 2 (procédure détaillée : phase_2.md § Validation) —
-l'essentiel : scan complet avec clé TMDB active → choix des films →
-fiches enrichies + `.nfo` + images à côté des vidéos ; bouton « Compléter
-via TMDB » sur une fiche ; import silencieux d'un dossier partagé.
-Puis **merger la PR #3**.
+1. Re-valider la phase 3 après les ajustements du premier retour
+   (phase_3.md § Ajustements) : identité couleur bi-thème (sarcelle en
+   clair / ambre en sombre), langues audio/sous-titres sur la fiche
+   (lancer un SCAN COMPLET pour remplir les fichiers déjà indexés),
+   wordmark Space Mono acté.
+2. Puis **merger la PR #4**.
 
 ## Méthode de travail établie (récap opérationnel)
 
@@ -47,9 +49,15 @@ Puis **merger la PR #3**.
   `$env:Path = "$env:NVM_HOME\v22.23.2;$env:Path"`.
 - **better-sqlite3 v13 = N-API avec binaires embarqués** : AUCUN rebuild
   natif, et il ne doit JAMAIS être dans `onlyBuiltDependencies` (pnpm
-  déclencherait un node-gyp voué à l'échec).
+  déclencherait un node-gyp voué à l'échec). Même esprit : les miniatures
+  passent par `nativeImage` (intégré à Electron), pas par sharp & co.
+- **PowerShell 5.1 mange les guillemets doubles dans les arguments des
+  exe natifs** : messages de commit et corps de PR via fichier
+  (`git commit -F`, `gh --body-file`), jamais en argument inline.
 - **Jamais de `Set-Content` PowerShell sur un fichier UTF-8** (mojibake) —
-  toujours les outils d'édition dédiés.
+  toujours les outils d'édition dédiés. Attention aussi aux échappements
+  `\uXXXX` dans les chaînes passées par JSON : ils deviennent des
+  caractères littéraux (préférer du code sans regex Unicode).
 - `gh` CLI : installé et authentifié (`C:\Program Files\GitHub CLI\gh.exe`
   si PATH pas rafraîchi). Repo : https://github.com/fwauters/M0V13S
 - Confidentialité : jamais de nom réel/email dans le code — pseudonyme
@@ -57,21 +65,26 @@ Puis **merger la PR #3**.
 
 ## Snapshot technique (fin de session)
 
-- Stack en place : Electron 43 + Angular 22.1 (zoneless) + Material M3
-  light/dark + Tailwind v4 + Transloco fr/en (loader statique) +
-  better-sqlite3/Drizzle (12 tables, migrations 0000+0001) + ag-grid.
-- 51 tests backend + 6 tests UI verts ; packaging portable vérifié.
-- Branches : `main` (phase 0 mergée), `phase-1` (poussée, PR #2 ouverte).
-- Rapports : docs/initialisation/phase_0.md (validé) et phase_1.md.
+- Stack : Electron 43 + Angular 22.1.1 (zoneless) + Material M3
+  light/dark + Tailwind v4 (tokens brand + font-wordmark) + Transloco
+  fr/en + better-sqlite3/Drizzle (12 tables, migrations 0000-0002) +
+  ag-grid 36.1 + @fontsource (Roboto + 3 candidates wordmark).
+- **113 tests backend + 23 tests UI verts** ; audit 0 vulnérabilité ;
+  packaging portable revalidé (exe lancé avec fenêtre).
+- Protocole images : `m0v13s-img://img/...` (original) et
+  `m0v13s-img://thumb/...` (cache `data\thumbs`, auto-invalidé par mtime).
+- Browse : liste enrichie chargée une fois, rangées/filtres/tris en
+  computed (BrowseStore, état persistant entre navigations).
+- Branches : `main` (phases 0-2), `phase-3` (poussée, PR #4 ouverte).
+- Rapports : phase_0 à phase_2 (validés), phase_3.md (en validation).
 
-## Plan de la phase 2 (dès la PR #2 mergée)
+## Plan de la phase 4 (dès la PR #4 mergée)
 
-Créer la branche `phase-2` depuis `main` fraîchement mergé, puis dérouler
-TODO 2.1 → 2.7 : nfo.service (lecture/écriture XML Kodi, atomique) →
-import silencieux en masse des `.nfo` (scénario partage, hors ligne) →
-tmdb.service (recherche fr-FR, mapping, HTTP mocké en tests) → UI scan
-avec recherche TMDB et choix du bon film → poster/fanart en SIDECARS +
-cache de miniatures → mode hors-ligne du scan + bouton « réessayer
-l'enrichissement » → fin de phase (deps, docs, rapport phase_2.md, PR).
-Point de vigilance : la clé API TMDB est saisie par l'utilisateur et vit
-dans `settings` — jamais commitée. Attribution TMDB déjà dans le README.
+Créer la branche `phase-4` depuis `main` fraîchement mergé, puis dérouler
+TODO 4.1 → 4.3 : `vlc.service` (spawn du VLC portable de `tools\vlc`,
+fullscreen, port HTTP local choisi dynamiquement, polling de la position,
+`--start-time` pour la reprise ; tests avec statut HTTP mocké) →
+`watch_state` (vu automatique > 90 %, reprise, marquage manuel vu/pas vu
+depuis l'UI — le browse expose déjà `seen` et son filtre) → fin de phase
+(deps, docs, portabilité, rapport, PR #5). Prérequis outil :
+`pnpm prepare-tools --only=vlc` si `tools\vlc` absent.

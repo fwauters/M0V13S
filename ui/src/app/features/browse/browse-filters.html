@@ -1,0 +1,123 @@
+<!-- Barre de filtres : tout est combinable, null/all = « tous ». -->
+<ng-container *transloco="let t">
+  <section class="flex flex-col gap-2 px-8">
+    <div class="grid gap-x-3 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Recherche libre (titres VO + localisé, accents ignorés). -->
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.search') }}</mat-label>
+        <input matInput [value]="browse.search()" (input)="onSearchInput($event)" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.genre') }}</mat-label>
+        <mat-select [value]="browse.genre()" (selectionChange)="browse.genre.set($event.value)">
+          <mat-option [value]="null">{{ t('browse.filters.any') }}</mat-option>
+          @for (genre of browse.allGenres(); track genre) {
+            <mat-option [value]="genre">{{ genre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.tag') }}</mat-label>
+        <mat-select [value]="browse.tag()" (selectionChange)="browse.tag.set($event.value)">
+          <mat-option [value]="null">{{ t('browse.filters.any') }}</mat-option>
+          @for (tag of browse.allTags(); track tag) {
+            <mat-option [value]="tag">{{ tag }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.director') }}</mat-label>
+        <mat-select
+          [value]="browse.director()"
+          (selectionChange)="browse.director.set($event.value)"
+        >
+          <mat-option [value]="null">{{ t('browse.filters.any') }}</mat-option>
+          @for (director of browse.allDirectors(); track director) {
+            <mat-option [value]="director">{{ director }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.actor') }}</mat-label>
+        <mat-select [value]="browse.actor()" (selectionChange)="browse.actor.set($event.value)">
+          <mat-option [value]="null">{{ t('browse.filters.any') }}</mat-option>
+          @for (actor of browse.allActors(); track actor) {
+            <mat-option [value]="actor">{{ actor }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.year') }}</mat-label>
+        <mat-select [value]="browse.year()" (selectionChange)="browse.year.set($event.value)">
+          <mat-option [value]="null">{{ t('browse.filters.any') }}</mat-option>
+          @for (year of browse.allYears(); track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.duration') }}</mat-label>
+        <mat-select
+          [value]="browse.duration()"
+          (selectionChange)="browse.duration.set($event.value)"
+        >
+          @for (bucket of durationBuckets; track bucket) {
+            <mat-option [value]="bucket">{{ t('browse.filters.durations.' + bucket) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ t('browse.filters.seen') }}</mat-label>
+        <mat-select [value]="browse.seen()" (selectionChange)="browse.seen.set($event.value)">
+          @for (filter of seenFilters; track filter) {
+            <mat-option [value]="filter">{{ t('browse.filters.seenStates.' + filter) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Tri + sens + remise à zéro, sous les filtres. -->
+    <div class="flex flex-wrap items-center gap-2">
+      <mat-form-field subscriptSizing="dynamic" class="w-44">
+        <mat-label>{{ t('browse.filters.sort') }}</mat-label>
+        <mat-select [value]="browse.sortKey()" (selectionChange)="browse.sortKey.set($event.value)">
+          @for (key of sortKeys; track key) {
+            <mat-option [value]="key">{{ t('browse.filters.sorts.' + key) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button
+        matIconButton
+        (click)="toggleSortDirection()"
+        [attr.aria-label]="t('browse.filters.direction')"
+        [title]="t('browse.filters.direction')"
+      >
+        <mat-icon>{{ browse.sortDesc() ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+      </button>
+
+      <span class="grow"></span>
+
+      @if (browse.filtering()) {
+        <span class="text-sm opacity-70">
+          {{ t('browse.filters.results', { count: browse.filtered().length }) }}
+        </span>
+        <button
+          matIconButton
+          (click)="browse.resetFilters()"
+          [attr.aria-label]="t('browse.filters.clear')"
+          [title]="t('browse.filters.clear')"
+        >
+          <mat-icon>filter_alt_off</mat-icon>
+        </button>
+      }
+    </div>
+  </section>
+</ng-container>

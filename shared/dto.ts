@@ -10,6 +10,12 @@ export interface TechInfo {
   audioCodec: string | null;
   width: number | null;
   height: number | null;
+  /** Langues des pistes audio (codes ISO 639-2 du conteneur : fre, eng…),
+   *  dédupliquées dans l'ordre des pistes. Vide si non tagué / fichier
+   *  analysé avant l'ajout de cette info (re-scan complet pour remplir). */
+  audioLangs: string[];
+  /** Langues des pistes de sous-titres (même convention). */
+  subtitleLangs: string[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -48,6 +54,12 @@ export interface ExistingFiche {
   trailerYoutubeKey: string | null;
   /** Affiche sidecar (chemin relatif) — aperçu dans l'assistant. */
   posterPath: string | null;
+  /** Langues audio/sous-titres déjà en base pour le premier fichier de
+   *  la fiche : préremplissage de l'assistant quand la re-détection
+   *  ffprobe ne trouve rien (pistes non taguées) — des langues saisies
+   *  à la main survivent ainsi à un scan complet. */
+  audioLangs: string[];
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: QualifyActor[];
@@ -309,6 +321,17 @@ export interface ManualEditInput {
   personalRating: number | null;
   personalNotes: string | null;
   tmdbRating: number | null;
+  /** Clé YouTube du trailer, ÉDITABLE manuellement (TMDB n'en trouve pas
+   *  toujours) — déjà parsée côté UI depuis une URL ou une clé brute.
+   *  Null = pas de trailer (efface un trailer existant). */
+  trailerYoutubeKey: string | null;
+  /** Langues audio saisies/corrigées à la main (codes langue en
+   *  minuscules : fr, en, jpn…) quand les pistes ne sont pas taguées.
+   *  Appliquées au PREMIER fichier de la fiche (celui que l'édition
+   *  manuelle recharge) — préremplies avec les valeurs détectées. */
+  audioLangs: string[];
+  /** Langues de sous-titres, même convention. */
+  subtitleLangs: string[];
   directors: string[];
   writers: string[];
   actors: string[];
@@ -320,7 +343,12 @@ export interface ManualEditInput {
 /* Bibliothèque (mode classique — liste et fiches)                     */
 /* ------------------------------------------------------------------ */
 
-/** Élément de la liste des films (règle : présent ET reconnu uniquement). */
+/**
+ * Élément de la liste des films (règle : présent ET reconnu uniquement).
+ * Porte TOUT ce que le browse consomme (rangées, filtres, tris — phase 3) :
+ * la liste est chargée une fois, le filtrage combinable se fait côté UI
+ * (signaux) — instantané, sans aller-retour IPC sur un disque dur lent.
+ */
 export interface MovieListItem {
   id: number;
   titleVo: string;
@@ -329,7 +357,20 @@ export interface MovieListItem {
   durationSec: number | null;
   /** Affiche sidecar (chemin relatif au lecteur), servie via m0v13s-img. */
   posterPath: string | null;
+  /** Fanart sidecar — décors éventuels des rangées (même protocole). */
+  backdropPath: string | null;
+  personalRating: number | null;
+  tmdbRating: number | null;
   genres: string[];
+  tags: string[];
+  /** Noms seuls (les personnages restent sur la fiche détail). */
+  directors: string[];
+  actors: string[];
+  /** Date d'ajout à l'index (ms epoch) — rangée et tri « ajouts ». */
+  addedAt: number;
+  /** Vu jusqu'au bout (watch_state PERSONNEL — alimenté en phase 4,
+   *  déjà exposé pour le filtre vu/pas vu). */
+  seen: boolean;
 }
 
 /** Personne d'une fiche, avec son rôle. */
@@ -352,6 +393,8 @@ export interface MovieDetail {
   /** Images sidecar (chemins relatifs), servies via le protocole m0v13s-img. */
   posterPath: string | null;
   backdropPath: string | null;
+  /** Clé YouTube du trailer — lecture embarquée, online-only (phase 3). */
+  trailerYoutubeKey: string | null;
   genres: string[];
   tags: string[];
   people: MoviePerson[];

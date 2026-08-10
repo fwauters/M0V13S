@@ -40,7 +40,15 @@ function makeInput(overrides: Partial<QualifyMovieInput> = {}): QualifyMovieInpu
     relPath: 'Films/Prometheus (2012)/prometheus.mkv',
     sizeBytes: 4_700_000_000,
     mtimeMs: 1_700_000_000_000,
-    tech: { durationSec: 7440, videoCodec: 'hevc', audioCodec: 'dts', width: 1920, height: 1080 },
+    tech: {
+      durationSec: 7440,
+      videoCodec: 'hevc',
+      audioCodec: 'dts',
+      width: 1920,
+      height: 1080,
+      audioLangs: ['fre', 'eng'],
+      subtitleLangs: ['fre'],
+    },
     partNumber: null,
     titleVo: 'Prometheus',
     titleVf: 'Prometheus',
@@ -331,6 +339,22 @@ describe('ScannerService.enrichMedia (bouton « Compléter via TMDB »)', () => 
     expect(parseMovieNfoXml(fs.readFileSync(nfoPath, 'utf8'))?.tmdbId).toBe(70981);
   });
 
+  it('CONSERVE le trailer existant si TMDB n en a pas trouvé (retour utilisateur)', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(
+      makeInput({ trailerYoutubeKey: 'lienSaisiALaMain' }),
+    );
+
+    await scanner.enrichMedia(mediaId, {
+      tmdbId: 70981, titleVo: 'Prometheus', titleVf: null, year: 2012,
+      overview: null, genres: [], directors: [], writers: [], actors: [],
+      trailerYoutubeKey: null, // TMDB sans trailer → on n'écrase PAS
+      tmdbRating: null, tmdbPosterPath: null, tmdbBackdropPath: null,
+    });
+
+    expect(db.select().from(media).all()[0]!.trailerYoutubeKey).toBe('lienSaisiALaMain');
+  });
+
   it('retourne faux pour une fiche sans fichier rattaché', async () => {
     expect(
       await scanner.enrichMedia(999, {
@@ -404,7 +428,7 @@ describe('ScannerService — regroupement en dossier (décision phase 2)', () =>
 });
 
 describe('ScannerService.updateMovieManual (édition manuelle)', () => {
-  it('met à jour la fiche en préservant tmdbId, trailer et personnages', async () => {
+  it('met à jour la fiche (trailer ÉDITABLE) en préservant tmdbId et personnages', async () => {
     makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
     const mediaId = await scanner.qualify(
       makeInput({ tmdbId: 70981, trailerYoutubeKey: 'trail' }),
@@ -418,6 +442,11 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
       personalRating: 9,
       personalNotes: 'Avis modifié',
       tmdbRating: 7.5,
+      // Trailer saisi à la main (TMDB n'en trouve pas toujours).
+      trailerYoutubeKey: 'cleManuelle',
+      // Langues saisies à la main (pistes non taguées dans le conteneur).
+      audioLangs: ['fr', 'en'],
+      subtitleLangs: ['fr'],
       directors: ['Ridley Scott'],
       writers: [],
       actors: ['Noomi Rapace'],
@@ -430,7 +459,11 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
     expect(m.titleVf).toBe('Titre corrigé');
     expect(m.personalNotes).toBe('Avis modifié');
     expect(m.tmdbId).toBe(70981); // préservé (le formulaire ne le porte pas)
-    expect(m.trailerYoutubeKey).toBe('trail'); // préservé
+    expect(m.trailerYoutubeKey).toBe('cleManuelle'); // remplacé par la saisie
+    // Les langues saisies sont écrites sur le fichier de la fiche.
+    const file = db.select().from(videoFiles).all()[0]!;
+    expect(file.audioLangs).toEqual(['fr', 'en']);
+    expect(file.subtitleLangs).toEqual(['fr']);
     // Personnage retrouvé par nom (le formulaire ne porte que des noms).
     const characters = db.select().from(mediaPeople).all().map((p) => p.character);
     expect(characters).toContain('Elizabeth Shaw');
@@ -441,6 +474,7 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
       await scanner.updateMovieManual(999, {
         titleVo: 'X', titleVf: null, year: null, overview: null,
         personalRating: null, personalNotes: null, tmdbRating: null,
+        trailerYoutubeKey: null, audioLangs: [], subtitleLangs: [],
         directors: [], writers: [], actors: [], genres: [], tags: [],
       }),
     ).toBe(false);

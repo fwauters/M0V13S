@@ -1,0 +1,39 @@
+<!-- Rangée : titre + bande défilante + chevrons (survol, desktop). -->
+<ng-container *transloco="let t">
+  <section class="group/row flex flex-col gap-2">
+    <h2 class="px-8 text-lg font-medium">{{ title() }}</h2>
+
+    <div class="relative">
+      <!-- Bande d'affiches : défilement horizontal natif, accroche snap. -->
+      <div
+        #strip
+        class="scrollbar-hidden flex snap-x gap-3 overflow-x-auto scroll-smooth px-8 py-1"
+      >
+        @for (movie of movies(); track movie.id) {
+          <div class="w-36 shrink-0 snap-start sm:w-40">
+            <app-movie-card [movie]="movie" />
+          </div>
+        }
+      </div>
+
+      <!-- Chevrons de page : dégradé du fond vers le transparent pour
+           rester lisibles sur les affiches, dans les deux thèmes. -->
+      <button
+        type="button"
+        (click)="scrollByPage(-1)"
+        [attr.aria-label]="t('browse.scrollLeft')"
+        class="absolute inset-y-0 left-0 z-10 hidden w-10 items-center justify-center bg-linear-to-r from-white/90 to-transparent opacity-0 transition group-hover/row:opacity-100 md:flex dark:from-black/80"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        type="button"
+        (click)="scrollByPage(1)"
+        [attr.aria-label]="t('browse.scrollRight')"
+        class="absolute inset-y-0 right-0 z-10 hidden w-10 items-center justify-center bg-linear-to-l from-white/90 to-transparent opacity-0 transition group-hover/row:opacity-100 md:flex dark:from-black/80"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </section>
+</ng-container>

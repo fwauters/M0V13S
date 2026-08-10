@@ -16,11 +16,12 @@ import { registerTmdbIpc } from './ipc/tmdb.ipc';
 import { AdminTablesService } from './services/admin-tables.service';
 import { ConformityService } from './services/conformity.service';
 import { LibraryService } from './services/library.service';
-import { getDbPath, getMigrationsDir } from './services/paths.service';
+import { getDbPath, getMigrationsDir, getThumbsDir } from './services/paths.service';
 import { ScannerService } from './services/scanner.service';
 import { fromDriveRelative, toDriveRelative } from './services/paths.logic';
 import { getDriveRoot } from './services/paths.service';
 import { SettingsService } from './services/settings.service';
+import { ThumbsService } from './services/thumbs.service';
 import { TmdbService } from './services/tmdb.service';
 
 /**
@@ -67,23 +68,36 @@ function createWindow(): void {
 }
 
 /**
- * Protocole local `m0v13s-img://img/<relPath encodé>` : sert au renderer
- * les IMAGES sidecar du disque (affiches, fanarts) — indispensable car le
- * renderer n'a pas accès au fs, et `file://` est bloqué depuis la page de
- * dev (http). Garde-fous : extensions d'images uniquement, chemins
- * strictement RELATIFS au lecteur (aller-retour de validation, toute
- * évasion lève → 404).
+ * Protocole local `m0v13s-img://<variante>/<relPath encodé>` : sert au
+ * renderer les IMAGES sidecar du disque (affiches, fanarts) —
+ * indispensable car le renderer n'a pas accès au fs, et `file://` est
+ * bloqué depuis la page de dev (http). Deux variantes (le host de l'URL) :
+ * - `img`   : l'image originale (fiche détail, aperçus de l'assistant) ;
+ * - `thumb` : miniature en cache `data\thumbs` (grilles et rangées du
+ *   browse), générée à la première demande — en cas d'échec, repli
+ *   silencieux sur l'original.
+ * Garde-fous : extensions d'images uniquement, chemins strictement
+ * RELATIFS au lecteur (aller-retour de validation, toute évasion → 404).
  */
-function registerImageProtocol(): void {
-  protocol.handle('m0v13s-img', (request) => {
+function registerImageProtocol(thumbs: ThumbsService): void {
+  protocol.handle('m0v13s-img', async (request) => {
     try {
-      const relPath = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '');
+      const url = new URL(request.url);
+      const relPath = decodeURIComponent(url.pathname).replace(/^\/+/, '');
       if (!/\.(jpe?g|png|webp)$/i.test(relPath)) {
         return new Response(null, { status: 403 });
       }
       const driveRoot = getDriveRoot();
       const absPath = fromDriveRelative(driveRoot, relPath);
       toDriveRelative(driveRoot, absPath); // anti-traversée : lève si hors lecteur
+
+      if (url.host === 'thumb') {
+        const thumbPath = await thumbs.ensureThumb(absPath, relPath);
+        if (thumbPath !== null) {
+          return net.fetch(pathToFileURL(thumbPath).toString());
+        }
+        // Génération impossible (source illisible…) → original ci-dessous.
+      }
       return net.fetch(pathToFileURL(absPath).toString());
     } catch {
       return new Response(null, { status: 404 });
@@ -92,7 +106,7 @@ function registerImageProtocol(): void {
 }
 
 app.whenReady().then(() => {
-  registerImageProtocol();
+  registerImageProtocol(new ThumbsService(getThumbsDir()));
 
   // L'échec d'ouverture de la DB ne doit pas empêcher l'app de démarrer :
   // le ping IPC remontera dbOk=false et l'UI pourra l'afficher.

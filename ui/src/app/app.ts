@@ -3,7 +3,7 @@ import { UpperCasePipe } from '@angular/common';
 import { MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIcon } from '@angular/material/icon';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { AppLang, LanguageService } from './core/services/language.service';
@@ -22,6 +22,7 @@ import { ThemeService } from './core/services/theme.service';
     UpperCasePipe,
     RouterOutlet,
     RouterLink,
+    RouterLinkActive,
     MatIconButton,
     MatIcon,
     MatButtonToggleGroup,
@@ -36,7 +37,8 @@ export class App {
   /** Langue active (signal) + liste des langues — voir LanguageService. */
   protected readonly language = inject(LanguageService);
 
-  private readonly store = inject(LibraryStore);
+  /** Conformité (signal) : pilote l'affichage du lien « Bibliothèque ». */
+  protected readonly store = inject(LibraryStore);
 
   constructor() {
     // Conformité vérifiée dès l'ouverture, sans bloquer le rendu :

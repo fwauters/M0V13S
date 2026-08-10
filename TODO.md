@@ -85,16 +85,26 @@
 
 ## Phase 3 — UI « Netflix »
 
-- [ ] **3.1** Charte visuelle des deux thèmes : layout global, header
-  (interrupteurs thème + langue), navigation.
-- [ ] **3.2** Browse : grille d'affiches + rangées horizontales (miniatures cache).
-- [ ] **3.3** Fiche détail complète : backdrop, casting, genres, tags, trailer
-  YouTube (en ligne) / mentions hors-ligne.
-- [ ] **3.4** Filtres et tris combinables : genre, tag, acteur, réalisateur,
-  année, durée, vu/pas vu.
-- [ ] **3.5** Wordmark « M0V13S » : comparaison visuelle des polices
-  (JetBrains Mono / Fira Code / Space Mono) — choix validé par l'utilisateur.
-- [ ] **3.6** Fin de phase : deps, docs, portabilité, push.
+- [x] **3.1** Charte visuelle des deux thèmes : accent brand (rouge M0V13S),
+  header sticky translucide, navigation Accueil/Bibliothèque/Scanner avec
+  état actif (Bibliothèque masquée si scan forcé).
+- [x] **3.2** Browse : rangées horizontales (« ajoutés récemment » + par
+  genre, chevrons au survol) + grille complète ; `thumbs.service` (reporté
+  de 2.5) : cache `data\thumbs` via nativeImage, protocole `m0v13s-img`
+  variante `thumb/`, repli original silencieux.
+- [x] **3.3** Fiche détail complète : hero backdrop + affiche, méta, genres
+  en chips, casting avec personnages (avatars initiales), tags, trailer
+  YouTube embarqué (online-only, bouton désactivé hors ligne).
+- [x] **3.4** Filtres et tris combinables (BrowseStore signaux, en mémoire) :
+  recherche sans accents, genre, tag, acteur, réalisateur, année, tranche de
+  durée, vu/pas vu ; tri titre/année/ajout inversable ; état persistant.
+- [x] **3.5** Wordmark « M0V13S » : trois polices comparées visuellement —
+  **Space Mono choisie par l'utilisateur** (bundlée via @fontsource, token
+  `--font-wordmark`), les deux autres retirées.
+- [x] **3.6** Fin de phase : deps à jour (Angular 22.1.1, ag-grid 36.1,
+  postcss, jsdom 30 — audit 0 vuln, TS 7 toujours exclu), portabilité
+  revalidée (exe packagé lancé), docs, rapport, PR #4 — validation
+  utilisateur avant merge.
 
 ## Phase 4 — Lecture & suivi
 

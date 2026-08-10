@@ -3,6 +3,9 @@
     "title": "M0V13S"
   },
   "shell": {
+    "navHome": "Accueil",
+    "navBrowse": "Bibliothèque",
+    "navScan": "Scanner",
     "themeToLight": "Passer au thème clair",
     "themeToDark": "Passer au thème sombre",
     "language": "Langue",
@@ -11,6 +14,7 @@
   "common": {
     "loading": "Chargement…",
     "cancel": "Annuler",
+    "close": "Fermer",
     "remove": "Retirer",
     "save": "Enregistrer"
   },
@@ -44,13 +48,54 @@
   "browse": {
     "title": "Ma bibliothèque",
     "empty": "Aucun film affichable. Lancez un scan pour qualifier vos fichiers.",
-    "minutes": "{{min}} min"
+    "minutes": "{{min}} min",
+    "rowRecent": "Ajoutés récemment",
+    "rowAll": "Tous les films ({{count}})",
+    "scrollLeft": "Faire défiler vers la gauche",
+    "scrollRight": "Faire défiler vers la droite",
+    "filters": {
+      "search": "Rechercher un titre",
+      "genre": "Genre",
+      "tag": "Tag",
+      "director": "Réalisateur",
+      "actor": "Acteur",
+      "year": "Année",
+      "duration": "Durée",
+      "seen": "Vu / pas vu",
+      "sort": "Trier par",
+      "direction": "Inverser le sens du tri",
+      "any": "Tous",
+      "clear": "Réinitialiser filtres et tri",
+      "results": "{{count}} résultat(s)",
+      "noResults": "Aucun film ne correspond à ces critères.",
+      "durations": {
+        "all": "Toutes",
+        "lt90": "Moins de 90 min",
+        "b90to120": "90 à 120 min",
+        "b120to150": "120 à 150 min",
+        "gt150": "Plus de 150 min"
+      },
+      "seenStates": {
+        "all": "Tous",
+        "seen": "Vus",
+        "unseen": "Pas vus"
+      },
+      "sorts": {
+        "title": "Titre",
+        "year": "Année",
+        "added": "Date d'ajout"
+      }
+    }
   },
   "detail": {
     "back": "Retour à la bibliothèque",
     "enrichButton": "Compléter via TMDB",
     "enrichTitle": "Compléter la fiche depuis TMDB",
     "editButton": "Modifier manuellement",
+    "trailerButton": "Voir le trailer",
+    "trailerOffline": "Trailer indisponible hors ligne (seule fonction qui demande internet).",
+    "audio": "Audio",
+    "subtitles": "Sous-titres",
     "tmdbRating": "TMDB {{rating}}/10",
     "notes": "Mon avis",
     "files": "Fichiers",
@@ -118,6 +163,10 @@
       "tmdbRating": "Note TMDB (0-10)",
       "notes": "Mon avis / informations complémentaires",
       "overview": "Synopsis",
+      "trailer": "Trailer YouTube",
+      "trailerHint": "Collez une URL YouTube (watch, youtu.be…) ou la clé de la vidéo — laissez vide pour retirer le trailer.",
+      "audioLangs": "Langues audio (codes : fr, en, jpn…)",
+      "subtitleLangs": "Langues des sous-titres (codes : fr, en…)",
       "directors": "Réalisateur(s)",
       "writers": "Scénariste(s)",
       "actors": "Acteurs",

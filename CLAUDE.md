@@ -29,8 +29,8 @@ Projet **open source (MIT)**, publié sur GitHub.
 | Shell | Electron, build portable (electron-builder) |
 | Frontend | Angular 22 — signals, standalone, zoneless si stable |
 | UI kit | Hybride : Angular Material (formulaires, dialogues, chips, autocomplete — admin/scan) + Tailwind custom (UI cinéma : browse, fiches, carrousels) |
-| Thèmes | Light + dark, commutables à chaud, un seul signal pilote Material (tokens M3) et Tailwind (`class="dark"`) |
-| Polices | Roboto (base, bundlée). Wordmark « M0V13S » : police à chiffres différenciés des lettres (zéro barré/pointé, 1 distinct du I) — shortlist JetBrains Mono / Fira Code / Space Mono, choix visuel avec l'utilisateur en phase 3 |
+| Thèmes | Light + dark, commutables à chaud, un seul signal pilote Material (tokens M3) et Tailwind (`class="dark"`). Accent « brand » BI-THÈME (choix utilisateur) : sarcelle en clair, ambre en sombre, via `light-dark()` (tokens `--color-brand`/`--color-on-brand`) ; Material aligné (primaire cyan, tertiaire orange) |
+| Polices | Roboto (base, bundlée). Wordmark « M0V13S » : **Space Mono 700** (choix utilisateur phase 3 — zéro barré, 1 distinct du I), bundlée via @fontsource, token Tailwind `--font-wordmark` |
 | i18n | @jsverse/transloco, fr + en, extensible, changement à chaud |
 | Vue données admin | ag-grid Community : tables de la DB en mode admin (tri, filtre, virtualisation) |
 | Backend | Main process Electron en TS pur (PAS de NestJS), IPC typé via contextBridge |
@@ -207,7 +207,7 @@ actions en attente, pièges d'environnement) — mis à jour en fin de session.
 
 - [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
 - [x] Phase 1 — Bibliothèque locale & conformité (validée par l'utilisateur : scan, qualification, fiche, vue admin)
-- [ ] Phase 2 — Sidecars & enrichissement TMDB
-- [ ] Phase 3 — UI « Netflix »
+- [x] Phase 2 — Sidecars & enrichissement TMDB (validée par l'utilisateur : langues configurables, sidecars, regroupement, édition manuelle, posters)
+- [ ] Phase 3 — UI « Netflix » (en cours)
 - [ ] Phase 4 — Lecture VLC & suivi
 - [ ] Phase 5 — Intelligence & finitions
