@@ -127,23 +127,30 @@
 > La release ne clôt PLUS cette phase : elle arrive en fin de phase 6,
 > après la recette générale (décision utilisateur, 2026-08-10).
 
-- [ ] **5.1** Rangées de suggestions (à reprendre, jamais vus, pas vus depuis
-  longtemps, genre favori, ajoutés récemment) + tests.
+- [x] **5.1** Rangées de suggestions (Reprendre, Jamais vus, Parce que vous
+  aimez {genre}, Pas revus depuis longtemps — en computed BrowseStore,
+  approche mémoire unifiée documentée) + tests.
 - [x] **5.2** Verrou admin : mot de passe (scrypt), dialogue ouvert par le
   guard des routes admin (pas de combo touches — décision utilisateur),
   cadenas de re-verrouillage, outils admin masqués quand verrouillé ;
   définition du mot de passe au premier lancement (5.5).
-- [ ] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin,
-  bascule au redémarrage, version de secours + tests.
-- [ ] **5.4** Édition contrôlée dans la vue admin des tables (via services
-  métier, réécriture `.nfo` garantie).
-- [ ] **5.5** Écran de premier lancement : choix des racines, clé TMDB, mot de
-  passe admin.
-- [ ] **5.6** Polish UI : animations, focus clavier, états vides, accessibilité.
-- [ ] **5.7** Test e2e « smoke » sur le build packagé (lancement, conformité,
-  navigation, lecture).
-- [ ] **5.8** Fin de phase : deps, docs, portabilité, rapport phase_5.md,
-  PR — validation utilisateur avant merge.
+- [x] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin
+  (carte accueil), staging `vlc-next`, bascule au démarrage, `vlc-prev` en
+  secours + tests (faux réseau/unzip).
+- [x] **5.4** Édition contrôlée dans la vue admin : liste blanche de champs
+  scalaires de `media` (double-clic ag-grid) routée vers `updateMovieManual`
+  — fiche + `.nfo` réécrits, jamais de SQL direct + tests.
+- [x] **5.5** Écran de premier lancement `/setup` : racines, clé TMDB
+  (optionnelle), mot de passe admin (optionnel) ; guard sur l'accueil,
+  installations antérieures marquées configurées sans re-questionnement.
+- [x] **5.6** Polish UI : focus clavier visible (anneau brand),
+  `prefers-reduced-motion` respecté, apparition douce des pages, état vide
+  du browse avec appel à l'action.
+- [x] **5.7** Test e2e « smoke » sur le build packagé (`pnpm e2e`, Playwright
+  Electron sur l'exe réel) : fenêtre, shell, premier lancement, accueil —
+  validé en réel.
+- [x] **5.8** Fin de phase : deps (TS 7 toujours exclu, audit 0 vuln), docs,
+  rapport phase_5.md, PR #6 — validation utilisateur avant merge.
 
 ## Phase 6 — Recette générale & release v1.0
 

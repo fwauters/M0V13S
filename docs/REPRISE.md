@@ -6,21 +6,25 @@
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phases 0 à 4 : terminées, validées, mergées** (PR #1 à #5 — lecture
-   VLC portable, reprise, vu auto/manuel, tools embarqués au packaging).
-2. **Restructuration validée avec l'utilisateur (2026-08-10)** : la
-   release quitte la phase 5 → **nouvelle phase 6 « Recette générale &
-   release »** (checklist exhaustive `docs/RECETTE.md` déroulée par
-   l'utilisateur, corrections par lots, PUIS release v1.0). Reporté dans
-   CLAUDE.md, PLAN.md § 7, TODO.md.
-3. **Phase 5 (intelligence & finitions) EN COURS** sur la branche
-   `phase-5` — TODO 5.1 → 5.8 (suggestions, verrou admin, MAJ VLC,
-   édition admin, premier lancement, polish, e2e smoke, fin de phase).
+1. **Phases 0 à 4 : terminées, validées, mergées** (PR #1 à #5).
+   Restructuration actée (2026-08-10) : la release quitte la phase 5 →
+   **phase 6 « Recette générale & release »** (checklist `docs/RECETTE.md`
+   déroulée par l'utilisateur, corrections par lots, puis v1.0).
+2. **Phase 5 (intelligence & finitions) : TERMINÉE et poussée — PR #6
+   OUVERTE, en attente de validation utilisateur puis merge.**
+   Suggestions (Reprendre/Jamais vus/genre favori/pas revus), verrou
+   admin (mot de passe scrypt via guard, SANS combo — décision
+   utilisateur), MAJ VLC (staging + bascule au démarrage + secours),
+   édition contrôlée vue admin, écran /setup, polish, e2e smoke.
+3. **Ensuite : phase 6** — rédiger `docs/RECETTE.md` (inventaire réel du
+   code), recette utilisateur, corrections par lots, release v1.0.
 
 ## Actions en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-Aucune pour l'instant : la phase 5 est en cours de développement.
-(À la fin : valider la phase 5 puis merger sa PR, avant la phase 6.)
+1. Valider la phase 5 (procédure : phase_5.md § Validation) —
+   suggestions, verrou admin, MAJ VLC, édition admin (fiche + .nfo),
+   premier lancement (renommer data\), `pnpm e2e`.
+2. Puis **merger la PR #6**.
 
 ## Méthode de travail établie (récap opérationnel)
 
@@ -78,20 +82,15 @@ Aucune pour l'instant : la phase 5 est en cours de développement.
 - Branches : `main` (phases 0-3), `phase-4` (poussée, PR #5 ouverte).
 - Rapports : phase_0 à phase_3 (validés), phase_4.md (en validation).
 
-## Plan des phases 5 et 6
+## Plan de la phase 6 (dès la PR #6 mergée)
 
-Phase 5 (branche `phase-5`, en cours) — TODO 5.1 → 5.8 : rangées de
-suggestions (à reprendre, jamais vus, pas vus depuis longtemps, genre
-favori) → verrou admin (mot de passe scrypt, dialogue via guard — pas de
-combo, décision utilisateur) → vlc-updater
-(vérification/téléchargement en mode admin, bascule au redémarrage,
-version de secours) → édition contrôlée de la vue admin (via services
-métier, réécriture .nfo garantie) → écran de premier lancement (racines,
-clé TMDB, mot de passe admin) → polish UI → e2e smoke sur build packagé
-→ fin de phase (deps, docs, rapport, PR).
-
-Phase 6 (après merge de la phase 5) — recette générale : rédiger
-`docs/RECETTE.md` depuis l'inventaire réel du code, l'utilisateur déroule
-la checklist (parcours/vues dans les deux thèmes et langues, systèmes,
-portabilité machine B), corrections par lots, PUIS release v1.0 (tag,
-GitHub Release, READMEs finalisés + captures).
+Créer la branche `phase-6` depuis `main` fraîchement mergé, puis :
+rédiger `docs/RECETTE.md` — la checklist EXHAUSTIVE générée depuis
+l'inventaire réel du code (routes/écrans, services main, canaux IPC,
+réglages, clés i18n, thèmes) — organisée par parcours avec cases à
+cocher et colonne remarques ; l'utilisateur la déroule (chaque écran
+dans les DEUX thèmes et les DEUX langues, systèmes : conformité,
+sidecars/partage, hors-ligne intégral, lecture/reprise/vu, MAJ VLC,
+portabilité réelle machine B) ; corrections par lots (un commit par lot,
+tests de non-régression, RECETTE re-cochée) ; PUIS release v1.0 : build
+final, tag git, GitHub Release, READMEs finalisés (guide + captures).
