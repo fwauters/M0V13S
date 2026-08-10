@@ -108,12 +108,19 @@
 
 ## Phase 4 — Lecture & suivi
 
-- [ ] **4.1** `vlc.service` : spawn VLC portable (fullscreen, port HTTP
-  dynamique), polling position, `--start-time` pour la reprise + tests
-  (parsing statut mocké).
-- [ ] **4.2** `watch_state` : vu automatique (> 90 %), reprise, marquage manuel
-  vu/pas vu depuis l'UI + tests.
-- [ ] **4.3** Fin de phase : deps, docs, portabilité, push.
+- [x] **4.1** `vlc.service` : spawn du VLC portable embarqué (fullscreen,
+  `--no-one-instance`, interface HTTP 127.0.0.1 sur port dynamique + mot de
+  passe jetable), polling de la position (2 s), `--start-time` pour la
+  reprise ; `watch.service` (upserts) + tests (26 : logique pure, DB
+  temporaire, faux process/statuts).
+- [x] **4.2** `watch_state` : vu automatique (> 90 %), reprise sauvegardée en
+  continu (pas de reprise < 60 s ni une fois vu), marquage manuel vu/pas vu ;
+  UI : Lire/Reprendre/Depuis le début sur le hero, badge « Vu » (fiche +
+  coin d'affiche browse), rafraîchissement à la fin de lecture + tests.
+- [x] **4.3** Fin de phase : deps (TS 7 toujours exclu, audit 0 vuln),
+  packaging embarque désormais `tools\` (VLC + ffprobe copiés à côté de
+  l'exe — standalone intégral vérifié), docs, rapport, PR #5 — validation
+  utilisateur avant merge.
 
 ## Phase 5 — Intelligence & finitions
 

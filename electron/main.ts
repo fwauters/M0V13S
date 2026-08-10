@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 
 import { AppDatabaseHandle, openDatabase } from './db/client';
 import { registerLibraryIpc } from './ipc/library.ipc';
+import { registerPlayerIpc } from './ipc/player.ipc';
 import { registerSettingsIpc } from './ipc/settings.ipc';
 import { registerSystemIpc } from './ipc/system.ipc';
 import { registerTmdbIpc } from './ipc/tmdb.ipc';
@@ -23,6 +24,8 @@ import { getDriveRoot } from './services/paths.service';
 import { SettingsService } from './services/settings.service';
 import { ThumbsService } from './services/thumbs.service';
 import { TmdbService } from './services/tmdb.service';
+import { VlcService } from './services/vlc.service';
+import { WatchService } from './services/watch.service';
 
 /**
  * URL du serveur de dev Angular (ng serve) — utilisée hors packaging.
@@ -137,10 +140,14 @@ app.whenReady().then(() => {
       adminTables: new AdminTablesService(db),
       tmdb: tmdbService,
     });
+    // Lecture VLC + suivi de visionnage (phase 4).
+    const watchService = new WatchService(db);
+    registerPlayerIpc({ vlc: new VlcService(db, watchService), watch: watchService });
   } else {
     registerSettingsIpc(null);
     registerTmdbIpc(null);
     registerLibraryIpc(null);
+    registerPlayerIpc(null);
   }
 
   createWindow();

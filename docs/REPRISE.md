@@ -1,30 +1,30 @@
 # REPRISE DE SESSION — état exact du projet
 
 > Doc vivante : mise à jour à la FIN de chaque session de travail pour
-> reprendre exactement au même point. Dernière mise à jour : 2026-08-09,
-> fin de la session « phase 3 ».
+> reprendre exactement au même point. Dernière mise à jour : 2026-08-10,
+> fin de la session « phase 4 ».
 
 ## Où on en est — résumé en 3 lignes
 
-1. **Phases 0, 1 et 2 : terminées, validées, mergées** (PR #1, #2, #3).
-2. **Phase 3 (UI « Netflix ») : TERMINÉE et poussée — PR #4 OUVERTE, en
-   attente de la validation utilisateur puis du merge.** Tout y est :
-   charte (brand, header sticky, nav), browse en rangées + grille avec
-   cache de miniatures (`data\thumbs`, nativeImage), fiche cinéma (hero
-   backdrop, casting, trailer YouTube online-only), filtres/tris
-   combinables en mémoire, wordmark bundlé.
-3. **Ensuite : phase 4 (lecture VLC & suivi)** — branche `phase-4` depuis
-   main mergé, TODO 4.1 → 4.3 (vlc.service spawn + HTTP status,
-   watch_state vu/reprise).
+1. **Phases 0 à 3 : terminées, validées, mergées** (PR #1 à #4 — la
+   phase 3 inclut les ajustements post-validation : identité bi-thème
+   sarcelle/ambre partout, trailer + langues éditables, Space Mono).
+2. **Phase 4 (lecture VLC & suivi) : TERMINÉE et poussée — PR #5
+   OUVERTE, en attente de la validation utilisateur puis du merge.**
+   vlc.service (spawn portable, HTTP local port dynamique, polling),
+   watch.service (reprise continue, vu > 90 %, marquage manuel), UI
+   (Lire/Reprendre, badges vus), packaging embarquant désormais tools\.
+3. **Ensuite : phase 5 (intelligence & finitions)** — TODO 5.1 → 5.8
+   (suggestions, verrou admin, MAJ VLC, édition admin, premier
+   lancement, polish, e2e smoke, release v1.0).
 
 ## Actions en attente CÔTÉ UTILISATEUR (avant toute suite)
 
-1. Re-valider la phase 3 après les ajustements du premier retour
-   (phase_3.md § Ajustements) : identité couleur bi-thème (sarcelle en
-   clair / ambre en sombre), langues audio/sous-titres sur la fiche
-   (lancer un SCAN COMPLET pour remplir les fichiers déjà indexés),
-   wordmark Space Mono acté.
-2. Puis **merger la PR #4**.
+1. Valider la phase 4 (procédure détaillée : phase_4.md § Validation) —
+   l'essentiel : « Lire » lance le VLC embarqué plein écran, quitter en
+   cours → « Reprendre à … », > 90 % → badge « Vu » + coche browse,
+   marquage manuel, messages non bloquants (VLC absent, déjà en cours).
+2. Puis **merger la PR #5**.
 
 ## Méthode de travail établie (récap opérationnel)
 
@@ -48,16 +48,20 @@
   dans nvm ; mes shells doivent préfixer :
   `$env:Path = "$env:NVM_HOME\v22.23.2;$env:Path"`.
 - **better-sqlite3 v13 = N-API avec binaires embarqués** : AUCUN rebuild
-  natif, et il ne doit JAMAIS être dans `onlyBuiltDependencies` (pnpm
-  déclencherait un node-gyp voué à l'échec). Même esprit : les miniatures
-  passent par `nativeImage` (intégré à Electron), pas par sharp & co.
+  natif, jamais dans `onlyBuiltDependencies`. Même esprit : miniatures
+  via `nativeImage` (intégré), pas de sharp & co.
+- **`pnpm prepare-tools` AVANT `pnpm package`** : electron-builder copie
+  `tools\` (ffprobe + VLC) à côté de l'exe (extraFiles) — sans le
+  prepare-tools préalable, le paquet part sans les binaires.
+- **VLC en spawn : toujours `--no-one-instance`** — sinon un VLC déjà
+  ouvert sur la machine avale le fichier et notre process (et le suivi
+  de position) se termine aussitôt.
 - **PowerShell 5.1 mange les guillemets doubles dans les arguments des
   exe natifs** : messages de commit et corps de PR via fichier
   (`git commit -F`, `gh --body-file`), jamais en argument inline.
-- **Jamais de `Set-Content` PowerShell sur un fichier UTF-8** (mojibake) —
-  toujours les outils d'édition dédiés. Attention aussi aux échappements
-  `\uXXXX` dans les chaînes passées par JSON : ils deviennent des
-  caractères littéraux (préférer du code sans regex Unicode).
+- **Jamais de `Set-Content` PowerShell sur un fichier UTF-8** (mojibake).
+  Attention aussi aux échappements `\uXXXX` dans les chaînes passées par
+  JSON : ils deviennent des caractères littéraux.
 - `gh` CLI : installé et authentifié (`C:\Program Files\GitHub CLI\gh.exe`
   si PATH pas rafraîchi). Repo : https://github.com/fwauters/M0V13S
 - Confidentialité : jamais de nom réel/email dans le code — pseudonyme
@@ -65,26 +69,28 @@
 
 ## Snapshot technique (fin de session)
 
-- Stack : Electron 43 + Angular 22.1.1 (zoneless) + Material M3
-  light/dark + Tailwind v4 (tokens brand + font-wordmark) + Transloco
-  fr/en + better-sqlite3/Drizzle (12 tables, migrations 0000-0002) +
-  ag-grid 36.1 + @fontsource (Roboto + 3 candidates wordmark).
-- **113 tests backend + 23 tests UI verts** ; audit 0 vulnérabilité ;
-  packaging portable revalidé (exe lancé avec fenêtre).
-- Protocole images : `m0v13s-img://img/...` (original) et
-  `m0v13s-img://thumb/...` (cache `data\thumbs`, auto-invalidé par mtime).
-- Browse : liste enrichie chargée une fois, rangées/filtres/tris en
-  computed (BrowseStore, état persistant entre navigations).
-- Branches : `main` (phases 0-2), `phase-3` (poussée, PR #4 ouverte).
-- Rapports : phase_0 à phase_2 (validés), phase_3.md (en validation).
+- Stack : Electron 43 + Angular 22.1.1 (zoneless) + Material M3 (identité
+  bi-thème : sarcelle clair / ambre sombre, overrides ciblés `html.dark`,
+  ag-grid accentColor aligné) + Tailwind v4 + Transloco fr/en +
+  better-sqlite3/Drizzle (migrations 0000-0003) + VLC portable 3.0.23 +
+  ffprobe dans `tools\`.
+- **142 tests backend + 32 tests UI verts** ; audit 0 vulnérabilité ;
+  packaging portable vérifié AVEC tools embarqués (exe + fenêtre OK).
+- Lecture : `player:play` → premier fichier présent, VLC HTTP 127.0.0.1
+  port dynamique + mot de passe jetable, polling 2 s, reprise continue,
+  vu > 90 % (une fois), `player:ended` → l'UI recharge.
+- Branches : `main` (phases 0-3), `phase-4` (poussée, PR #5 ouverte).
+- Rapports : phase_0 à phase_3 (validés), phase_4.md (en validation).
 
-## Plan de la phase 4 (dès la PR #4 mergée)
+## Plan de la phase 5 (dès la PR #5 mergée)
 
-Créer la branche `phase-4` depuis `main` fraîchement mergé, puis dérouler
-TODO 4.1 → 4.3 : `vlc.service` (spawn du VLC portable de `tools\vlc`,
-fullscreen, port HTTP local choisi dynamiquement, polling de la position,
-`--start-time` pour la reprise ; tests avec statut HTTP mocké) →
-`watch_state` (vu automatique > 90 %, reprise, marquage manuel vu/pas vu
-depuis l'UI — le browse expose déjà `seen` et son filtre) → fin de phase
-(deps, docs, portabilité, rapport, PR #5). Prérequis outil :
-`pnpm prepare-tools --only=vlc` si `tools\vlc` absent.
+Créer la branche `phase-5` depuis `main` fraîchement mergé, puis dérouler
+TODO 5.1 → 5.8 : rangées de suggestions (SQL dédié : à reprendre, jamais
+vus, pas vus depuis longtemps, genre favori, ajoutés récemment) → verrou
+admin (combo touches + scrypt, définition au premier lancement) →
+vlc-updater (vérification/téléchargement en mode admin, bascule au
+redémarrage, version de secours) → édition contrôlée de la vue admin
+(via services métier, réécriture .nfo garantie) → écran de premier
+lancement (racines, clé TMDB, mot de passe admin) → polish UI
+(animations, focus clavier, états vides, accessibilité) → e2e smoke sur
+build packagé → release v1.0 (tag, GitHub Release, READMEs + captures).

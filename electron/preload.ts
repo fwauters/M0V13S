@@ -56,6 +56,18 @@ const api: WindowApi = {
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
   },
+  player: {
+    play: (mediaId: number, resume: boolean) =>
+      ipcRenderer.invoke(IPC.player.play, mediaId, resume),
+    setCompleted: (mediaId: number, completed: boolean) =>
+      ipcRenderer.invoke(IPC.player.setCompleted, mediaId, completed),
+    // Même mécanique de désinscription que scanner.onProgress.
+    onEnded: (listener: (mediaId: number) => void): (() => void) => {
+      const wrapped = (_event: unknown, mediaId: number): void => listener(mediaId);
+      ipcRenderer.on(IPC.player.ended, wrapped);
+      return () => ipcRenderer.removeListener(IPC.player.ended, wrapped);
+    },
+  },
   tmdb: {
     getKeyStatus: () => ipcRenderer.invoke(IPC.tmdb.getKeyStatus),
     setKey: (key: string) => ipcRenderer.invoke(IPC.tmdb.setKey, key),

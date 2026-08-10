@@ -208,6 +208,6 @@ actions en attente, pièges d'environnement) — mis à jour en fin de session.
 - [x] Phase 0 — Squelette portable (critère validé : exe depuis disque externe sur machine B, hors ligne)
 - [x] Phase 1 — Bibliothèque locale & conformité (validée par l'utilisateur : scan, qualification, fiche, vue admin)
 - [x] Phase 2 — Sidecars & enrichissement TMDB (validée par l'utilisateur : langues configurables, sidecars, regroupement, édition manuelle, posters)
-- [ ] Phase 3 — UI « Netflix » (en cours)
-- [ ] Phase 4 — Lecture VLC & suivi
+- [x] Phase 3 — UI « Netflix » (validée par l'utilisateur : charte bi-thème sarcelle/ambre, rangées + miniatures, fiche cinéma, filtres, wordmark Space Mono, langues des pistes)
+- [ ] Phase 4 — Lecture VLC & suivi (en cours)
 - [ ] Phase 5 — Intelligence & finitions

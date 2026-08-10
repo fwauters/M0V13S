@@ -15,6 +15,7 @@ import type {
   ManualEditInput,
   MovieDetail,
   MovieListItem,
+  PlayOutcome,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
@@ -25,6 +26,7 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  WatchStateInfo,
 } from './dto';
 
 /** Noms des canaux IPC, groupés par domaine. */
@@ -71,6 +73,15 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+  },
+  player: {
+    /** Lance la lecture VLC d'un film (reprise optionnelle). */
+    play: 'player:play',
+    /** Marquage manuel vu / pas vu depuis l'UI. */
+    setCompleted: 'player:set-completed',
+    /** Événement (main -> renderer) : la lecture s'est terminée —
+     *  le watch_state a été mis à jour, l'UI doit se rafraîchir. */
+    ended: 'player:ended',
   },
   tmdb: {
     /** Statut de la clé API (masquée — jamais la clé en clair). */
@@ -151,6 +162,15 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+  };
+  player: {
+    /** Lance VLC sur le premier fichier présent du film.
+     *  `resume` vrai = reprendre à la position sauvegardée. */
+    play(mediaId: number, resume: boolean): Promise<PlayOutcome>;
+    /** Marque vu / pas vu et retourne le nouvel état. */
+    setCompleted(mediaId: number, completed: boolean): Promise<WatchStateInfo>;
+    /** S'abonne à la fin de lecture ; retourne la désinscription. */
+    onEnded(listener: (mediaId: number) => void): () => void;
   };
   tmdb: {
     getKeyStatus(): Promise<TmdbKeyStatus>;

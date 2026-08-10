@@ -49,6 +49,7 @@
     "title": "Ma bibliothèque",
     "empty": "Aucun film affichable. Lancez un scan pour qualifier vos fichiers.",
     "minutes": "{{min}} min",
+    "seenBadge": "Vu",
     "rowRecent": "Ajoutés récemment",
     "rowAll": "Tous les films ({{count}})",
     "scrollLeft": "Faire défiler vers la gauche",
@@ -89,6 +90,18 @@
   },
   "detail": {
     "back": "Retour à la bibliothèque",
+    "play": "Lire",
+    "resume": "Reprendre à {{time}}",
+    "restart": "Depuis le début",
+    "seenBadge": "Vu",
+    "markSeen": "Marquer comme vu",
+    "markUnseen": "Marquer comme non vu",
+    "playErrors": {
+      "vlcMissing": "VLC portable introuvable (tools\\vlc) — lancez « pnpm prepare-tools --only=vlc » ou copiez VLC sur le disque.",
+      "fileMissing": "Fichier vidéo introuvable sur le disque.",
+      "alreadyPlaying": "Une lecture est déjà en cours — fermez VLC d'abord.",
+      "error": "Impossible de lancer VLC."
+    },
     "enrichButton": "Compléter via TMDB",
     "enrichTitle": "Compléter la fiche depuis TMDB",
     "editButton": "Modifier manuellement",

@@ -27,6 +27,14 @@ extraResources:
   - from: electron/db/migrations
     to: migrations
 
+extraFiles:
+  # Binaires embarqués (ffprobe, VLC portable) déposés par `pnpm
+  # prepare-tools` AVANT le packaging — copiés à côté de l'exe
+  # (paths.service : appRoot\tools). Jamais dans le repo (licences,
+  # poids) ; sans eux l'app démarre mais scan/lecture le signalent.
+  - from: tools
+    to: tools
+
 win:
   target: dir
 

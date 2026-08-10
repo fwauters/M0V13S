@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
@@ -12,10 +12,12 @@ import {
   tmdbLanguageLabel,
   type ManualEditInput,
   type MovieDetail as MovieDetailDto,
+  type PlayStatus,
 } from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
+import { formatDurationLabel } from '../../core/format-duration';
 import { JoinPipe } from '../../core/pipes/join.pipe';
 import { LangNamesPipe } from '../../core/pipes/lang-names.pipe';
 import { LanguageService } from '../../core/services/language.service';
@@ -93,7 +95,7 @@ function initialsOf(name: string): string {
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
   host: { class: 'flex grow flex-col' },
 })
-export class MovieDetail {
+export class MovieDetail implements OnDestroy {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
@@ -159,6 +161,45 @@ export class MovieDetail {
     return langs;
   });
 
+  /* ----------------- lecture VLC & suivi (phase 4) ---------------- */
+
+  /** Vrai si la fiche a au moins un fichier PRÉSENT (bouton Lire). */
+  protected readonly hasPlayableFile = computed(() =>
+    (this.movie()?.files ?? []).some((f) => f.status === 'ok'),
+  );
+
+  /** Libellé de la position de reprise (« 1 h 23 », « 42 min »). */
+  protected readonly resumeLabel = computed(() => {
+    const position = this.movie()?.watch.resumePositionSec ?? null;
+    return position === null ? '' : formatDurationLabel(position);
+  });
+
+  /** Statut du dernier lancement ('idle' avant tout clic). */
+  protected readonly playStatus = signal<'idle' | PlayStatus>('idle');
+
+  /** Désinscription de l'événement de fin de lecture. */
+  private readonly unsubscribeEnded: () => void;
+
+  /** Lance la lecture (reprise ou depuis le début). */
+  protected async play(resume: boolean): Promise<void> {
+    const m = this.movie();
+    if (m === null) {
+      return;
+    }
+    const outcome = await this.api.playMovie(m.id, resume);
+    this.playStatus.set(outcome.status);
+  }
+
+  /** Bascule manuelle vu / pas vu (le main répond avec le nouvel état). */
+  protected async toggleSeen(): Promise<void> {
+    const m = this.movie();
+    if (m === null) {
+      return;
+    }
+    const watch = await this.api.setWatchCompleted(m.id, !m.watch.completed);
+    this.movie.set({ ...m, watch });
+  }
+
   /* ---------------- édition manuelle (décision phase 2) ------------- */
 
   /** Mode édition actif : la fiche devient un formulaire. */
@@ -181,6 +222,17 @@ export class MovieDetail {
     void this.api
       .getTmdbLanguageConfig()
       .then((config) => this.metadataLangLabel.set(tmdbLanguageLabel(config.metadataLanguage)));
+    // Fin de lecture VLC : recharge la fiche (reprise/vu mis à jour côté main).
+    this.unsubscribeEnded = this.api.onPlaybackEnded((mediaId) => {
+      if (mediaId === this.movie()?.id) {
+        this.playStatus.set('idle');
+        void this.load();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeEnded();
   }
 
   /** Ouvre le formulaire d'édition, prérempli avec la fiche courante. */
