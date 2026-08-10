@@ -6,6 +6,7 @@ import type {
   ManualEditInput,
   MovieDetail,
   MovieListItem,
+  PlayOutcome,
   QualifyMovieInput,
   ScanProgress,
   ScanRelinkCandidate,
@@ -16,6 +17,7 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  WatchStateInfo,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
 
@@ -152,6 +154,30 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /* ------------------------- player ------------------------- */
+
+  /** Lance la lecture VLC (reprise optionnelle). Hors Electron : erreur. */
+  async playMovie(mediaId: number, resume: boolean): Promise<PlayOutcome> {
+    return window.api?.player.play(mediaId, resume) ?? { status: 'error' };
+  }
+
+  /** Marque vu / pas vu (manuel) et retourne le nouvel état. */
+  async setWatchCompleted(mediaId: number, completed: boolean): Promise<WatchStateInfo> {
+    return (
+      window.api?.player.setCompleted(mediaId, completed) ?? {
+        completed: false,
+        watchCount: 0,
+        resumePositionSec: null,
+        lastWatchedAt: null,
+      }
+    );
+  }
+
+  /** S'abonne à la fin de lecture VLC ; retourne la désinscription. */
+  onPlaybackEnded(listener: (mediaId: number) => void): () => void {
+    return window.api?.player.onEnded(listener) ?? (() => undefined);
   }
 
   /* -------------------------- tmdb -------------------------- */

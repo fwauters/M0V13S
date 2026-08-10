@@ -61,6 +61,13 @@
                   {{ t('detail.rating', { rating: m.personalRating }) }}
                 </span>
               }
+              <!-- Vu jusqu'au bout (auto > 90 % ou marquage manuel). -->
+              @if (m.watch.completed) {
+                <span class="flex items-center gap-1 rounded-full bg-brand/25 px-2 py-0.5 text-xs">
+                  <mat-icon inline>check_circle</mat-icon>
+                  {{ t('detail.seenBadge') }}
+                </span>
+              }
             </p>
 
             <!-- Langues des pistes (union des fichiers) : audio + ST. -->
@@ -101,15 +108,41 @@
                  le thème de l'app. -->
             @if (!editing()) {
               <div class="mt-1 flex flex-wrap items-center gap-3">
+                <!-- LECTURE VLC (phase 4) : action principale de la fiche.
+                     Reprise proposée quand une position est sauvegardée. -->
+                @if (hasPlayableFile()) {
+                  <button
+                    type="button"
+                    (click)="play(m.watch.resumePositionSec !== null)"
+                    class="flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-sm font-medium text-on-brand transition hover:bg-brand-hover"
+                  >
+                    <mat-icon inline>play_arrow</mat-icon>
+                    @if (m.watch.resumePositionSec !== null) {
+                      {{ t('detail.resume', { time: resumeLabel() }) }}
+                    } @else {
+                      {{ t('detail.play') }}
+                    }
+                  </button>
+                  @if (m.watch.resumePositionSec !== null) {
+                    <button
+                      type="button"
+                      (click)="play(false)"
+                      class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                    >
+                      <mat-icon inline>replay</mat-icon>
+                      {{ t('detail.restart') }}
+                    </button>
+                  }
+                }
                 @if (m.trailerYoutubeKey !== null) {
                   <!-- Trailer : SEULE fonctionnalité online-only (CLAUDE.md). -->
                   <button
                     type="button"
                     [disabled]="!connectivity.online()"
                     (click)="openTrailer()"
-                    class="flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-sm font-medium text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <mat-icon inline>play_arrow</mat-icon>
+                    <mat-icon inline>smart_display</mat-icon>
                     {{ t('detail.trailerButton') }}
                   </button>
                   @if (!connectivity.online()) {
@@ -132,7 +165,23 @@
                   <mat-icon inline>edit</mat-icon>
                   {{ t('detail.editButton') }}
                 </button>
+                <!-- Marquage manuel vu / pas vu (watch_state personnel). -->
+                <button
+                  type="button"
+                  (click)="toggleSeen()"
+                  class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm text-white/90 transition hover:bg-white/10"
+                >
+                  <mat-icon inline>{{ m.watch.completed ? 'remove_done' : 'done_all' }}</mat-icon>
+                  {{ m.watch.completed ? t('detail.markUnseen') : t('detail.markSeen') }}
+                </button>
               </div>
+
+              <!-- Échec de lancement VLC : message explicite, jamais bloquant. -->
+              @if (playStatus() !== 'idle' && playStatus() !== 'ok') {
+                <p class="text-sm font-medium text-red-300">
+                  {{ t('detail.playErrors.' + playStatus()) }}
+                </p>
+              }
             }
           </div>
         </div>
