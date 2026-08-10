@@ -11,11 +11,12 @@ import { ApiService } from './api.service';
  * - Verrouillé par défaut à CHAQUE lancement dès qu'un mot de passe
  *   existe ; tant qu'aucun n'est défini (app pas encore configurée),
  *   tout reste ouvert — l'écran de premier lancement en proposera un.
- * - Déverrouillage : combo clavier Ctrl+Alt+A (obfuscation assumée —
- *   rien de visible tant que c'est verrouillé), ou toute navigation
- *   vers une route admin (le guard ouvre le dialogue).
+ * - Déverrouillage : naviguer vers une fonction admin (Scanner, vue
+ *   données) — le guard ouvre le dialogue de mot de passe. Décision
+ *   utilisateur (phase 5) : PAS de combo clavier — le mot de passe
+ *   suffit, le dialogue arrive naturellement par la navigation.
  * - Re-verrouillage : le cadenas du header (visible seulement une fois
- *   déverrouillé) ou le même combo.
+ *   déverrouillé).
  */
 @Injectable({ providedIn: 'root' })
 export class AdminLockService {
@@ -26,7 +27,7 @@ export class AdminLockService {
   /** Vrai si le mode admin est accessible (signal). */
   readonly unlocked = this._unlocked.asReadonly();
 
-  /** Une seule invite à la fois (combo + guard peuvent se croiser). */
+  /** Une seule invite à la fois (deux guards peuvent se croiser). */
   private prompting: Promise<boolean> | null = null;
 
   constructor() {
@@ -36,21 +37,9 @@ export class AdminLockService {
         this._unlocked.set(true);
       }
     });
-
-    // Combo global Ctrl+Alt+A : déverrouille (invite) ou re-verrouille.
-    window.addEventListener('keydown', (event) => {
-      if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'a') {
-        event.preventDefault();
-        if (this._unlocked()) {
-          this.lock();
-        } else {
-          void this.requestUnlock();
-        }
-      }
-    });
   }
 
-  /** Re-verrouille immédiatement (cadenas du header, combo). */
+  /** Re-verrouille immédiatement (cadenas du header). */
   lock(): void {
     this._unlocked.set(false);
   }

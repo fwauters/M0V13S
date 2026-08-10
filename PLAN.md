@@ -44,7 +44,7 @@
 | État de visionnage | **Personnel, DB locale uniquement** | Vu / position de reprise ne sont pas exportés dans les `.nfo` : partager ses dossiers ne partage pas son historique. |
 | Séries | **Schéma unifié films + séries dès maintenant, UI films seule en v1** | Schéma validé ensemble (§ 5) : table `media` unifiée, `seasons` en table, `watch_state` par épisode, `video_files` 1-N avec `partNumber`. |
 | Analyse fichiers | **ffprobe embarqué** | Durée, codecs, résolution extraits au scan. |
-| Mode admin | Combo touches + mot de passe (hash local) | Obfuscation suffisante pour un usage privé, pas de gestion d'utilisateurs. |
+| Mode admin | Mot de passe (hash local), dialogue à l'accès aux fonctions admin | Obfuscation suffisante pour un usage privé, pas de gestion d'utilisateurs. Pas de combo touches (décision utilisateur, phase 5) : la navigation suffit à déclencher l'invite. |
 
 ---
 
@@ -296,10 +296,12 @@ Rangées calculées en SQL, dans l'ordre :
 
 ### 6.8 Mode admin
 
-Combo touches (ex. `Ctrl+Shift+A`) → prompt mot de passe → comparaison au hash
-(scrypt, module `crypto` de Node) stocké dans `settings`. Déverrouille : édition
-des fiches, lancement du scan, réglages, MAJ VLC, vue données. (Obfuscation
-assumée, pas de la vraie sécurité — usage privé.)
+Accès à une fonction admin (Scanner, vue données…) → dialogue de mot de
+passe → comparaison au hash (scrypt, module `crypto` de Node) stocké dans
+`settings`. Pas de combo touches (décision utilisateur, phase 5) : la
+navigation déclenche l'invite, un cadenas dans le header re-verrouille.
+Déverrouille : édition des fiches, lancement du scan, réglages, MAJ VLC,
+vue données. (Obfuscation assumée, pas de la vraie sécurité — usage privé.)
 
 **Vue données** : les tables de la DB exposées dans des grilles **ag-grid
 Community** (tri, filtre, recherche, virtualisation pour les grosses tables).
@@ -356,7 +358,7 @@ est dérisquée dès la phase 0.
 
 ### Phase 5 — Intelligence & finitions
 - Rangées de suggestions (§ 6.4).
-- Verrou admin (combo + mot de passe).
+- Verrou admin (mot de passe, dialogue à l'accès).
 - Mise à jour de VLC depuis le mode admin (§ 6.7).
 - Édition contrôlée dans la vue admin des tables (via les services métier).
 - Test e2e « smoke » sur le build packagé (lancement, conformité, navigation, lecture).

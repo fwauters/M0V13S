@@ -47,8 +47,9 @@ required.
   arrive with their `.nfo` sidecars are imported silently — offline.
 - Light / dark themes, switchable at any time.
 - UI in English and French (extensible — adding a language is one JSON file).
-- Admin mode behind a key combo + password, including a data view of the
-  database tables. Movies first; the data model is series-ready.
+- Admin mode behind a password (prompted when opening admin features),
+  including a data view of the database tables. Movies first; the data
+  model is series-ready.
 
 ## Tech stack
 

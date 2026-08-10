@@ -63,8 +63,9 @@ Projet **open source (MIT)**, publié sur GitHub.
 - **MAJ VLC** : proposée en mode admin quand en ligne, bascule au prochain
   démarrage, ancienne version conservée en secours. **MAJ de l'app** : copie
   manuelle d'un nouveau build (data\ et sidecars intacts par conception).
-- **Mode admin** : combo touches + mot de passe hashé (scrypt via `crypto`),
-  obfuscation assumée.
+- **Mode admin** : mot de passe hashé (scrypt via `crypto`), demandé par un
+  dialogue à l'accès aux fonctions admin (pas de combo touches — décision
+  utilisateur phase 5), obfuscation assumée.
 - Aucune ressource distante dans l'UI : polices, icônes, images — tout est
   bundlé (exigence hors-ligne). Seul le trailer YouTube est online-only.
 - **Vue admin des tables DB** (ag-grid Community) : lecture/tri/filtre sur

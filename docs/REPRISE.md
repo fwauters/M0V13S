@@ -82,7 +82,8 @@ Aucune pour l'instant : la phase 5 est en cours de développement.
 
 Phase 5 (branche `phase-5`, en cours) — TODO 5.1 → 5.8 : rangées de
 suggestions (à reprendre, jamais vus, pas vus depuis longtemps, genre
-favori) → verrou admin (combo touches + scrypt) → vlc-updater
+favori) → verrou admin (mot de passe scrypt, dialogue via guard — pas de
+combo, décision utilisateur) → vlc-updater
 (vérification/téléchargement en mode admin, bascule au redémarrage,
 version de secours) → édition contrôlée de la vue admin (via services
 métier, réécriture .nfo garantie) → écran de premier lancement (racines,

@@ -52,9 +52,9 @@ compte, sans internet.
 - Thèmes light / dark, commutables à tout moment.
 - Interface en français et en anglais (extensible — ajouter une langue = un
   fichier JSON).
-- Mode admin derrière un combo de touches + mot de passe, avec une vue
-  « données » des tables de la base. Films d'abord ; le modèle de données est
-  prêt pour les séries.
+- Mode admin derrière un mot de passe (demandé à l'ouverture des fonctions
+  admin), avec une vue « données » des tables de la base. Films d'abord ;
+  le modèle de données est prêt pour les séries.
 
 ## Stack technique
 

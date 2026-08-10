@@ -129,8 +129,10 @@
 
 - [ ] **5.1** Rangées de suggestions (à reprendre, jamais vus, pas vus depuis
   longtemps, genre favori, ajoutés récemment) + tests.
-- [ ] **5.2** Verrou admin : combo touches + mot de passe (scrypt) + définition
-  au premier lancement.
+- [x] **5.2** Verrou admin : mot de passe (scrypt), dialogue ouvert par le
+  guard des routes admin (pas de combo touches — décision utilisateur),
+  cadenas de re-verrouillage, outils admin masqués quand verrouillé ;
+  définition du mot de passe au premier lancement (5.5).
 - [ ] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin,
   bascule au redémarrage, version de secours + tests.
 - [ ] **5.4** Édition contrôlée dans la vue admin des tables (via services
