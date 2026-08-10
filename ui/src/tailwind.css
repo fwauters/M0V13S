@@ -53,3 +53,41 @@
     display: none;
   }
 }
+
+/*
+ * Polish (phase 5.6) — accessibilité et mouvement.
+ */
+@layer base {
+  /* Focus CLAVIER visible partout (anneau brand) : couvre les éléments
+   * stylés Tailwind (cartes, boutons du hero, pills de navigation) —
+   * Material garde ses propres indicateurs. Jamais au clic (focus-visible). */
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  /* Apparition douce du contenu de chaque page (léger, non intrusif). */
+  main > * {
+    animation: m0v13s-fade-in 0.18s ease-out;
+  }
+  @keyframes m0v13s-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  /* Respect de la préférence système « réduire les animations » :
+   * transitions et animations quasi instantanées, défilement direct. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

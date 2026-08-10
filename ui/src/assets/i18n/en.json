@@ -64,6 +64,7 @@
   "browse": {
     "title": "My library",
     "empty": "Nothing to show. Run a scan to qualify your files.",
+    "emptyCta": "Scan my files",
     "minutes": "{{min}} min",
     "seenBadge": "Seen",
     "rowResume": "Continue watching",

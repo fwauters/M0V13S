@@ -64,6 +64,7 @@
   "browse": {
     "title": "Ma bibliothèque",
     "empty": "Aucun film affichable. Lancez un scan pour qualifier vos fichiers.",
+    "emptyCta": "Scanner mes fichiers",
     "minutes": "{{min}} min",
     "seenBadge": "Vu",
     "rowResume": "Reprendre",

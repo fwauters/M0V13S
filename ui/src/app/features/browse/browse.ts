@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { BrowseFilters } from './browse-filters';
@@ -15,7 +17,7 @@ import { PosterRow } from './poster-row';
  */
 @Component({
   selector: 'app-browse',
-  imports: [TranslocoDirective, BrowseFilters, MovieCard, PosterRow],
+  imports: [TranslocoDirective, RouterLink, MatIcon, BrowseFilters, MovieCard, PosterRow],
   templateUrl: './browse.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Relaye la chaîne flex du layout (voir admin-data.ts pour le pourquoi).
