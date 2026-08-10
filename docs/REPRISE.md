@@ -67,20 +67,35 @@
 - Confidentialité : jamais de nom réel/email dans le code — pseudonyme
   **S13N** si besoin.
 
-## Snapshot technique (fin de session)
+## Snapshot technique (fin de session du 2026-08-10)
 
 - Stack : Electron 43 + Angular 22.1.1 (zoneless) + Material M3 (identité
   bi-thème : sarcelle clair / ambre sombre, overrides ciblés `html.dark`,
   ag-grid accentColor aligné) + Tailwind v4 + Transloco fr/en +
   better-sqlite3/Drizzle (migrations 0000-0003) + VLC portable 3.0.23 +
-  ffprobe dans `tools\`.
-- **142 tests backend + 32 tests UI verts** ; audit 0 vulnérabilité ;
-  packaging portable vérifié AVEC tools embarqués (exe + fenêtre OK).
-- Lecture : `player:play` → premier fichier présent, VLC HTTP 127.0.0.1
-  port dynamique + mot de passe jetable, polling 2 s, reprise continue,
-  vu > 90 % (une fois), `player:ended` → l'UI recharge.
-- Branches : `main` (phases 0-3), `phase-4` (poussée, PR #5 ouverte).
-- Rapports : phase_0 à phase_3 (validés), phase_4.md (en validation).
+  ffprobe dans `tools\` + Playwright (dev, e2e Electron — pas de
+  navigateur téléchargé, son postinstall bloqué par pnpm 10 convient).
+- **163 tests backend + 37 tests UI verts** ; audit 0 vulnérabilité
+  (TS 7 exclu — Angular 22.1 exige ~6.0) ; packaging + e2e OK.
+- Services main : paths, settings, filename, ffprobe (langues de pistes
+  incluses), conformity, walker, scanner (+updateMediaField), library,
+  nfo, images, thumbs, tmdb, grouping, vlc (+logic), watch, vlc-updater
+  (+logic), admin (scrypt), admin-tables. IPC par domaines : system,
+  settings, library, scanner, admin (+updateMediaField), tmdb, player,
+  vlcUpdate, adminLock.
+- UI : routes `/` (setupGuard), `/setup`, `/browse` + `/movie/:id`
+  (classicModeGuard), `/scan` + `/admin/data` (adminGuard). Stores :
+  LibraryStore, BrowseStore (filtres persistants + suggestions),
+  AdminLockService (signal unlocked), ThemeService, LanguageService,
+  ConnectivityService.
+- Commandes de session : `pnpm dev` / `test` / `test:ui` / `typecheck` /
+  `build` / `package` / **`pnpm e2e`** (exige `pnpm package` avant ;
+  SUPPRIME release\win-unpacked\data pour partir propre — release\ est
+  un artefact jetable).
+- Branches : `main` (phases 0-4 mergées), `phase-5` (poussée, PR #6
+  ouverte). Rapports : phase_0 à phase_4 (validés), phase_5.md (en
+  validation). Le dossier `data\` de DEV (racine du repo) contient la
+  bibliothèque de test de l'utilisateur — ne pas y toucher.
 
 ## Plan de la phase 6 (dès la PR #6 mergée)
 
