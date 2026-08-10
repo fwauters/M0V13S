@@ -124,8 +124,11 @@
 
 ## Phase 5 — Intelligence & finitions
 
+> La release ne clôt PLUS cette phase : elle arrive en fin de phase 6,
+> après la recette générale (décision utilisateur, 2026-08-10).
+
 - [ ] **5.1** Rangées de suggestions (à reprendre, jamais vus, pas vus depuis
-  longtemps, genre favori, ajoutés récemment) + tests SQL.
+  longtemps, genre favori, ajoutés récemment) + tests.
 - [ ] **5.2** Verrou admin : combo touches + mot de passe (scrypt) + définition
   au premier lancement.
 - [ ] **5.3** `vlc-updater.service` : vérification/téléchargement en mode admin,
@@ -137,5 +140,32 @@
 - [ ] **5.6** Polish UI : animations, focus clavier, états vides, accessibilité.
 - [ ] **5.7** Test e2e « smoke » sur le build packagé (lancement, conformité,
   navigation, lecture).
-- [ ] **5.8** **Release v1.0** : build final, tag git, GitHub Release, READMEs
-  finalisés (guide d'utilisation complet, captures d'écran).
+- [ ] **5.8** Fin de phase : deps, docs, portabilité, rapport phase_5.md,
+  PR — validation utilisateur avant merge.
+
+## Phase 6 — Recette générale & release v1.0
+
+*Objectif (demande utilisateur) : une checklist EXHAUSTIVE de tout ce qui
+existe — systèmes, fonctionnalités, vues, designs — que l'utilisateur
+déroule pour traquer micro-changements et oublis, afin de sortir une
+v1.0 la plus nickel possible.*
+
+- [ ] **6.1** Rédaction de `docs/RECETTE.md` : checklist complète générée
+  depuis l'INVENTAIRE RÉEL du code (routes, écrans, services, canaux IPC,
+  réglages, clés i18n, thèmes) — organisée par parcours, cases à cocher,
+  colonne « remarque » pour chaque point.
+- [ ] **6.2** Recette « parcours & vues » (déroulée par l'utilisateur) :
+  accueil, browse (rangées, suggestions, filtres/tris, badges), fiche
+  (hero, casting, langues, trailer, lecture/reprise, édition), scan
+  (racines, assistant, TMDB, regroupement, re-liens, suppressions), admin
+  (tables, édition contrôlée, verrou), premier lancement — le tout dans
+  les DEUX thèmes et les DEUX langues.
+- [ ] **6.3** Recette « systèmes » : conformité au lancement, sidecars
+  `.nfo`/images (scénario partage), hors-ligne intégral (débrancher le
+  réseau), lecture VLC/reprise/vu, MAJ VLC, portabilité réelle (copie sur
+  disque externe + machine B hors ligne).
+- [ ] **6.4** Corrections et ajouts issus de la recette : traités par lots
+  (un commit par lot, tests de non-régression), RECETTE.md re-cochée
+  après chaque lot.
+- [ ] **6.5** **Release v1.0** : build final, tag git, GitHub Release,
+  READMEs finalisés (guide d'utilisation complet, captures d'écran).

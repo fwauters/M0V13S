@@ -362,6 +362,22 @@ est dérisquée dès la phase 0.
 - Test e2e « smoke » sur le build packagé (lancement, conformité, navigation, lecture).
 - Polish UI (animations, focus clavier, états vides), écran de premier lancement
   (choix des racines, clé TMDB).
+- La release ne clôt PLUS cette phase : elle arrive en fin de phase 6
+  (décision utilisateur, 2026-08-10).
+
+### Phase 6 — Recette générale & release v1.0
+Vérification systématique de TOUT ce qui existe avant la vraie release
+(décision utilisateur) : une checklist exhaustive (`docs/RECETTE.md`),
+générée depuis l'inventaire réel du code (écrans, services, canaux IPC,
+réglages, i18n, thèmes), que l'utilisateur déroule pour identifier
+micro-changements et oublis.
+- Recette « parcours & vues » : chaque écran dans les deux thèmes et les
+  deux langues.
+- Recette « systèmes » : conformité, sidecars/partage, hors-ligne
+  intégral, lecture/reprise/vu, MAJ VLC, portabilité réelle (machine B).
+- Corrections par lots (tests de non-régression), checklist re-cochée.
+- **Release v1.0** : build final, tag git, GitHub Release, READMEs
+  finalisés (guide complet, captures d'écran).
 
 ### Plus tard (hors périmètre v1)
 - UI séries (détection `S01E02`, regroupement saisons, épisode suivant) —

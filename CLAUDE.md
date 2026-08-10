@@ -209,5 +209,6 @@ actions en attente, pièges d'environnement) — mis à jour en fin de session.
 - [x] Phase 1 — Bibliothèque locale & conformité (validée par l'utilisateur : scan, qualification, fiche, vue admin)
 - [x] Phase 2 — Sidecars & enrichissement TMDB (validée par l'utilisateur : langues configurables, sidecars, regroupement, édition manuelle, posters)
 - [x] Phase 3 — UI « Netflix » (validée par l'utilisateur : charte bi-thème sarcelle/ambre, rangées + miniatures, fiche cinéma, filtres, wordmark Space Mono, langues des pistes)
-- [ ] Phase 4 — Lecture VLC & suivi (en cours)
-- [ ] Phase 5 — Intelligence & finitions
+- [x] Phase 4 — Lecture VLC & suivi (validée par l'utilisateur : lecture, reprise, vu auto/manuel, tools embarqués au packaging)
+- [ ] Phase 5 — Intelligence & finitions (en cours — la release est déplacée en fin de phase 6)
+- [ ] Phase 6 — Recette générale & release v1.0 (checklist exhaustive `docs/RECETTE.md` déroulée par l'utilisateur, corrections par lots, puis release)
