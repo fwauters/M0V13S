@@ -152,6 +152,87 @@
         <p class="text-xs opacity-60">{{ t('home.tmdb.hint') }}</p>
       }
     </section>
+
+    <!-- Lecteur VLC embarqué (MAJ en mode admin — PLAN § 6.7). -->
+    <section
+      class="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-black/10 p-5 text-left dark:border-white/10"
+    >
+      <div class="flex items-center gap-2">
+        <mat-icon inline>play_circle</mat-icon>
+        <h2 class="font-medium">{{ t('home.vlc.title') }}</h2>
+      </div>
+
+      @if (vlcState(); as state) {
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          @if (!state.vlcPresent) {
+            <span class="text-amber-600 dark:text-amber-400">{{ t('home.vlc.missing') }}</span>
+          } @else if (state.installedVersion !== null) {
+            <span>{{ t('home.vlc.installed', { version: state.installedVersion }) }}</span>
+          } @else {
+            <span>{{ t('home.vlc.installedUnknown') }}</span>
+          }
+          <span class="grow"></span>
+          <button matButton [disabled]="vlcBusy()" (click)="checkVlc()">
+            {{ t('home.vlc.check') }}
+          </button>
+        </div>
+
+        <!-- MAJ déjà téléchargée : bascule au prochain démarrage. -->
+        @if (state.pendingVersion !== null) {
+          <p class="text-sm font-medium text-green-700 dark:text-green-400">
+            {{ t('home.vlc.pending', { version: state.pendingVersion }) }}
+          </p>
+        }
+
+        @if (vlcBusy()) {
+          <p class="text-sm opacity-70">{{ t('home.vlc.busy') }}</p>
+        } @else if (vlcDownload(); as download) {
+          @switch (download) {
+            @case ('ok') {}
+            @case ('offline') {
+              <p class="text-sm font-medium text-amber-600 dark:text-amber-400">
+                {{ t('home.vlc.offline') }}
+              </p>
+            }
+            @case ('error') {
+              <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                {{ t('home.vlc.error') }}
+              </p>
+            }
+          }
+        } @else if (vlcCheck(); as check) {
+          @switch (check.status) {
+            @case ('update') {
+              <div class="flex flex-wrap items-center gap-3 text-sm">
+                <span class="font-medium">
+                  {{ t('home.vlc.updateAvailable', { version: check.latestVersion }) }}
+                </span>
+                <button matButton="filled" (click)="downloadVlc()">
+                  {{ t('home.vlc.download') }}
+                </button>
+              </div>
+            }
+            @case ('upToDate') {
+              <p class="text-sm font-medium text-green-700 dark:text-green-400">
+                {{ t('home.vlc.upToDate', { version: check.latestVersion }) }}
+              </p>
+            }
+            @case ('offline') {
+              <p class="text-sm font-medium text-amber-600 dark:text-amber-400">
+                {{ t('home.vlc.offline') }}
+              </p>
+            }
+            @case ('error') {
+              <p class="text-sm font-medium text-red-600 dark:text-red-400">
+                {{ t('home.vlc.error') }}
+              </p>
+            }
+          }
+        }
+
+        <p class="text-xs opacity-60">{{ t('home.vlc.hint') }}</p>
+      }
+    </section>
     }
   </div>
 </ng-container>

@@ -448,6 +448,29 @@ export interface PlayOutcome {
 }
 
 /* ------------------------------------------------------------------ */
+/* Mise à jour de VLC (mode admin, en ligne — PLAN § 6.7)              */
+/* ------------------------------------------------------------------ */
+
+/** État du lecteur embarqué pour la carte admin de l'accueil. */
+export interface VlcUpdaterState {
+  /** tools\vlc\vlc.exe présent. */
+  vlcPresent: boolean;
+  /** Version installée (marqueur `.version`), null = inconnue. */
+  installedVersion: string | null;
+  /** Version en staging (`vlc-next`), appliquée au prochain démarrage. */
+  pendingVersion: string | null;
+}
+
+/** Résultat de la vérification de mise à jour. */
+export interface VlcUpdateCheckOutcome {
+  status: 'update' | 'upToDate' | 'offline' | 'error';
+  latestVersion: string | null;
+}
+
+/** Résultat du téléchargement (staging). */
+export type VlcUpdateDownloadStatus = 'ok' | 'offline' | 'error';
+
+/* ------------------------------------------------------------------ */
 /* Vue admin des tables (ag-grid, lecture seule en phase 1)            */
 /* ------------------------------------------------------------------ */
 

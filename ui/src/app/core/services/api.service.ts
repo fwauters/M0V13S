@@ -17,6 +17,9 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  VlcUpdateCheckOutcome,
+  VlcUpdateDownloadStatus,
+  VlcUpdaterState,
   WatchStateInfo,
 } from '@shared/dto';
 import type { SystemPingResult, UiSettingKey } from '@shared/ipc';
@@ -154,6 +157,29 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /* ------------------------ MAJ de VLC ---------------------- */
+
+  /** État du lecteur embarqué (versions installée / en attente). */
+  async getVlcUpdaterState(): Promise<VlcUpdaterState> {
+    return (
+      window.api?.vlcUpdate.getState() ?? {
+        vlcPresent: false,
+        installedVersion: null,
+        pendingVersion: null,
+      }
+    );
+  }
+
+  /** Vérifie la dernière version publiée (hors Electron : hors ligne). */
+  async checkVlcUpdate(): Promise<VlcUpdateCheckOutcome> {
+    return window.api?.vlcUpdate.check() ?? { status: 'offline', latestVersion: null };
+  }
+
+  /** Télécharge la mise à jour en staging. */
+  async downloadVlcUpdate(): Promise<VlcUpdateDownloadStatus> {
+    return window.api?.vlcUpdate.download() ?? 'offline';
   }
 
   /* ----------------------- verrou admin --------------------- */

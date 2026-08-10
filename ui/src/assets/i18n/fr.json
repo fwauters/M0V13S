@@ -37,6 +37,21 @@
       "resultInvalid": "Clé refusée par TMDB : vérifiez la saisie.",
       "resultOffline": "Hors ligne : impossible de vérifier maintenant. La clé est enregistrée et sera testable en ligne."
     },
+    "vlc": {
+      "title": "Lecteur VLC embarqué",
+      "missing": "VLC portable absent (tools\\vlc) — lancez « pnpm prepare-tools --only=vlc ».",
+      "installed": "Version installée : {{version}}",
+      "installedUnknown": "Version installée : inconnue (déposée sans marqueur).",
+      "check": "Vérifier les mises à jour",
+      "busy": "Opération en cours…",
+      "updateAvailable": "Version {{version}} disponible.",
+      "upToDate": "À jour ({{version}}).",
+      "download": "Télécharger",
+      "pending": "Version {{version}} prête — elle sera appliquée au prochain démarrage (l'actuelle est conservée en secours).",
+      "offline": "Hors ligne : impossible d'interroger videolan.org.",
+      "error": "Échec de l'opération — la version en place n'a pas été touchée.",
+      "hint": "La mise à jour est téléchargée à côté de la version actuelle et n'est appliquée qu'au prochain démarrage — jamais pendant une lecture."
+    },
     "tagline": "Votre vidéothèque, façon Netflix, 100 % hors ligne.",
     "launch": "Lancer le programme",
     "launchHint": "Parcourir et regarder votre bibliothèque",

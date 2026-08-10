@@ -56,6 +56,11 @@ const api: WindowApi = {
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
   },
+  vlcUpdate: {
+    getState: () => ipcRenderer.invoke(IPC.vlcUpdate.getState),
+    check: () => ipcRenderer.invoke(IPC.vlcUpdate.check),
+    download: () => ipcRenderer.invoke(IPC.vlcUpdate.download),
+  },
   adminLock: {
     hasPassword: () => ipcRenderer.invoke(IPC.adminLock.hasPassword),
     verify: (password: string) => ipcRenderer.invoke(IPC.adminLock.verify, password),

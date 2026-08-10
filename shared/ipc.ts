@@ -26,6 +26,9 @@ import type {
   TmdbKeyTestResult,
   TmdbLanguageConfig,
   TmdbSearchOutcome,
+  VlcUpdateCheckOutcome,
+  VlcUpdateDownloadStatus,
+  VlcUpdaterState,
   WatchStateInfo,
 } from './dto';
 
@@ -73,6 +76,14 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+  },
+  vlcUpdate: {
+    /** État du lecteur embarqué (version installée / en attente). */
+    getState: 'vlc-update:get-state',
+    /** Vérifie la dernière version publiée (en ligne). */
+    check: 'vlc-update:check',
+    /** Télécharge en staging (bascule au prochain démarrage). */
+    download: 'vlc-update:download',
   },
   adminLock: {
     /** Vrai si un mot de passe admin est défini. */
@@ -170,6 +181,11 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+  };
+  vlcUpdate: {
+    getState(): Promise<VlcUpdaterState>;
+    check(): Promise<VlcUpdateCheckOutcome>;
+    download(): Promise<VlcUpdateDownloadStatus>;
   };
   adminLock: {
     hasPassword(): Promise<boolean>;
