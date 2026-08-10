@@ -175,6 +175,10 @@ Premier retour : « pas mal du tout », avec trois ajustements.
    plus que des `mat.theme-overrides` CIBLÉS sur la famille primaire,
    avec l'ambre VIF du wordmark (mêmes valeurs que `--color-brand` /
    `--color-on-brand`). Fond identique à avant, accents ambre francs.
+   Complément (troisième retour) : `secondary-container` surchargé aussi
+   (état sélectionné des button-toggle langue/tables, resté bleuté), et
+   `accentColor` d'ag-grid aligné sur la charte dans les deux thèmes
+   (survol/sélection de ligne, coches — le bleu par défaut de quartz).
 4. **Trailer ET langues éditables manuellement** (demandes utilisateur :
    TMDB n'a pas toujours de trailer, les pistes ne sont pas toujours
    taguées) — dans l'édition manuelle de la fiche :

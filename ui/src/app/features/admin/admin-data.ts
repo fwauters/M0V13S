@@ -65,9 +65,19 @@ export class AdminData {
   /** Vrai si l'affichage est tronqué (plafond de lignes du backend). */
   protected readonly truncated = computed(() => this.rows().length < this.totalCount());
 
-  /** Thème ag-grid synchronisé sur le thème de l'app (un seul signal). */
+  /**
+   * Thème ag-grid synchronisé sur le thème de l'app (un seul signal).
+   * `accentColor` pilote survol de ligne, sélection, coches et onglets
+   * de filtres : aligné sur la charte (sarcelle en clair, ambre en
+   * sombre) — le bleu par défaut de quartz jurait avec l'identité
+   * (retour utilisateur phase 3).
+   */
   protected readonly gridTheme = computed(() =>
-    this.themeService.theme() === 'dark' ? themeQuartz.withPart(colorSchemeDark) : themeQuartz,
+    this.themeService.theme() === 'dark'
+      ? themeQuartz
+          .withPart(colorSchemeDark)
+          .withParams({ accentColor: 'oklch(0.78 0.14 80)' })
+      : themeQuartz.withParams({ accentColor: 'oklch(0.5 0.1 200)' }),
   );
 
   /** Réglages de colonnes communs : tri + filtre + redimensionnement. */
