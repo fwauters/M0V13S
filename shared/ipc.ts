@@ -9,6 +9,7 @@
  * Le renderer ne voit que `window.api`, jamais ipcRenderer directement.
  */
 import type {
+  AdminEditableMediaField,
   AdminTableData,
   AdminTableName,
   ConformitySummary,
@@ -76,6 +77,9 @@ export const IPC = {
   admin: {
     /** Lecture d'une table pour la vue admin (lecture seule, liste blanche). */
     readTable: 'admin:read-table',
+    /** Édition contrôlée d'un champ de `media` (liste blanche, via
+     *  updateMovieManual — fiche + .nfo réécrits, jamais de SQL direct). */
+    updateMediaField: 'admin:update-media-field',
   },
   vlcUpdate: {
     /** État du lecteur embarqué (version installée / en attente). */
@@ -181,6 +185,12 @@ export interface WindowApi {
   };
   admin: {
     readTable(table: AdminTableName): Promise<AdminTableData>;
+    /** Faux si fiche inconnue ou champ hors liste blanche. */
+    updateMediaField(
+      mediaId: number,
+      field: AdminEditableMediaField,
+      value: string | number | null,
+    ): Promise<boolean>;
   };
   vlcUpdate: {
     getState(): Promise<VlcUpdaterState>;

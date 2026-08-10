@@ -218,7 +218,8 @@
       "unlock": "Déverrouiller",
       "wrong": "Mot de passe incorrect."
     },
-    "dataTitle": "Tables de la base (lecture seule)",
+    "dataTitle": "Tables de la base",
+    "editHint": "Lecture pour toutes les tables. Sur « media », les colonnes titre localisé, année, notes et avis sont éditables (double-clic) : chaque modification passe par les services métier — fiche ET .nfo réécrits, jamais de SQL direct.",
     "table": "Table",
     "totalRows": "{{count}} ligne(s)",
     "truncated": "affichage tronqué"

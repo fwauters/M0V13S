@@ -489,6 +489,21 @@ export type AdminTableName =
   | 'media_tags'
   | 'watch_state';
 
+/**
+ * Champs de `media` éditables depuis la vue admin (phase 5) — liste
+ * BLANCHE de scalaires sûrs. L'édition passe par `updateMovieManual`
+ * (services métier : fiche + `.nfo` réécrits, relations préservées),
+ * JAMAIS par du SQL direct (décision PLAN § 1). Noms de colonnes DB.
+ */
+export const ADMIN_EDITABLE_MEDIA_FIELDS = [
+  'title_vf',
+  'year',
+  'personal_rating',
+  'personal_notes',
+  'tmdb_rating',
+] as const;
+export type AdminEditableMediaField = (typeof ADMIN_EDITABLE_MEDIA_FIELDS)[number];
+
 /** Contenu d'une table pour la grille admin (lecture seule). */
 export interface AdminTableData {
   /** Noms de colonnes, dans l'ordre du schéma. */

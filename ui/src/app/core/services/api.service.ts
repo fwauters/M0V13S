@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import type {
+  AdminEditableMediaField,
   AdminTableData,
   AdminTableName,
   ConformitySummary,
@@ -157,6 +158,15 @@ export class ApiService {
   /** Contenu d'une table pour la vue admin (lecture seule). */
   async readAdminTable(table: AdminTableName): Promise<AdminTableData> {
     return window.api?.admin.readTable(table) ?? { columns: [], rows: [], totalCount: 0 };
+  }
+
+  /** Édition contrôlée d'un champ de `media` (vue admin, liste blanche). */
+  async updateAdminMediaField(
+    mediaId: number,
+    field: AdminEditableMediaField,
+    value: string | number | null,
+  ): Promise<boolean> {
+    return window.api?.admin.updateMediaField(mediaId, field, value) ?? false;
   }
 
   /* ------------------------ MAJ de VLC ---------------------- */

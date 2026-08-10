@@ -6,6 +6,7 @@
 import { BrowserWindow, ipcMain } from 'electron';
 
 import type {
+  AdminEditableMediaField,
   AdminTableName,
   ManualEditInput,
   QualifyMovieInput,
@@ -144,4 +145,12 @@ export function registerLibraryIpc(services: LibraryIpcServices | null): void {
     }
     return services.adminTables.readTable(table);
   });
+
+  // Édition contrôlée (phase 5) : champ scalaire de `media` via la voie
+  // métier (updateMovieManual — fiche + .nfo réécrits, liste blanche).
+  ipcMain.handle(
+    IPC.admin.updateMediaField,
+    (_e, mediaId: number, field: AdminEditableMediaField, value: string | number | null) =>
+      services?.scanner.updateMediaField(Number(mediaId), field, value) ?? false,
+  );
 }

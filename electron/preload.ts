@@ -6,6 +6,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 import type {
+  AdminEditableMediaField,
   AdminTableName,
   ManualEditInput,
   QualifyMovieInput,
@@ -55,6 +56,11 @@ const api: WindowApi = {
   },
   admin: {
     readTable: (table: AdminTableName) => ipcRenderer.invoke(IPC.admin.readTable, table),
+    updateMediaField: (
+      mediaId: number,
+      field: AdminEditableMediaField,
+      value: string | number | null,
+    ) => ipcRenderer.invoke(IPC.admin.updateMediaField, mediaId, field, value),
   },
   vlcUpdate: {
     getState: () => ipcRenderer.invoke(IPC.vlcUpdate.getState),

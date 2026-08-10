@@ -479,6 +479,37 @@ describe('ScannerService.updateMovieManual (édition manuelle)', () => {
       }),
     ).toBe(false);
   });
+
+  it('updateMediaField (vue admin) : champ modifié, reste préservé, .nfo réécrit', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(
+      makeInput({ tmdbId: 70981, personalNotes: 'Mon film de chevet.' }),
+    );
+
+    expect(await scanner.updateMediaField(mediaId, 'title_vf', 'Titre admin')).toBe(true);
+    // Chaîne numérique d'ag-grid parsée ; virgule décimale tolérée.
+    expect(await scanner.updateMediaField(mediaId, 'tmdb_rating', '7,9')).toBe(true);
+
+    const m = db.select().from(media).all()[0]!;
+    expect(m.titleVf).toBe('Titre admin');
+    expect(m.tmdbRating).toBe(7.9);
+    expect(m.personalNotes).toBe('Mon film de chevet.'); // le reste est intact
+    expect(m.tmdbId).toBe(70981);
+    // La voie métier a bien réécrit le .nfo (jamais de SQL direct).
+    const nfoPath = path.join(tmpDir, 'Films', 'Prometheus (2012)', 'prometheus.nfo');
+    expect(parseMovieNfoXml(fs.readFileSync(nfoPath, 'utf8'))?.titleVf).toBe('Titre admin');
+  });
+
+  it('updateMediaField : valeur numérique illisible ou champ inconnu refusés', async () => {
+    makeVideoFile('Films/Prometheus (2012)/prometheus.mkv', null);
+    const mediaId = await scanner.qualify(makeInput({}));
+
+    expect(await scanner.updateMediaField(mediaId, 'year', 'pas-un-nombre')).toBe(false);
+    expect(
+      await scanner.updateMediaField(mediaId, 'title_vo' as never, 'interdit'),
+    ).toBe(false); // hors liste blanche
+    expect(await scanner.updateMediaField(999, 'year', '2001')).toBe(false); // fiche inconnue
+  });
 });
 
 describe('ScannerService.relink / deleteMedia', () => {

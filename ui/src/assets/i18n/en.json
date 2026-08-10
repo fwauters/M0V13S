@@ -218,7 +218,8 @@
       "unlock": "Unlock",
       "wrong": "Incorrect password."
     },
-    "dataTitle": "Database tables (read-only)",
+    "dataTitle": "Database tables",
+    "editHint": "All tables are readable. On “media”, the localized title, year, ratings and review columns are editable (double-click): every change goes through the business services — record AND .nfo rewritten, never raw SQL.",
     "table": "Table",
     "totalRows": "{{count}} row(s)",
     "truncated": "display truncated"

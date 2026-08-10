@@ -4,12 +4,17 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
+  CellValueChangedEvent,
   ColDef,
   ModuleRegistry,
   colorSchemeDark,
   themeQuartz,
 } from 'ag-grid-community';
-import type { AdminTableName } from '@shared/dto';
+import {
+  ADMIN_EDITABLE_MEDIA_FIELDS,
+  type AdminEditableMediaField,
+  type AdminTableName,
+} from '@shared/dto';
 
 import { ApiService } from '../../core/services/api.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -98,11 +103,39 @@ export class AdminData {
     void this.load(table);
   }
 
-  /** Charge le contenu d'une table (lecture seule). */
+  /** Charge le contenu d'une table (lecture seule sauf liste blanche). */
   private async load(table: AdminTableName): Promise<void> {
     const data = await this.api.readAdminTable(table);
-    this.columns.set(data.columns.map((field): ColDef => ({ field })));
+    this.columns.set(
+      data.columns.map(
+        (field): ColDef => ({
+          field,
+          // Édition CONTRÔLÉE (phase 5) : seuls les champs scalaires de
+          // `media` de la liste blanche — tout passe par les services
+          // métier côté main (fiche + .nfo réécrits, jamais de SQL).
+          editable:
+            table === 'media' &&
+            (ADMIN_EDITABLE_MEDIA_FIELDS as readonly string[]).includes(field),
+        }),
+      ),
+    );
     this.rows.set(data.rows);
     this.totalCount.set(data.totalCount);
+  }
+
+  /** Relaye une édition de cellule vers la voie métier puis recharge
+   *  (la table reflète l'état RÉEL, y compris updated_at et un refus). */
+  protected async onCellValueChanged(event: CellValueChangedEvent): Promise<void> {
+    const mediaId = Number((event.data as Record<string, unknown>)['id']);
+    const field = event.colDef.field as AdminEditableMediaField | undefined;
+    if (this.selected() !== 'media' || field === undefined || !Number.isFinite(mediaId)) {
+      return;
+    }
+    await this.api.updateAdminMediaField(
+      mediaId,
+      field,
+      event.newValue as string | number | null,
+    );
+    await this.load(this.selected());
   }
 }

@@ -19,6 +19,7 @@ import path from 'node:path';
 import { and, asc, eq } from 'drizzle-orm';
 
 import type {
+  AdminEditableMediaField,
   ExistingFiche,
   ManualEditInput,
   QualifyActor,
@@ -340,6 +341,93 @@ export class ScannerService {
       console.warn(`Regroupement en dossier impossible pour ${relPath} :`, error);
       return null;
     }
+  }
+
+  /**
+   * Édition CONTRÔLÉE d'un champ scalaire de `media` depuis la vue admin
+   * (phase 5) : la fiche existante est rechargée, le champ remplacé, et
+   * tout repasse par `updateMovieManual` — fiche + `.nfo` réécrits,
+   * relations préservées, JAMAIS de SQL direct (décision PLAN § 1).
+   * @returns faux si fiche inconnue, champ hors liste blanche ou valeur
+   *          numérique illisible
+   */
+  async updateMediaField(
+    mediaId: number,
+    field: AdminEditableMediaField,
+    value: string | number | null,
+  ): Promise<boolean> {
+    const existing = this.loadExistingFiche(mediaId);
+    if (existing === null) {
+      return false;
+    }
+
+    // Normalisation : chaîne vide -> null ; champs numériques parsés
+    // (ag-grid renvoie des chaînes) ; nombre illisible -> refus.
+    const asText = (v: string | number | null): string | null => {
+      const text = v === null ? '' : String(v).trim();
+      return text === '' ? null : text;
+    };
+    const asNumber = (v: string | number | null): number | null | undefined => {
+      const text = asText(v);
+      if (text === null) {
+        return null;
+      }
+      const parsed = Number.parseFloat(text.replace(',', '.'));
+      return Number.isFinite(parsed) ? parsed : undefined; // undefined = refus
+    };
+
+    const form: ManualEditInput = {
+      titleVo: existing.titleVo,
+      titleVf: existing.titleVf,
+      year: existing.year,
+      overview: existing.overview,
+      personalRating: existing.personalRating,
+      personalNotes: existing.personalNotes,
+      tmdbRating: existing.tmdbRating,
+      trailerYoutubeKey: existing.trailerYoutubeKey,
+      audioLangs: existing.audioLangs,
+      subtitleLangs: existing.subtitleLangs,
+      directors: existing.directors,
+      writers: existing.writers,
+      actors: existing.actors.map((a) => a.name),
+      genres: existing.genres,
+      tags: existing.tags,
+    };
+    switch (field) {
+      case 'title_vf':
+        form.titleVf = asText(value);
+        break;
+      case 'year': {
+        const year = asNumber(value);
+        if (year === undefined) {
+          return false;
+        }
+        form.year = year === null ? null : Math.round(year);
+        break;
+      }
+      case 'personal_rating': {
+        const rating = asNumber(value);
+        if (rating === undefined) {
+          return false;
+        }
+        form.personalRating = rating === null ? null : Math.round(rating);
+        break;
+      }
+      case 'personal_notes':
+        form.personalNotes = asText(value);
+        break;
+      case 'tmdb_rating': {
+        const rating = asNumber(value);
+        if (rating === undefined) {
+          return false;
+        }
+        form.tmdbRating = rating;
+        break;
+      }
+      default:
+        return false; // champ hors liste blanche
+    }
+    return this.updateMovieManual(mediaId, form);
   }
 
   /**
