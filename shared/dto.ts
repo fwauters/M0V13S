@@ -398,6 +398,8 @@ export interface MovieDetail {
   genres: string[];
   tags: string[];
   people: MoviePerson[];
+  /** État de visionnage personnel (phase 4) — zéros si jamais lu. */
+  watch: WatchStateInfo;
   files: Array<{
     id: number;
     relPath: string;
@@ -406,6 +408,38 @@ export interface MovieDetail {
     status: 'ok' | 'missing';
     tech: TechInfo;
   }>;
+}
+
+/* ------------------------------------------------------------------ */
+/* Lecture VLC & suivi de visionnage (phase 4 — PLAN § 6.3)            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * État de visionnage d'un film, tel qu'exposé à l'UI. PERSONNEL :
+ * vit uniquement dans la DB locale, jamais exporté dans les `.nfo`.
+ */
+export interface WatchStateInfo {
+  /** Vu jusqu'au bout (auto à > 90 % de la durée, ou marquage manuel). */
+  completed: boolean;
+  /** Nombre de visionnages complets. */
+  watchCount: number;
+  /** Position de reprise en secondes (null = pas de lecture en cours). */
+  resumePositionSec: number | null;
+  /** Dernier visionnage (ms epoch), null si jamais vu. */
+  lastWatchedAt: number | null;
+}
+
+/** Résultat d'une demande de lecture — jamais d'exception côté UI. */
+export type PlayStatus =
+  | 'ok' /*             VLC lancé */
+  | 'vlcMissing' /*     tools\vlc absent (prepare-tools --only=vlc) */
+  | 'fileMissing' /*    fichier vidéo introuvable sur le disque */
+  | 'alreadyPlaying' /* une lecture est déjà en cours */
+  | 'error'; /*         échec inattendu du lancement */
+
+/** Réponse du canal `player:play`. */
+export interface PlayOutcome {
+  status: PlayStatus;
 }
 
 /* ------------------------------------------------------------------ */

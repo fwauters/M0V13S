@@ -194,6 +194,13 @@ export class LibraryService {
       .orderBy(asc(mediaPeople.sortOrder))
       .all();
 
+    // État de visionnage personnel (boutons Lire/Reprendre, badge vu).
+    const watch = this.db
+      .select()
+      .from(watchState)
+      .where(eq(watchState.mediaId, id))
+      .get();
+
     return {
       id: m.id,
       titleVo: m.titleVo,
@@ -211,6 +218,12 @@ export class LibraryService {
       people: peopleRows.map(
         (p): MoviePerson => ({ name: p.name, role: p.role, character: p.character }),
       ),
+      watch: {
+        completed: watch?.completed ?? false,
+        watchCount: watch?.watchCount ?? 0,
+        resumePositionSec: watch?.resumePositionSec ?? null,
+        lastWatchedAt: watch?.lastWatchedAt ?? null,
+      },
       files: files.map((f) => ({
         id: f.id,
         relPath: f.relPath,
