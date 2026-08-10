@@ -19,7 +19,8 @@ export type SettingKey =
   | 'tmdb.apiKey'
   | 'tmdb.language'
   | 'tmdb.trailerLanguage'
-  | 'admin.passwordHash';
+  | 'admin.passwordHash'
+  | 'app.setupDone';
 
 /** Service d'accès aux réglages (une instance par DB ouverte). */
 export class SettingsService {

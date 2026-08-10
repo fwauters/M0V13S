@@ -211,6 +211,19 @@
     "noNewFiles": "Rien de nouveau : la bibliothèque est conforme au disque.",
     "done": "Tous les nouveaux fichiers ont été traités."
   },
+  "setup": {
+    "title": "Bienvenue dans M0V13S",
+    "intro": "Trois réglages et c'est parti — tout reste modifiable ensuite (accueil et mode Scanner).",
+    "rootsTitle": "1. Dossiers de la bibliothèque",
+    "tmdbTitle": "2. Clé API TMDB (optionnelle)",
+    "tmdbHint": "Sans clé, le scan fonctionne — les fiches se remplissent à la main. Clé gratuite : themoviedb.org → Paramètres → API.",
+    "adminTitle": "3. Mot de passe admin (optionnel, recommandé)",
+    "adminHint": "Protège le scan, les réglages, l'édition des fiches et la vue des données. Laissez vide pour tout laisser ouvert.",
+    "adminConfirm": "Confirmer le mot de passe",
+    "adminMismatch": "Les deux saisies ne correspondent pas.",
+    "finish": "Terminer",
+    "finishHint": "Vous pourrez lancer votre premier scan juste après."
+  },
   "admin": {
     "unlock": {
       "title": "Mode admin",

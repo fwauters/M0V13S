@@ -9,7 +9,11 @@ import { IPC, UiSettingKey } from '@shared/ipc';
 import type { SettingsService } from '../services/settings.service';
 
 /** Liste blanche des clés exposées au renderer. */
-const UI_KEYS: ReadonlySet<string> = new Set<UiSettingKey>(['ui.theme', 'ui.lang']);
+const UI_KEYS: ReadonlySet<string> = new Set<UiSettingKey>([
+  'ui.theme',
+  'ui.lang',
+  'app.setupDone',
+]);
 
 /** Rejette toute clé hors liste blanche (bug d'appelant ou tentative louche). */
 function assertUiKey(key: string): asserts key is UiSettingKey {

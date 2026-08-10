@@ -127,8 +127,9 @@ export const IPC = {
  * Clés de réglage accessibles au RENDERER (préférences d'interface).
  * Les clés sensibles (clé TMDB, hash admin) restent côté main
  * et ne transitent que par des canaux dédiés et contrôlés.
+ * `app.setupDone` : l'écran de premier lancement a été terminé (phase 5).
  */
-export type UiSettingKey = 'ui.theme' | 'ui.lang';
+export type UiSettingKey = 'ui.theme' | 'ui.lang' | 'app.setupDone';
 
 /** Réponse du ping de diagnostic (étape 0.6). */
 export interface SystemPingResult {

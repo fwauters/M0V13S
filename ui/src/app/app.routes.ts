@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { adminGuard } from './core/admin.guard';
 import { classicModeGuard } from './core/classic-mode.guard';
+import { setupGuard } from './core/setup.guard';
 
 /**
  * Routes de l'application (composants chargés paresseusement).
@@ -11,7 +12,13 @@ import { classicModeGuard } from './core/classic-mode.guard';
 export const routes: Routes = [
   {
     path: '',
+    // Premier lancement : redirige vers /setup tant que rien n'est configuré.
+    canActivate: [setupGuard],
     loadComponent: () => import('./features/home/home').then((m) => m.Home),
+  },
+  {
+    path: 'setup',
+    loadComponent: () => import('./features/setup/setup').then((m) => m.Setup),
   },
   {
     path: 'browse',

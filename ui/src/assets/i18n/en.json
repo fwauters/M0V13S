@@ -211,6 +211,19 @@
     "noNewFiles": "Nothing new: the library matches the drive.",
     "done": "All new files have been processed."
   },
+  "setup": {
+    "title": "Welcome to M0V13S",
+    "intro": "Three settings and you're in — everything stays editable later (home and Scan mode).",
+    "rootsTitle": "1. Library folders",
+    "tmdbTitle": "2. TMDB API key (optional)",
+    "tmdbHint": "Without a key, scanning still works — entries are filled manually. Free key: themoviedb.org → Settings → API.",
+    "adminTitle": "3. Admin password (optional, recommended)",
+    "adminHint": "Protects scanning, settings, entry editing and the data view. Leave empty to keep everything open.",
+    "adminConfirm": "Confirm password",
+    "adminMismatch": "The two entries do not match.",
+    "finish": "Finish",
+    "finishHint": "You can run your first scan right after."
+  },
   "admin": {
     "unlock": {
       "title": "Admin mode",
